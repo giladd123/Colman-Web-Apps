@@ -127,8 +127,12 @@
       .scroll-wrapper:hover .scroll-btn {
         opacity: 1;
       }
-      .scroll-btn.left { left: 0; }
-      .scroll-btn.right { right: 0; }
+      .scroll-btn.left {
+        left: 0;
+      }
+      .scroll-btn.right {
+        right: 0;
+      }
       .movie-card {
         flex: 0 0 auto;
         width: 180px;
@@ -173,8 +177,12 @@
         cursor: pointer;
         transition: transform 0.2s ease, color 0.2s ease;
       }
-      .like-btn.liked { color: #e50914; }
-      .like-btn .bi-heart-fill { color: #e50914; }
+      .like-btn.liked {
+        color: #e50914;
+      }
+      .like-btn .bi-heart-fill {
+        color: #e50914;
+      }
 
       .like-btn i {
         display: inline-block;
@@ -192,17 +200,25 @@
       }
 
       @keyframes heart-bounce {
-        0%   { transform: scale(1); }
-        30%  { transform: scale(1.4); }
-        60%  { transform: scale(0.9); }
-        100% { transform: scale(1); }
+        0% {
+          transform: scale(1);
+        }
+        30% {
+          transform: scale(1.4);
+        }
+        60% {
+          transform: scale(0.9);
+        }
+        100% {
+          transform: scale(1);
+        }
       }
       .like-btn i.like-animate {
         animation: heart-bounce 0.45s ease;
         position: relative;
       }
       .like-btn i.like-animate::after {
-        content: '';
+        content: "";
         position: absolute;
         top: 50%;
         left: 50%;
@@ -215,15 +231,36 @@
         animation: heart-glow 0.45s ease forwards;
       }
       @keyframes heart-glow {
-        0%   { opacity: 0.9; transform: translate(-50%, -50%) scale(0); }
-        100% { opacity: 0;   transform: translate(-50%, -50%) scale(2.5); }
+        0% {
+          opacity: 0.9;
+          transform: translate(-50%, -50%) scale(0);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(-50%, -50%) scale(2.5);
+        }
       }
       @keyframes heart-unlike {
-        0%   { transform: rotate(0deg) scale(1); color: #e50914; }
-        25%  { transform: rotate(-15deg) scale(0.9); color: rgba(255,255,255,0.7); }
-        50%  { transform: rotate(15deg) scale(0.9); color: rgba(255,255,255,0.7); }
-        75%  { transform: rotate(-10deg) scale(0.95); color: rgba(255,255,255,0.7); }
-        100% { transform: rotate(0deg) scale(1); color: #fff; }
+        0% {
+          transform: rotate(0deg) scale(1);
+          color: #e50914;
+        }
+        25% {
+          transform: rotate(-15deg) scale(0.9);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        50% {
+          transform: rotate(15deg) scale(0.9);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        75% {
+          transform: rotate(-10deg) scale(0.95);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        100% {
+          transform: rotate(0deg) scale(1);
+          color: #fff;
+        }
       }
       .like-btn i.unlike-animate {
         animation: heart-unlike 0.45s ease;
@@ -255,13 +292,14 @@
             type="text"
             class="form-control form-control-sm bg-dark text-white ms-2"
             placeholder="Search..."
-            style="display:none; width: 180px;"
+            style="display: none; width: 180px"
           />
           <span class="icon-btn"><i class="bi bi-alphabet"></i></span>
           <span class="icon-btn"><i class="bi bi-bell"></i></span>
 
           <div class="nav-item dropdown ms-2">
-            <a id="profileDropdown"
+            <a
+              id="profileDropdown"
               class="nav-link dropdown-toggle p-0"
               role="button"
               data-bs-toggle="dropdown"
@@ -275,15 +313,26 @@
               />
             </a>
 
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown" style="min-width:180px;">
+            <ul
+              class="dropdown-menu dropdown-menu-end"
+              aria-labelledby="profileDropdown"
+              style="min-width: 180px"
+            >
               <li>
-                <a class="dropdown-item text-white text-start" href="profiles-page.html">
+                <a
+                  class="dropdown-item text-white text-start"
+                  href="profiles-page.html"
+                >
                   <i class="bi bi-person-circle me-2"></i> Select Profile
                 </a>
               </li>
               <li>
-                <a class="dropdown-item text-white text-start" onclick="logout()" style="cursor: pointer;">
-                    <i class="bi bi-box-arrow-right me-2"></i> Log Out
+                <a
+                  class="dropdown-item text-white text-start"
+                  onclick="logout()"
+                  style="cursor: pointer"
+                >
+                  <i class="bi bi-box-arrow-right me-2"></i> Log Out
                 </a>
               </li>
             </ul>
@@ -300,15 +349,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="movies.js"></script>
     <script>
-      selectedProfileName = localStorage.getItem("selectedProfileName")
-      selectedProfileImage = localStorage.getItem("selectedProfileImage")
-      selectedProfileImage = selectedProfileImage ? selectedProfileImage : "images/profiles/yellow.png"
+      selectedProfileName = localStorage.getItem("selectedProfileName");
+      selectedProfileImage = localStorage.getItem("selectedProfileImage");
+      selectedProfileImage = selectedProfileImage
+        ? selectedProfileImage
+        : "images/profiles/yellow.png";
 
       if (!selectedProfileName) {
         window.location.href = "profiles-page.html";
-      }
-      else {
-        document.getElementById("helloMessage").innerText = `Hello, ${selectedProfileName}`;
+      } else {
+        document.getElementById(
+          "helloMessage"
+        ).innerText = `Hello, ${selectedProfileName}`;
         document.getElementById("currentProfileImg").src = selectedProfileImage;
       }
       function logout() {
@@ -318,12 +370,12 @@
       (function () {
         const ROW_SIZE = 12;
         const ROW_TITLES = [
-          'Popular',
-          'Trending',
-          'Because you watched',
-          'Watch it Again',
-          'Top Rated',
-          "Action"
+          "Popular",
+          "Trending",
+          "Because you watched",
+          "Watch it Again",
+          "Top Rated",
+          "Action",
         ];
 
         function chunkArray(items, chunkSize) {
@@ -338,100 +390,114 @@
           try {
             const inst = bootstrap.Tooltip.getInstance(el);
             if (inst) inst.dispose();
-          }
-          catch (e) {}
-          el.setAttribute('title', text);
-          el.setAttribute('data-bs-original-title', text);
+          } catch (e) {}
+          el.setAttribute("title", text);
+          el.setAttribute("data-bs-original-title", text);
           new bootstrap.Tooltip(el);
         }
 
         function createCard(movie) {
-          const card = document.createElement('div');
-          card.className = 'movie-card';
+          const card = document.createElement("div");
+          card.className = "movie-card";
 
-          const badge = document.createElement('span');
-          badge.className = 'badge-pill';
-          badge.textContent = movie.imdbRating ? `${movie.imdbRating}` : movie.Year || '';
+          const badge = document.createElement("span");
+          badge.className = "badge-pill";
+          badge.textContent = movie.imdbRating
+            ? `${movie.imdbRating}`
+            : movie.Year || "";
 
-          const img = document.createElement('img');
-          img.className = 'movie-poster';
-          img.alt = movie.Title || 'Poster';
+          const img = document.createElement("img");
+          img.className = "movie-poster";
+          img.alt = movie.Title || "Poster";
           img.src = movie.Poster;
           img.loading = "lazy";
 
           // Like button
-          const likeBtn = document.createElement('button');
-          likeBtn.className = 'like-btn';
-          likeBtn.setAttribute('data-bs-toggle', 'tooltip');
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "like-btn";
+          likeBtn.setAttribute("data-bs-toggle", "tooltip");
 
           const movieId = movie.imdbID || movie.Title;
-          const likesDataAll = JSON.parse(localStorage.getItem('likesData')) || {};
+          const likesDataAll =
+            JSON.parse(localStorage.getItem("likesData")) || {};
 
           let entry = likesDataAll[movieId];
           if (!entry) {
             entry = {
               base: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
               extra: 0,
-              liked: false
+              liked: false,
             };
             likesDataAll[movieId] = entry;
-            localStorage.setItem('likesData', JSON.stringify(likesDataAll));
+            localStorage.setItem("likesData", JSON.stringify(likesDataAll));
           }
 
           entry.base = Number(entry.base);
           entry.extra = Number(entry.extra);
 
           const totalLikes = entry.base + entry.extra;
-          likeBtn.innerHTML = `<i class="bi ${entry.liked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+          likeBtn.innerHTML = `<i class="bi ${
+            entry.liked ? "bi-heart-fill" : "bi-heart"
+          }"></i>
                               <span class="like-count">${totalLikes}</span>`;
-          likeBtn.setAttribute('aria-pressed', entry.liked ? 'true' : 'false');
-          likeBtn.setAttribute('aria-label', entry.liked ? 'Unlike this movie' : 'Like this movie');
+          likeBtn.setAttribute("aria-pressed", entry.liked ? "true" : "false");
+          likeBtn.setAttribute(
+            "aria-label",
+            entry.liked ? "Unlike this movie" : "Like this movie"
+          );
 
-          const tooltipText = entry.liked ? `Unlike 💔` : 'Like ❤️';
+          const tooltipText = entry.liked ? `Unlike 💔` : "Like ❤️";
           updateTooltip(likeBtn, tooltipText);
 
-          likeBtn.addEventListener('click', () => {
-            const stored = JSON.parse(localStorage.getItem('likesData')) || {};
-            const cur = stored[movieId] || { base: entry.base, extra: entry.extra, liked: entry.liked };
+          likeBtn.addEventListener("click", () => {
+            const stored = JSON.parse(localStorage.getItem("likesData")) || {};
+            const cur = stored[movieId] || {
+              base: entry.base,
+              extra: entry.extra,
+              liked: entry.liked,
+            };
 
-            const icon = likeBtn.querySelector('i');
+            const icon = likeBtn.querySelector("i");
 
             if (!cur.liked) {
               cur.liked = true;
               cur.extra = (cur.extra || 0) + 1;
-              likeBtn.classList.add('liked');
+              likeBtn.classList.add("liked");
 
               if (icon) {
-                icon.classList.replace('bi-heart', 'bi-heart-fill');
-                icon.classList.remove('like-animate');
+                icon.classList.replace("bi-heart", "bi-heart-fill");
+                icon.classList.remove("like-animate");
                 void icon.offsetWidth;
-                icon.classList.add('like-animate');
-                setTimeout(() => icon.classList.remove('like-animate'), 450);
+                icon.classList.add("like-animate");
+                setTimeout(() => icon.classList.remove("like-animate"), 450);
               }
             } else {
               cur.liked = false;
               cur.extra = Math.max(0, (cur.extra || 0) - 1);
-              likeBtn.classList.remove('liked');
+              likeBtn.classList.remove("liked");
 
               if (icon) {
-                icon.classList.replace('bi-heart-fill', 'bi-heart');
-                icon.classList.remove('unlike-animate');
+                icon.classList.replace("bi-heart-fill", "bi-heart");
+                icon.classList.remove("unlike-animate");
                 void icon.offsetWidth;
-                icon.classList.add('unlike-animate');
-                setTimeout(() => icon.classList.remove('unlike-animate'), 300);
+                icon.classList.add("unlike-animate");
+                setTimeout(() => icon.classList.remove("unlike-animate"), 300);
               }
             }
 
             stored[movieId] = cur;
-            localStorage.setItem('likesData', JSON.stringify(stored));
+            localStorage.setItem("likesData", JSON.stringify(stored));
 
             const newTotal = cur.base + cur.extra;
-            const countEl = likeBtn.querySelector('.like-count');
+            const countEl = likeBtn.querySelector(".like-count");
             if (countEl) countEl.textContent = newTotal;
 
-            likeBtn.setAttribute('aria-pressed', cur.liked ? 'true' : 'false');
-            likeBtn.setAttribute('aria-label', cur.liked ? 'Unlike this movie' : 'Like this movie');
-            const newTooltip = cur.liked ? `Unlike 💔` : 'Like ❤️';
+            likeBtn.setAttribute("aria-pressed", cur.liked ? "true" : "false");
+            likeBtn.setAttribute(
+              "aria-label",
+              cur.liked ? "Unlike this movie" : "Like this movie"
+            );
+            const newTooltip = cur.liked ? `Unlike 💔` : "Like ❤️";
             updateTooltip(likeBtn, newTooltip);
           });
 
@@ -443,26 +509,26 @@
         }
 
         function createRow(title, movies, rowIndex) {
-          const section = document.createElement('section');
-          section.className = 'row-section';
+          const section = document.createElement("section");
+          section.className = "row-section";
 
-          const h3 = document.createElement('h3');
-          h3.className = 'row-title';
+          const h3 = document.createElement("h3");
+          h3.className = "row-title";
           h3.textContent = title;
 
-          const wrapper = document.createElement('div');
-          wrapper.className = 'scroll-wrapper';
+          const wrapper = document.createElement("div");
+          wrapper.className = "scroll-wrapper";
 
-          const leftBtn = document.createElement('button');
-          leftBtn.className = 'scroll-btn left';
+          const leftBtn = document.createElement("button");
+          leftBtn.className = "scroll-btn left";
           leftBtn.innerHTML = '<i class="bi bi-chevron-left fs-3"></i>';
 
-          const rightBtn = document.createElement('button');
-          rightBtn.className = 'scroll-btn right';
+          const rightBtn = document.createElement("button");
+          rightBtn.className = "scroll-btn right";
           rightBtn.innerHTML = '<i class="bi bi-chevron-right fs-3"></i>';
 
-          const scroller = document.createElement('div');
-          scroller.className = 'scroll-container';
+          const scroller = document.createElement("div");
+          scroller.className = "scroll-container";
           scroller.id = `row-${rowIndex}`;
 
           movies.forEach((movie) => {
@@ -470,8 +536,12 @@
             scroller.appendChild(card);
           });
 
-          leftBtn.addEventListener('click', () => scroller.scrollBy({ left: -600, behavior: 'smooth' }));
-          rightBtn.addEventListener('click', () => scroller.scrollBy({ left: 600, behavior: 'smooth' }));
+          leftBtn.addEventListener("click", () =>
+            scroller.scrollBy({ left: -600, behavior: "smooth" })
+          );
+          rightBtn.addEventListener("click", () =>
+            scroller.scrollBy({ left: 600, behavior: "smooth" })
+          );
 
           wrapper.appendChild(leftBtn);
           wrapper.appendChild(scroller);
@@ -483,8 +553,8 @@
         }
 
         function loadAndRender() {
-          const content = document.getElementById('content');
-          content.innerHTML = '';
+          const content = document.getElementById("content");
+          content.innerHTML = "";
 
           const chunks = chunkArray(movies, ROW_SIZE);
           chunks.forEach((chunk, i) => {
@@ -495,79 +565,81 @@
         }
 
         function renderMovies(filtered) {
-          const movieCards = document.getElementById('content');
-          movieCards.innerHTML = ''; // clear previous content
+          const movieCards = document.getElementById("content");
+          movieCards.innerHTML = ""; // clear previous content
 
           if (filtered.length === 0) {
-            const noResult = document.createElement('p');
-            noResult.textContent = 'No results found';
-            noResult.style.color = 'white';
-            noResult.style.fontSize = '1.5rem';
-            noResult.style.textAlign = 'center';
+            const noResult = document.createElement("p");
+            noResult.textContent = "No results found";
+            noResult.style.color = "white";
+            noResult.style.fontSize = "1.5rem";
+            noResult.style.textAlign = "center";
             movieCards.appendChild(noResult);
             return;
           }
 
-          movieCards.style.display = 'flex';
-          movieCards.style.flexWrap = 'wrap';
-          movieCards.style.gap = '16px';
-          movieCards.style.padding = '20px';
+          movieCards.style.display = "flex";
+          movieCards.style.flexWrap = "wrap";
+          movieCards.style.gap = "16px";
+          movieCards.style.padding = "20px";
 
-          filtered.forEach(movie => {
+          filtered.forEach((movie) => {
             const card = createCard(movie);
             movieCards.appendChild(card);
           });
         }
 
-        document.addEventListener('DOMContentLoaded', loadAndRender);
+        document.addEventListener("DOMContentLoaded", loadAndRender);
 
         // add search functionality
-        const searchIcon = document.querySelector('.bi-search');
-        const searchInput = document.getElementById('searchInput');
+        const searchIcon = document.querySelector(".bi-search");
+        const searchInput = document.getElementById("searchInput");
         // open or close search input on icon click
-        searchIcon.addEventListener('click', () => {
-          if (searchInput.style.display === 'block') {
-            searchInput.style.display = 'none';
-            searchInput.value = '';
+        searchIcon.addEventListener("click", () => {
+          if (searchInput.style.display === "block") {
+            searchInput.style.display = "none";
+            searchInput.value = "";
             // reset content styles to fit original layout
-            const movieCards = document.getElementById('content');
-            movieCards.style.display = '';
-            movieCards.style.flexWrap = '';
-            movieCards.style.gap = '';
-            movieCards.style.padding = '';
+            const movieCards = document.getElementById("content");
+            movieCards.style.display = "";
+            movieCards.style.flexWrap = "";
+            movieCards.style.gap = "";
+            movieCards.style.padding = "";
             loadAndRender();
           } else {
-            searchInput.style.display = 'block';
+            searchInput.style.display = "block";
             searchInput.focus();
           }
         });
         // filter content on input
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener("input", (e) => {
           const query = e.target.value.toLowerCase();
-          const filtered = movies.filter(movie => movie.Title.toLowerCase().includes(query));
+          const filtered = movies.filter((movie) =>
+            movie.Title.toLowerCase().includes(query)
+          );
           renderMovies(filtered);
         });
 
         // add alphabetical sorting functionality
-        const AbcIcon = document.querySelector('.bi-alphabet');
+        const AbcIcon = document.querySelector(".bi-alphabet");
         // show sorted A-Z list on icon click or reset to original
         let AbcActive = false;
-        AbcIcon.addEventListener('click', () => {
+        AbcIcon.addEventListener("click", () => {
           // if abc button is clicked
           AbcActive = !AbcActive;
           if (AbcActive) {
-            AbcIcon.style.backgroundColor = '#FFFFFF80'; // highlight
-            AbcIcon.style.borderRadius = '4px'; // optional rounded effect
+            AbcIcon.style.backgroundColor = "#FFFFFF80"; // highlight
+            AbcIcon.style.borderRadius = "4px"; // optional rounded effect
             movies.sort((a, b) => a.Title.localeCompare(b.Title));
             renderMovies(movies);
           } else {
-            AbcIcon.style.backgroundColor = 'transparent'; // reset
+            AbcIcon.style.backgroundColor = "transparent"; // reset
             // reset content styles to fit original layout
-            const movieCards = document.getElementById('content');
-            movieCards.style.display = '';
-            movieCards.style.flexWrap = '';
-            movieCards.style.gap = '';
-            movieCards.style.padding = '';
+            const movieCards = document.getElementById("content");
+            movieCards.style.display = "";
+            movieCards.style.flexWrap = "";
+            movieCards.style.gap = "";
+            movieCards.style.padding = "";
             loadAndRender();
           }
         });
