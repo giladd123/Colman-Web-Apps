@@ -56,6 +56,28 @@
         width: 100%;
       }
 
+      .error-message {
+        color: #e50914;
+        font-size: 0.9rem;
+        margin-top: 4px;
+        display: none;
+        align-items: center;
+      }
+
+      .error-message.active {
+        display: flex;
+      }
+
+      .error-message.active::before {
+        content: "✖";
+        margin-right: 6px;
+        font-size: 1rem;
+      }
+
+      .form-control.is-invalid {
+        border-color: #e50914;
+      }
+
       .remember-me {
         color: #b3b3b3;
         font-size: 0.9rem;
@@ -113,15 +135,16 @@
           <div class="login-container">
             <h1 class="text-white mb-4">Sign In</h1>
 
-            <form>
+            <form id="loginForm" novalidate>
               <div class="mb-3">
                 <input
-                  type="email"
+                  type="text"
                   class="form-control"
-                  id="email"
+                  id="emailOrMobile"
                   placeholder="Email or mobile number"
                   required
                 />
+                <div id="emailOrMobileError" class="error-message"></div>
               </div>
 
               <div class="mb-3">
@@ -132,6 +155,7 @@
                   placeholder="Password"
                   required
                 />
+                <div id="passwordError" class="error-message"></div>
               </div>
 
               <div class="d-grid mb-3">
@@ -174,5 +198,76 @@
         </div>
       </div>
     </div>
+
+    <script>
+      function redirectAfterLogin() {
+        if (!localStorage.getItem("selectedProfileName")) {
+          window.location.href = "profiles-page.html";
+        } else {
+          window.location.href = "main-menu.html";
+        }
+      }
+      
+      // Redirect if already logged in
+      if (localStorage.getItem("isLoggedIn") === "true") {
+        redirectAfterLogin(); 
+      }
+
+      const form = document.getElementById("loginForm");
+      const emailOrMobileInput = document.getElementById("emailOrMobile");
+      const passwordInput = document.getElementById("password");
+      const emailOrMobileError = document.getElementById("emailOrMobileError");
+      const passwordError = document.getElementById("passwordError");
+
+      // Validation functions
+      function validateEmailOrMobile() {
+        const value = emailOrMobileInput.value.trim();
+        const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        const phonePattern = /^\+?[0-9]{8,15}$/;
+
+        if (!emailPattern.test(value) && !phonePattern.test(value)) {
+          emailOrMobileError.textContent = "Please enter a valid email or mobile number.";
+          emailOrMobileError.classList.add("active");
+          emailOrMobileInput.classList.add("is-invalid");
+          return false;
+        } else {
+          emailOrMobileError.textContent = "";
+          emailOrMobileError.classList.remove("active");
+          emailOrMobileInput.classList.remove("is-invalid");
+          return true;
+        }
+      }
+
+      function validatePassword() {
+        if (passwordInput.value.trim().length < 6) {
+          passwordError.textContent = "Password must be at least 6 characters long.";
+          passwordError.classList.add("active");
+          passwordInput.classList.add("is-invalid");
+          return false;
+        } else {
+          passwordError.textContent = "";
+          passwordError.classList.remove("active");
+          passwordInput.classList.remove("is-invalid");
+          return true;
+        }
+      }
+
+      // Validate when user leaves the input
+      emailOrMobileInput.addEventListener("blur", validateEmailOrMobile);
+      passwordInput.addEventListener("blur", validatePassword);
+
+      // Form submit
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const emailValid = validateEmailOrMobile();
+        const passwordValid = validatePassword();
+
+        if (emailValid && passwordValid) {
+          localStorage.setItem("isLoggedIn", "true");
+          redirectAfterLogin();
+        }
+      });
+    </script>
   </body>
 </html>
