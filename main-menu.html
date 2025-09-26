@@ -157,6 +157,75 @@
         padding: 2px 8px;
         border-radius: 999px;
       }
+
+      .like-btn {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.7);
+        border-radius: 3px;
+        border: none;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s ease, color 0.2s ease;
+      }
+      .like-btn.liked { color: #e50914; }
+      .like-btn .bi-heart-fill { color: #e50914; }
+
+      .like-btn i {
+        display: inline-block;
+        position: relative;
+        transform-origin: center center;
+        line-height: 1;
+      }
+
+      .like-btn:hover i {
+        transform: scale(1.2);
+      }
+      .like-btn:focus {
+        outline: 2px solid #e50914;
+        outline-offset: 2px;
+      }
+
+      @keyframes heart-bounce {
+        0%   { transform: scale(1); }
+        30%  { transform: scale(1.4); }
+        60%  { transform: scale(0.9); }
+        100% { transform: scale(1); }
+      }
+      .like-btn i.like-animate {
+        animation: heart-bounce 0.45s ease;
+        position: relative;
+      }
+      .like-btn i.like-animate::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 2.6rem;
+        height: 2.6rem;
+        background: rgba(229, 9, 20, 0.5);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        pointer-events: none;
+        animation: heart-glow 0.45s ease forwards;
+      }
+      @keyframes heart-glow {
+        0%   { opacity: 0.9; transform: translate(-50%, -50%) scale(0); }
+        100% { opacity: 0;   transform: translate(-50%, -50%) scale(2.5); }
+      }
+      @keyframes heart-unlike {
+        0%   { transform: rotate(0deg) scale(1); color: #e50914; }
+        25%  { transform: rotate(-15deg) scale(0.9); color: rgba(255,255,255,0.7); }
+        50%  { transform: rotate(15deg) scale(0.9); color: rgba(255,255,255,0.7); }
+        75%  { transform: rotate(-10deg) scale(0.95); color: rgba(255,255,255,0.7); }
+        100% { transform: rotate(0deg) scale(1); color: #fff; }
+      }
+      .like-btn i.unlike-animate {
+        animation: heart-unlike 0.45s ease;
+      }
     </style>
   </head>
   <body>
@@ -258,6 +327,114 @@
           return chunks;
         }
 
+        function updateTooltip(el, text) {
+          try {
+            const inst = bootstrap.Tooltip.getInstance(el);
+            if (inst) inst.dispose();
+          }
+          catch (e) {}
+          el.setAttribute('title', text);
+          el.setAttribute('data-bs-original-title', text);
+          new bootstrap.Tooltip(el);
+        }
+
+        function createCard(movie) {
+          const card = document.createElement('div');
+          card.className = 'movie-card';
+
+          const badge = document.createElement('span');
+          badge.className = 'badge-pill';
+          badge.textContent = movie.imdbRating ? `${movie.imdbRating}` : movie.Year || '';
+
+          const img = document.createElement('img');
+          img.className = 'movie-poster';
+          img.alt = movie.Title || 'Poster';
+          img.src = movie.Poster;
+          img.loading = "lazy";
+
+          // Like button
+          const likeBtn = document.createElement('button');
+          likeBtn.className = 'like-btn';
+          likeBtn.setAttribute('data-bs-toggle', 'tooltip');
+
+          const movieId = movie.imdbID || movie.Title;
+          const likesDataAll = JSON.parse(localStorage.getItem('likesData')) || {};
+
+          let entry = likesDataAll[movieId];
+          if (!entry) {
+            entry = {
+              base: Math.floor(Math.random() * (500 - 50 + 1)) + 50,
+              extra: 0,
+              liked: false
+            };
+            likesDataAll[movieId] = entry;
+            localStorage.setItem('likesData', JSON.stringify(likesDataAll));
+          }
+
+          entry.base = Number(entry.base);
+          entry.extra = Number(entry.extra);
+
+          const totalLikes = entry.base + entry.extra;
+          likeBtn.innerHTML = `<i class="bi ${entry.liked ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                              <span class="like-count">${totalLikes}</span>`;
+          likeBtn.setAttribute('aria-pressed', entry.liked ? 'true' : 'false');
+          likeBtn.setAttribute('aria-label', entry.liked ? 'Unlike this movie' : 'Like this movie');
+
+          const tooltipText = entry.liked ? `Unlike 💔` : 'Like ❤️';
+          updateTooltip(likeBtn, tooltipText);
+
+          likeBtn.addEventListener('click', () => {
+            const stored = JSON.parse(localStorage.getItem('likesData')) || {};
+            const cur = stored[movieId] || { base: entry.base, extra: entry.extra, liked: entry.liked };
+
+            const icon = likeBtn.querySelector('i');
+
+            if (!cur.liked) {
+              cur.liked = true;
+              cur.extra = (cur.extra || 0) + 1;
+              likeBtn.classList.add('liked');
+
+              if (icon) {
+                icon.classList.replace('bi-heart', 'bi-heart-fill');
+                icon.classList.remove('like-animate');
+                void icon.offsetWidth;
+                icon.classList.add('like-animate');
+                setTimeout(() => icon.classList.remove('like-animate'), 450);
+              }
+            } else {
+              cur.liked = false;
+              cur.extra = Math.max(0, (cur.extra || 0) - 1);
+              likeBtn.classList.remove('liked');
+
+              if (icon) {
+                icon.classList.replace('bi-heart-fill', 'bi-heart');
+                icon.classList.remove('unlike-animate');
+                void icon.offsetWidth;
+                icon.classList.add('unlike-animate');
+                setTimeout(() => icon.classList.remove('unlike-animate'), 300);
+              }
+            }
+
+            stored[movieId] = cur;
+            localStorage.setItem('likesData', JSON.stringify(stored));
+
+            const newTotal = cur.base + cur.extra;
+            const countEl = likeBtn.querySelector('.like-count');
+            if (countEl) countEl.textContent = newTotal;
+
+            likeBtn.setAttribute('aria-pressed', cur.liked ? 'true' : 'false');
+            likeBtn.setAttribute('aria-label', cur.liked ? 'Unlike this movie' : 'Like this movie');
+            const newTooltip = cur.liked ? `Unlike 💔` : 'Like ❤️';
+            updateTooltip(likeBtn, newTooltip);
+          });
+
+          card.appendChild(img);
+          card.appendChild(badge);
+          card.appendChild(likeBtn);
+
+          return card;
+        }
+
         function createRow(title, movies, rowIndex) {
           const section = document.createElement('section');
           section.className = 'row-section';
@@ -282,19 +459,7 @@
           scroller.id = `row-${rowIndex}`;
 
           movies.forEach((movie) => {
-            const card = document.createElement('div');
-            card.className = 'movie-card';
-
-            const badge = document.createElement('span');
-            badge.className = 'badge-pill';
-            badge.textContent = movie.imdbRating ? `${movie.imdbRating}` : movie.Year || '';
-
-            const img = document.createElement('img');
-            img.className = 'movie-poster';
-            img.alt = movie.Title || 'Poster';
-            img.src = movie.Poster;
-            card.appendChild(img);
-            card.appendChild(badge);
+            const card = createCard(movie);
             scroller.appendChild(card);
           });
 
@@ -322,13 +487,11 @@
           });
         }
 
-        document.addEventListener('DOMContentLoaded', loadAndRender);
-
-        function renderMovies(movies) {
+        function renderMovies(filtered) {
           const movieCards = document.getElementById('content');
           movieCards.innerHTML = ''; // clear previous content
 
-          if (movies.length === 0) {
+          if (filtered.length === 0) {
             const noResult = document.createElement('p');
             noResult.textContent = 'No results found';
             noResult.style.color = 'white';
@@ -338,29 +501,18 @@
             return;
           }
 
-          movies.forEach(movie => {
-            const card = document.createElement('div');
-            card.className = 'movie-card';
+          movieCards.style.display = 'flex';
+          movieCards.style.flexWrap = 'wrap';
+          movieCards.style.gap = '16px';
+          movieCards.style.padding = '20px';
 
-            const badge = document.createElement('span');
-            badge.className = 'badge-pill';
-            badge.textContent = movie.imdbRating || movie.Year || '';
-
-            const img = document.createElement('img');
-            img.className = 'movie-poster';
-            img.src = movie.Poster;
-            img.alt = movie.Title;
-
-            card.appendChild(img);
-            card.appendChild(badge);
-            movieCards.style.display = 'flex';
-            movieCards.style.flexWrap = 'wrap';
-            movieCards.style.gap = '16px';
-            movieCards.style.padding = '20px';
+          filtered.forEach(movie => {
+            const card = createCard(movie);
             movieCards.appendChild(card);
           });
         }
 
+        document.addEventListener('DOMContentLoaded', loadAndRender);
 
         // add search functionality
         const searchIcon = document.querySelector('.bi-search');
