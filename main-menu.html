@@ -178,11 +178,18 @@
         </ul>
         <div class="d-flex align-items-center">
           <span class="icon-btn"><i class="bi bi-search"></i></span>
+          <input
+            id="searchInput"
+            type="text"
+            class="form-control form-control-sm bg-dark text-white ms-2"
+            placeholder="Search..."
+            style="display:none; width: 180px;"
+          />
+          <span class="icon-btn"><i class="bi bi-alphabet"></i></span>
           <span class="icon-btn"><i class="bi bi-bell"></i></span>
 
           <div class="nav-item dropdown ms-2">
-            <a
-              id="profileDropdown"
+            <a id="profileDropdown"
               class="nav-link dropdown-toggle p-0"
               href="#"
               role="button"
@@ -229,6 +236,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script id="movies-data" type="application/json">[
       {
         "Title": "The Fault in Our Stars",
@@ -4093,6 +4101,101 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadAndRender);
+
+        function renderMovies(movies) {
+          const movieCards = document.getElementById('content');
+          movieCards.innerHTML = ''; // clear previous content
+
+          if (movies.length === 0) {
+            const noResult = document.createElement('p');
+            noResult.textContent = 'No results found';
+            noResult.style.color = 'white';
+            noResult.style.fontSize = '1.5rem';
+            noResult.style.textAlign = 'center';
+            movieCards.appendChild(noResult);
+            return;
+          }
+
+          movies.forEach(movie => {
+            const card = document.createElement('div');
+            card.className = 'movie-card';
+
+            const badge = document.createElement('span');
+            badge.className = 'badge-pill';
+            badge.textContent = movie.imdbRating || movie.Year || '';
+
+            const img = document.createElement('img');
+            img.className = 'movie-poster';
+            img.src = movie.Poster;
+            img.alt = movie.Title;
+
+            card.appendChild(img);
+            card.appendChild(badge);
+            movieCards.style.display = 'flex';
+            movieCards.style.flexWrap = 'wrap';
+            movieCards.style.gap = '16px';
+            movieCards.style.padding = '20px';
+            movieCards.appendChild(card);
+          });
+        }
+
+
+        // add search functionality
+        const searchIcon = document.querySelector('.bi-search');
+        const searchInput = document.getElementById('searchInput');
+        // open or close search input on icon click
+        searchIcon.addEventListener('click', () => {
+          if (searchInput.style.display === 'block') {
+            searchInput.style.display = 'none';
+            searchInput.value = '';
+            // reset content styles to fit original layout
+            const movieCards = document.getElementById('content');
+            movieCards.style.display = '';
+            movieCards.style.flexWrap = '';
+            movieCards.style.gap = '';
+            movieCards.style.padding = '';
+            loadAndRender();
+          } else {
+            searchInput.style.display = 'block';
+            searchInput.focus();
+          }
+        });
+        // filter content on input
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+          const dataEl = document.getElementById('movies-data'); 
+          const raw = (dataEl && dataEl.textContent) ? dataEl.textContent : '[]'; 
+          const movies = JSON.parse(raw);
+          const filtered = movies.filter(movie => movie.Title.toLowerCase().includes(query));
+          renderMovies(filtered);
+        });
+
+        // add alphabetical sorting functionality
+        const AbcIcon = document.querySelector('.bi-alphabet');
+        // show sorted A-Z list on icon click or reset to original
+        let AbcActive = false;
+        AbcIcon.addEventListener('click', () => {
+          // if abc button is clicked
+          AbcActive = !AbcActive;
+          if (AbcActive) {
+            AbcIcon.style.backgroundColor = '#FFFFFF80'; // highlight
+            AbcIcon.style.borderRadius = '4px'; // optional rounded effect
+            const dataEl = document.getElementById('movies-data');
+            const raw = (dataEl && dataEl.textContent) ? dataEl.textContent : '[]';
+            const movies = JSON.parse(raw);
+            movies.sort((a, b) => a.Title.localeCompare(b.Title));
+            renderMovies(movies);
+          } else {
+            AbcIcon.style.backgroundColor = 'transparent'; // reset
+            // reset content styles to fit original layout
+            const movieCards = document.getElementById('content');
+            movieCards.style.display = '';
+            movieCards.style.flexWrap = '';
+            movieCards.style.gap = '';
+            movieCards.style.padding = '';
+            loadAndRender();
+          }
+        });
       })();
     </script>
   </body>
