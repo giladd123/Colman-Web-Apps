@@ -1,0 +1,102 @@
+/* Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 */
+
+body {
+  background: url("../images/backgrounds/netflix_login_background.jpg") center
+    center/cover no-repeat;
+  min-height: 100vh;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.netflix-logo {
+  color: #e50914;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.login-container {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  padding: 3rem;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+.form-control {
+  background-color: #333;
+  border: 1px solid #555;
+  color: white;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+.form-control::placeholder {
+  color: #8c8c8c;
+}
+
+.btn-netflix {
+  background-color: #c11119;
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 4px;
+  width: 100%;
+}
+
+.error-message {
+  color: #e50914;
+  font-size: 0.9rem;
+  margin-top: 4px;
+  display: none;
+  align-items: center;
+}
+
+.error-message.active {
+  display: flex;
+}
+
+.error-message.active::before {
+  content: "✖";
+  margin-right: 6px;
+  font-size: 1rem;
+}
+
+.form-control.is-invalid {
+  border-color: #e50914;
+}
+
+.remember-me {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.help-links {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.help-links a {
+  color: #b3b3b3;
+  text-decoration: none;
+}
+
+.signup-link {
+  color: #b3b3b3;
+  font-size: 1rem;
+}
+
+.signup-link a {
+  color: white;
+  text-decoration: none;
+}
+
+.form-check-input:checked {
+  background-color: #e50914;
+  border-color: #e50914;
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+}

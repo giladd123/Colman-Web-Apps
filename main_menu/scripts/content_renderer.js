@@ -1,0 +1,46 @@
+// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
+
+function createNoResultsMessage() {
+  const noResult = document.createElement("p");
+  noResult.textContent = "No results found";
+  noResult.style.color = "white";
+  noResult.style.fontSize = "1.5rem";
+  noResult.style.textAlign = "center";
+  return noResult;
+}
+
+function setGridLayout(container) {
+  container.style.display = "flex";
+  container.style.flexWrap = "wrap";
+  container.style.gap = "16px";
+  container.style.padding = "20px";
+}
+
+function loadAndRender() {
+  const content = document.getElementById("content");
+  content.innerHTML = "";
+
+  const chunks = chunkArray(movies, ROW_SIZE);
+  chunks.forEach((chunk, i) => {
+    const title = ROW_TITLES[i % ROW_TITLES.length];
+    const row = createRow(title, chunk, i);
+    content.appendChild(row);
+  });
+}
+
+function renderContent(filtered) {
+  const movieCards = document.getElementById("content");
+  movieCards.innerHTML = ""; // clear previous content
+
+  if (filtered.length === 0) {
+    movieCards.appendChild(createNoResultsMessage());
+    return;
+  }
+
+  setGridLayout(movieCards);
+
+  filtered.forEach((movie) => {
+    const card = createCard(movie);
+    movieCards.appendChild(card);
+  });
+}
