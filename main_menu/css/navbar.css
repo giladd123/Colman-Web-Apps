@@ -1,0 +1,23 @@
+/* Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 */
+
+.navbar {
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.9),
+      rgba(0, 0, 0, 0.1)
+    );
+  }
+  .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e50914 !important;
+  }
+  .nav-link {
+    color: #e5e5e5 !important;
+    margin-right: 15px;
+    font-size: 0.95rem;
+  }
+  .nav-link.active {
+    font-weight: bold;
+    color: #fff !important;
+  }
