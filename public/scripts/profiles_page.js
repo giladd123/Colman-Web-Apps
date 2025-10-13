@@ -32,5 +32,5 @@ function createProfileElement(document, profile) {
 function saveProfile(input, img) {
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
-  window.location.href = "../main_menu/main_menu.html";
+  window.location.href = "main";
 }
