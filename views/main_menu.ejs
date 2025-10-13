@@ -2,35 +2,16 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <%- include('partials/head', { extraCss: `
-    <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
-    rel="stylesheet"
-    />
-    <link href="/style/like_button.css" rel="stylesheet" />
-    <link href="/style/navbar.css" rel="stylesheet" />
-    <link href="/style/dropdown.css" rel="stylesheet" />
-    <link href="/style/content.css" rel="stylesheet" />
-  
-  <style>
-    body {
-      margin: 0;
-      background-color: #000;
-    }
-
-    .profile-img {
-      width: 35px;
-      height: 32px;
-      border-radius: 4px;
-    }
-    .icon-btn {
-      color: white;
-      margin-left: 15px;
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-  </style>
-  ` }) %>
+  <%- include('partials/head', {
+    extraCss: [
+      "/style/main_menu.css",
+      "/style/like_button.css",
+      "/style/navbar.css",
+      "/style/dropdown.css",
+      "/style/content.css",
+      "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    ]
+  }) %>
 
 <body>
   <%- include('partials/navbar') %>

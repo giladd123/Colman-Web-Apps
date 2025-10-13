@@ -8,7 +8,9 @@
     rel="stylesheet"
   />
   <!-- Page specific CSS (passed via extraCss) -->
-  <% if (typeof extraCss !== "undefined") { %>
-    <%- extraCss %>
+  <% if (Array.isArray(extraCss)) { %>
+    <% for (let css of extraCss) { %>
+      <link rel="stylesheet" href="<%= css %>" />
+    <% } %>
   <% } %>
 </head>
