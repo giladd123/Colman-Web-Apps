@@ -1,0 +1,107 @@
+/* Settings modal & profiles manager styling */
+
+#settingsModal .nav-tabs .nav-link {
+  color: #bbb;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+}
+#settingsModal .nav-tabs .nav-link.active {
+  color: #fff;
+  border-color: #e50914;
+  font-weight: 600;
+}
+#settingsModal .modal-content {
+  background: #141414;
+}
+#settingsModal .modal-header {
+  background: linear-gradient(to right, #141414, #181818);
+}
+#settingsModal .modal-footer {
+  background: #141414;
+}
+.profile-card {
+  width: 100%;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.profile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+.profile-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* modern browsers */
+  object-fit: cover;
+  height: auto; /* let aspect-ratio control height */
+  display: block;
+  background: #222;
+}
+
+/* Fallback for browsers without aspect-ratio support */
+@supports not (aspect-ratio: 1 / 1) {
+  .profile-thumb-wrapper {
+    /* optional wrapper if added later */
+    position: relative;
+    width: 100%;
+    padding-top: 100%;
+    overflow: hidden;
+  }
+  .profile-thumb-wrapper > .profile-thumb {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+#profileFormWrapper {
+  border-top: 1px solid #333;
+  padding-top: 1rem;
+}
+#profileForm input {
+  border: 1px solid #333;
+}
+#profileForm input:focus {
+  border-color: #e50914;
+  box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+}
+#addProfileBtn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Scrollbar subtle styling inside modal */
+#settingsModal .modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+#settingsModal .modal-body::-webkit-scrollbar-track {
+  background: #141414;
+}
+#settingsModal .modal-body::-webkit-scrollbar-thumb {
+  background: #2b2b2b;
+  border-radius: 4px;
+}
+#settingsModal .modal-body::-webkit-scrollbar-thumb:hover {
+  background: #383838;
+}
+
+/* Chart cards */
+#statsTab .card {
+  background: #181818;
+}
+#statsTab .card-header {
+  background: #202020;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Image preview */
+.image-preview img {
+  object-fit: cover;
+  display: block;
+}
+.object-fit-cover {
+  object-fit: cover;
+}
