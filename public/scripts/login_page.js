@@ -5,9 +5,9 @@ function redirectAfterLogin() {
     return;
   }
   if (!localStorage.getItem("selectedProfileName")) {
-    window.location.href = "../profiles_page/profiles_page.html";
+    window.location.href = "profiles";
   } else {
-    window.location.href = "../main_menu/main_menu.html";
+    window.location.href = "main";
   }
 }
 

@@ -1,0 +1,131 @@
+<!-- Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 -->
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <%- include('partials/head', { extraCss: ["/style/login_page.css"] }) %>
+
+  <body>
+    <div class="container-fluid">
+    </div>
+    <div class="container-fluid">
+    <div class="row bg-dark">
+      <div class="col-12">
+        <nav
+          class="navbar navbar-expand-lg navbar-dark d-flex align-items-center"
+        >
+          <div class="container">
+            <p class="netflix-logo mb-0">NETFLIX</p>
+          </div>
+        </nav>
+      </div>
+    </div>
+
+    <div
+      class="row justify-content-center align-items-center"
+      style="min-height: 80vh"
+    >
+      <div class="col-4">
+        <div class="login-container">
+          <h1 class="text-white mb-4">Sign In</h1>
+
+          <form id="loginForm" novalidate>
+            <div class="mb-3">
+              <input
+                type="text"
+                class="form-control"
+                id="emailOrMobile"
+                placeholder="Email or mobile number"
+                required
+              />
+              <div id="emailOrMobileError" class="error-message"></div>
+            </div>
+
+            <div class="mb-3">
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                placeholder="Password"
+                required
+              />
+              <div id="passwordError" class="error-message"></div>
+            </div>
+
+            <div class="d-grid mb-3">
+              <button type="submit" class="btn btn-netflix">Sign In</button>
+            </div>
+
+            <div
+              class="d-flex justify-content-between align-items-center mb-3"
+            >
+              <div class="form-check">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="rememberMe"
+                />
+                <label class="form-check-label remember-me" for="rememberMe">
+                  Remember Me
+                </label>
+              </div>
+              <div class="help-links">
+                <a href="#"></a>
+              </div>
+            </div>
+
+            <div class="text-center">
+              <p class="signup-link">
+                New to Netflix? <a href="#">Sign up now.</a>
+              </p>
+            </div>
+
+            <div class="text-center mt-3">
+              <p class="help-links">
+                This page is protected by Google reCAPTCHA to ensure you're
+                not a bot.
+                <a href="#">Learn more.</a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/scripts/login_page.js"></script>
+  <script>
+    redirectAfterLogin();
+
+    const form = document.getElementById("loginForm");
+    const emailOrMobileInput = document.getElementById("emailOrMobile");
+    const passwordInput = document.getElementById("password");
+    const emailOrMobileError = document.getElementById("emailOrMobileError");
+    const passwordError = document.getElementById("passwordError");
+
+    emailOrMobileInput.addEventListener("blur", (event) => {
+      validateEmailOrMobile(emailOrMobileInput, emailOrMobileError);
+    });
+    passwordInput.addEventListener("blur", (event) => {
+      validatePassword(passwordInput, passwordError);
+    });
+
+    // Form submit
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const emailValid = validateEmailOrMobile(
+        emailOrMobileInput,
+        emailOrMobileError
+      );
+      const passwordValid = validatePassword(passwordInput, passwordError);
+
+      if (emailValid && passwordValid) {
+        localStorage.setItem("isLoggedIn", "true");
+        redirectAfterLogin();
+      }
+    });
+  </script>
+
+    <script src="/scripts/login_page.js"></script>
+  </body>
+
+</html>

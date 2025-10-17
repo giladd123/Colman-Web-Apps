@@ -1,0 +1,34 @@
+<!-- Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head', { extraCss: ["/style/profiles_page.css"] }) %>
+
+  <body>
+  <div class="container">
+    <h1>Who's watching?</h1>
+
+    <div class="profiles"></div>
+
+    <button class="btn btn-manage">Manage Profiles</button>
+  </div>
+  <script src="/scripts/profiles_page.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", (event) => {
+      const profiles = [
+        { name: "Simba", image: "/images/profiles/green.png" },
+        { name: "Nala", image: "/images/profiles/pink.png" },
+        { name: "Mufasa", image: "/images/profiles/white.png" },
+        { name: "Timon", image: "/images/profiles/purple.png" },
+        { name: "Pumbaa", image: "/images/profiles/yellow.png" },
+      ];
+
+      profiles.forEach((profile) => {
+        createProfileElement(document, profile);
+      });
+    });
+  </script>
+  <script src="/scripts/profiles_page.js"></script>
+  </body>
+
+</html>

@@ -2,7 +2,7 @@
 
 function getProfileIfLoggedIn() {
   if (localStorage.getItem("isLoggedIn") != "true") {
-    window.location.href = "../login_page/login_page.html";
+    window.location.href = "login";
     return;
   }
 
@@ -10,12 +10,12 @@ function getProfileIfLoggedIn() {
   const selectedProfileImage = localStorage.getItem("selectedProfileImage");
 
   if (!(selectedProfileName && selectedProfileImage)) {
-    window.location.href = "../profiles_page/profiles_page.html";
+    window.location.href = "profiles";
   }
   return [selectedProfileName, selectedProfileImage];
 }
 
 function logout() {
   localStorage.clear();
-  window.location.href = "../login_page/login_page.html";
+  window.location.href = "login";
 }
