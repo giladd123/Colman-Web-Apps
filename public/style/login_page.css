@@ -1,5 +1,6 @@
 body {
-  background: url("../images/backgrounds/netflix_login_background.jpg") center center/cover no-repeat;
+  background: url("../images/backgrounds/netflix_login_background.jpg") center
+    center/cover no-repeat;
   min-height: 100vh;
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
@@ -102,4 +103,48 @@ body {
 
 .form-check-input:focus {
   box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+}
+
+.login-container textarea {
+  resize: vertical;
+  min-height: 50px;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.form-row select,
+.form-row input[type="number"] {
+  flex: 1;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: block;
+  text-align: center;
+  padding: 0.75rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: #e50914;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #f40612;
+}
+
+.btn-secondary {
+  background-color: #333;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #444;
 }

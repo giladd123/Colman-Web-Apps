@@ -17,6 +17,7 @@ const contentSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       max: 10,
+      default: null,
     },
     popularity: {
       type: Number,

@@ -6,6 +6,7 @@ import profilesRoutes from "./routes/profilesRoutes.js";
 import habitsRoutes from "./routes/habitsRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import feedRoutes from "./routes/feedRoutes.js";
+import contentRoutes from "./routes/contentRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
@@ -59,6 +60,10 @@ app.use("/api/profiles", profilesRoutes);
 app.use("/api/habits", habitsRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/watchlist", watchlistRoutes);
+
+app.use(errorHandler);
+
+app.use("/admin", contentRoutes);
 app.use("/feed", feedRoutes);
 app.use("/genres", genreRoutes);
 
