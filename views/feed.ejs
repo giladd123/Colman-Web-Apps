@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Feed</title>
+  <link rel="stylesheet" href="/styles/feed.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    nav {
+      background-color: #222;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    select, button, input {
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: none;
+      margin-left: 0.5rem;
+    }
+    .feed-section {
+      margin: 2rem;
+    }
+    .feed-section h2 {
+      margin-bottom: 1rem;
+    }
+    .content-row {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+    }
+    .content-card {
+      background-color: #222;
+      border-radius: 10px;
+      padding: 10px;
+      width: 180px;
+      flex: 0 0 auto;
+      text-align: center;
+      cursor: pointer;
+    }
+    .content-card img {
+      width: 100%;
+      border-radius: 8px;
+      height: 250px;
+      object-fit: cover;
+    }
+    #searchBox {
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+    }
+    #searchResults {
+      background-color: #222;
+      padding: 1rem;
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 1rem;
+      width: 300px;
+      border-radius: 8px;
+    }
+    #searchResults p {
+      margin: 0.5rem 0;
+      cursor: pointer;
+    }
+    #searchResults p:hover {
+      color: #1db954;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div>
+      <form id="profileForm">
+        <label for="profileSelect">Profile:</label>
+        <select id="profileSelect" name="profileId">
+          <% user.profiles.forEach(p => { %>
+            <option value="<%= p._id %>" <%= profile._id.equals(p._id) ? 'selected' : '' %>>
+              <%= p.name %>
+            </option>
+          <% }) %>
+        </select>
+      </form>
+    </div>
+
+    <div>
+      <input type="text" id="searchBox" placeholder="Search content..." />
+      <button onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Search results -->
+  <div id="searchResults"></div>
+
+  <!-- Feed -->
+  <div class="feed-container">
+
+    <!-- 1️⃣ Continue Watching -->
+    <% if (continueWatching.length) { %>
+      <div class="feed-section">
+        <h2>Continue Watching</h2>
+        <div class="content-row">
+          <% continueWatching.forEach(item => { %>
+            <div class="content-card">
+              <img src="<%= item.contentId.imageUrl %>" alt="<%= item.contentId.name %>">
+              <p><%= item.contentId.name %></p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 2️⃣ Personalized Recommendations -->
+    <% if (recommendations.length) { %>
+      <div class="feed-section">
+        <h2>Recommended for You</h2>
+        <div class="content-row">
+          <% recommendations.forEach(item => { %>
+            <div class="content-card">
+              <img src="<%= item.imageUrl %>" alt="<%= item.name %>">
+              <p><%= item.name %></p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <!-- 3️⃣ Most Popular -->
+    <div class="feed-section">
+      <h2>Most Popular</h2>
+      <div class="content-row">
+        <% popularContent.forEach(item => { %>
+          <div class="content-card">
+            <img src="<%= item.imageUrl %>" alt="<%= item.name %>">
+            <p><%= item.name %></p>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- 4️⃣ Newest by Genre -->
+    <% for (let genre in newestByGenre) { %>
+      <div class="feed-section">
+        <h2><%= genre %> - Newest</h2>
+        <div class="content-row">
+          <% newestByGenre[genre].forEach(item => { %>
+            <div class="content-card">
+              <img src="<%= item.imageUrl %>" alt="<%= item.name %>">
+              <p><%= item.name %></p>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+
+  <script>
+    // 🔁 Profile switching
+    document.getElementById('profileSelect').addEventListener('change', (e) => {
+      window.location.href = `/feed/${e.target.value}`;
+    });
+
+    // 🔍 Live Search
+    const box = document.getElementById('searchBox');
+    const results = document.getElementById('searchResults');
+    let timer;
+
+    box.addEventListener('input', async () => {
+      clearTimeout(timer);
+      timer = setTimeout(async () => {
+        const q = box.value.trim();
+        if (!q) {
+          results.style.display = "none";
+          results.innerHTML = "";
+          return;
+        }
+        const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (!data.length) {
+          results.innerHTML = "<p>No results found</p>";
+        } else {
+          results.innerHTML = data.map(d => `<p onclick="window.location.href='/content/${d._id}'">${d.name}</p>`).join('');
+        }
+        results.style.display = "block";
+      }, 300);
+    });
+  </script>
+</body>
+</html>
