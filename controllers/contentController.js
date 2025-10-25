@@ -1,7 +1,15 @@
 import Content from "../models/content.js";
 
 export const showAddForm = async (req, res) => {
-  res.render("add_content");
+  try {
+    // Get all distinct genres from the DB
+    const existingGenres = await Content.distinct("genres");
+
+    res.render("add_content", { genres: existingGenres.sort() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error loading form");
+  }
 };
 
 export const createContent = async (req, res) => {

@@ -1,213 +1,166 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-    <%- include('partials/head', { extraCss: ["/style/login_page.css"] }) %>
+  <%- include('partials/head', { extraCss: ["/style/login_page.css"] }) %>
 
-    <body>
-        <%- include('partials/admin_navbar') %>
+  <body>
+    <%- include('partials/admin_navbar') %>
 
-        <div
-            class="row justify-content-center align-items-center"
-            style="min-height: 80vh">
-            <div class="container-fluid">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh">
+      <div class="container-fluid"></div>
+      <div class="container-fluid">
+
+        <div class="login-container">
+          <form action="/admin/add-content" method="POST" novalidate>
+            <h2 class="form-title text-white mb-4">Add New Content</h2>
+
+            <input type="text" class="form-control mb-3" name="title" placeholder="Title" required />
+            <textarea class="form-control mb-3" name="description" placeholder="Description"></textarea>
+
+            <div class="form-row">
+              <select name="type" class="form-control mb-3" required>
+                <option value="">Select Type</option>
+                <option value="movie">Movie</option>
+                <option value="show">Show</option>
+                <option value="episode">Episode</option>
+              </select>
+
+              <input type="number" class="form-control mb-3" name="year" placeholder="Release Year"
+                value="2025" min="1900" max="2025" step="1" />
             </div>
-            <div class="container-fluid">
 
-                <div class="login-container">
-                    <form action="/admin/add-content" method="POST" novalidate>
-                        <h2 class="form-title text-white mb-4">Add New
-                            Content</h2>
+            <!-- Dynamic genre section -->
+            <div class="form-group mb-3">
+              <button type="button" id="toggleGenres" class="btn btn-secondary w-100 mb-2"
+                style="background-color: #333; border: none;">
+                Choose Genres ▾
+              </button>
 
-                        <input
-                            type="text"
-                            class="form-control mb-3"
-                            name="title"
-                            placeholder="Title"
-                            required />
+              <div id="genresContainer"
+                style="display: none; background-color: #222; padding: 10px; border-radius: 8px;">
+                
+                <% if (genres && genres.length > 0) { %>
+                  <% genres.forEach(function(genre) { %>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="genres"
+                        value="<%= genre %>" id="genre<%= genre %>">
+                      <label class="form-check-label text-white" for="genre<%= genre %>"><%= genre %></label>
+                    </div>
+                  <% }); %>
+                <% } else { %>
+                  <p class="text-white mb-2">No existing genres found,add your own below</p>
+                <% } %>
 
-                        <textarea
-                            class="form-control mb-3"
-                            name="description"
-                            placeholder="Description"></textarea>
-
-                        <div class="form-row">
-                            <select name="type" class="form-control mb-3"
-                                required>
-                                <option value>Select Type</option>
-                                <option value="movie">Movie</option>
-                                <option value="show">Show</option>
-                                <option value="episode">Episode</option>
-                            </select>
-
-                            <input
-                                type="number"
-                                class="form-control mb-3"
-                                name="year"
-                                placeholder="Release Year"
-                                value="2025"
-                                min="1900"
-                                max="2025"
-                                step="1" />
-                        </div>
-
-                        <div class="form-group mb-3">
-                            <button
-                                type="button"
-                                id="toggleGenres"
-                                class="btn btn-secondary w-100 mb-2"
-                                style="background-color: #333; border: none;">
-                                Choose Genres ▾
-                            </button>
-
-                            <div id="genresContainer"
-                                style="display: none; background-color: #222; padding: 10px; border-radius: 8px;">
-                                <% const genres = ["Action", "Comedy", "Drama",
-                                "Thriller", "Horror", "Romance", "Fantasy",
-                                "Sci-Fi", "Documentary", "Animation"]; %>
-                                <% genres.forEach(function(genre) { %>
-                                <div class="form-check">
-                                    <input class="form-check-input"
-                                        type="checkbox" name="genres"
-                                        value="<%= genre %>"
-                                        id="genre<%= genre %>">
-                                    <label class="form-check-label text-white"
-                                        for="genre<%= genre %>"><%= genre
-                                        %></label>
-                                </div>
-                                <% }); %>
-
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input"
-                                        type="checkbox" id="genreOther"
-                                        value="Other">
-                                    <label class="form-check-label text-white"
-                                        for="genreOther">Other</label>
-                                </div>
-
-                                <div id="otherGenresArea"
-                                    style="display: none; margin-top: 10px;">
-                                    <div class="d-flex mb-2 align-items-center">
-                                        <input
-                                            type="text"
-                                            id="newGenreInput"
-                                            class="form-control"
-                                            placeholder="Enter new genre"
-                                            style="flex: 1; height: 42px; font-size: 0.95rem;" />
-                                        <button
-                                            type="button"
-                                            id="addGenreBtn"
-                                            class="btn btn-netflix"
-                                            style="
-                                                margin-left: 8px;
-                                                width: 70px;
-                                                height: 42px;
-                                                border-radius: 4px;
-                                                font-size: 1rem;
-                                                padding: 0;
-                                            ">
-                                            Add
-                                        </button>
-                                    </div>
-
-                                    <div id="addedGenres"
-                                        style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <input type="text" class="form-control mb-3"
-                            name="director" placeholder="Director" />
-                        <input
-                            type="text"
-                            class="form-control mb-3"
-                            name="actors"
-                            placeholder="Actors (comma separated)" />
-                        <input type="url" class="form-control mb-3"
-                            name="imageUrl" placeholder="Image URL" />
-                        <input
-                            type="url"
-                            class="form-control mb-3"
-                            name="videoUrls"
-                            placeholder="Video URL(s) (comma separated)" />
-
-                        <button type="submit" class="btn btn-netflix">Upload
-                            Content</button>
-                    </form>
+                <div class="form-check mt-2">
+                  <input class="form-check-input" type="checkbox" id="genreOther" value="Other">
+                  <label class="form-check-label text-white" for="genreOther">Other</label>
                 </div>
 
-                <script>
-                    const toggleGenres = document.getElementById("toggleGenres");
-                    const genresContainer = document.getElementById("genresContainer");
-                    const genreOther = document.getElementById("genreOther");
-                    const otherGenresArea = document.getElementById("otherGenresArea");
-                    const addGenreBtn = document.getElementById("addGenreBtn");
-                    const newGenreInput = document.getElementById("newGenreInput");
-                    const addedGenres = document.getElementById("addedGenres");
-
-                    toggleGenres.addEventListener("click", () => {
-                        const visible = genresContainer.style.display === "block";
-                        genresContainer.style.display = visible ? "none" : "block";
-                        toggleGenres.innerText = visible ? "Choose Genres ▾" : "Hide Genres ▴";
-                    });
-
-                    genreOther.addEventListener("change", () => {
-                        otherGenresArea.style.display = genreOther.checked ? "block" : "none";
-                    });
-
-                    addGenreBtn.addEventListener("click", () => {
-                        const value = newGenreInput.value.trim();
-                        if (!value) return;
-                        
-                        const tag = document.createElement("div");
-                        tag.className = "genre-tag";
-                        tag.innerHTML = `
-                        <span>${value}</span>
-                        <button type="button" class="remove-genre" style="background:none; border:none; color:#e50914; margin-left:6px;">✖</button>
-                        <input type="hidden" name="genres" value="${value}">
-                        `;
-
-                        addedGenres.appendChild(tag);
-                        newGenreInput.value = "";
-
-                        tag.querySelector(".remove-genre").addEventListener("click", () => {
-                        tag.remove();
-                        });
-                    });
-                </script>
-
-                <style>
-                    #addedGenres .genre-tag {
-                        background-color: #333;
-                        color: #fff;
-                        padding: 6px 12px;
-                        border-radius: 20px;
-                        display: flex;
-                        align-items: center;
-                        font-size: 0.9rem;
-                        line-height: 1;
-                        transition: background 0.2s;
-                    }
-
-                    #addedGenres .genre-tag:hover {
-                        background-color: #444;
-                    }
-
-                    #addedGenres .genre-tag button.remove-genre {
-                        background: none;
-                        border: none;
-                        color: #e50914;
+                <div id="otherGenresArea" style="display: none; margin-top: 10px;">
+                  <div class="d-flex mb-2 align-items-center">
+                    <input type="text" id="newGenreInput" class="form-control"
+                      placeholder="Enter new genre"
+                      style="flex: 1; height: 42px; font-size: 0.95rem;" />
+                    <button type="button" id="addGenreBtn" class="btn btn-netflix"
+                      style="
                         margin-left: 8px;
-                        font-size: 1rem;
-                        cursor: pointer;
-                    }
+                        width: 90px;
+                        height: 42px;
+                        border-radius: 4px;
+                        font-size: 0.95rem;
+                        padding: 0;
+                      ">
+                      Add
+                    </button>
+                  </div>
 
-                    #addedGenres .genre-tag button.remove-genre:hover {
-                        color: #ff4747;
-                    }
+                  <div id="addedGenres"
+                    style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+              </div>
+            </div>
 
-                    #genresContainer {
-                        transition: all 0.3s ease;
-                    }
-            </style>
-            </body>
-        </body>
-    </html>
+            <input type="text" class="form-control mb-3" name="director" placeholder="Director" />
+            <input type="text" class="form-control mb-3" name="actors" placeholder="Actors (comma separated)" />
+            <input type="url" class="form-control mb-3" name="imageUrl" placeholder="Image URL" />
+            <input type="url" class="form-control mb-3" name="videoUrls" placeholder="Video URL(s) (comma separated)" />
+
+            <button type="submit" class="btn btn-netflix">Upload Content</button>
+          </form>
+        </div>
+
+        <script>
+          const toggleGenres = document.getElementById("toggleGenres");
+          const genresContainer = document.getElementById("genresContainer");
+          const genreOther = document.getElementById("genreOther");
+          const otherGenresArea = document.getElementById("otherGenresArea");
+          const addGenreBtn = document.getElementById("addGenreBtn");
+          const newGenreInput = document.getElementById("newGenreInput");
+          const addedGenres = document.getElementById("addedGenres");
+
+          toggleGenres.addEventListener("click", () => {
+            const visible = genresContainer.style.display === "block";
+            genresContainer.style.display = visible ? "none" : "block";
+            toggleGenres.innerText = visible ? "Choose Genres ▾" : "Hide Genres ▴";
+          });
+
+          genreOther.addEventListener("change", () => {
+            otherGenresArea.style.display = genreOther.checked ? "block" : "none";
+          });
+
+          addGenreBtn.addEventListener("click", () => {
+            const value = newGenreInput.value.trim();
+            if (!value) return;
+
+            const tag = document.createElement("div");
+            tag.className = "genre-tag";
+            tag.innerHTML = `
+              <span>${value}</span>
+              <button type="button" class="remove-genre" style="background:none; border:none; color:#e50914; margin-left:6px;">✖</button>
+              <input type="hidden" name="genres" value="${value}">
+            `;
+
+            addedGenres.appendChild(tag);
+            newGenreInput.value = "";
+
+            tag.querySelector(".remove-genre").addEventListener("click", () => tag.remove());
+          });
+        </script>
+
+        <style>
+          #addedGenres .genre-tag {
+            background-color: #333;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            line-height: 1;
+            transition: background 0.2s;
+          }
+
+          #addedGenres .genre-tag:hover {
+            background-color: #444;
+          }
+
+          #addedGenres .genre-tag button.remove-genre {
+            background: none;
+            border: none;
+            color: #e50914;
+            margin-left: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+          }
+
+          #addedGenres .genre-tag button.remove-genre:hover {
+            color: #ff4747;
+          }
+
+          #genresContainer {
+            transition: all 0.3s ease;
+          }
+        </style>
+      </div>
+    </div>
+  </body>
+</html>
