@@ -7,7 +7,7 @@ function createProfileElement(document, profile) {
   profileDiv.className = "profile";
   profileDiv.setAttribute("role", "button");
   profileDiv.setAttribute("tabindex", "0");
-  profileDiv.setAttribute("profileid", name);
+  profileDiv.setAttribute("profileid", profile.name);
 
   const img = document.createElement("img");
   img.src = profile.image;
