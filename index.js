@@ -21,5 +21,9 @@ app.get("/main", (req, res) => {
   res.render("main_menu");
 });
 
+app.get("/selectContent", (req, res) => {
+  res.render("select_content");
+});
+
 const PORT = 8000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
