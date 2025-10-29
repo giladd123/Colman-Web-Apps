@@ -23,6 +23,9 @@ function createCard(movie) {
   card.appendChild(createMovieImage(movie));
   card.appendChild(createMovieBadge(movie));
   card.appendChild(createLikeButton(movie));
+  card.addEventListener('click', () => {
+    window.location.href = '/selectContent'; 
+  });
 
   return card;
 }
