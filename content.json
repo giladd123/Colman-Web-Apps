@@ -1,0 +1,14 @@
+{
+  "title": "Frozen",
+  "releaseYear": "2013",
+  "lengthMinutes": "102 min",
+  "genres": ["Animation", "Adventure", "Comedy"],
+  "Director": "Chris Buck, Jennifer Lee",
+  "actors": ["Kristen Bell", "Idina Menzel", "Jonathan Groff"],
+  "description": "Fearless optimist Anna teams up with rugged mountain man Kristoff and his loyal reindeer Sven in an epic journey to find Anna's sister Elsa, whose icy powers have trapped the kingdom of Arendelle in eternal winter.",
+  "posterUrl": "https://m.media-amazon.com/images/M/MV5BMTQ1MjQwMTE5OF5BMl5BanBnXkFtZTgwNjk3MTcyMDE@._V1_SX300.jpg",
+  "imdbRating": 7.4,
+  "popularity": 698,
+  "type": "Movie",
+  "videoUrl": "https://colman-assets.s3.eu-north-1.amazonaws.com/frozen.mp4"
+}

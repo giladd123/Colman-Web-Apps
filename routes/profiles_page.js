@@ -1,0 +1,3 @@
+function readProfiles(db){
+    return {}
+}
