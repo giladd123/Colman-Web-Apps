@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     likeButton.addEventListener('click', function() {
         const isLiked = this.dataset.liked === 'true';
         this.dataset.liked = !isLiked;
-        this.innerHTML = !isLiked ? '<i class="bi bi-hand-thumbs-up-fill"></i>' : '<i class="bi bi-hand-thumbs-up"></i>';
+        this.innerHTML = !isLiked ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
         console.log(`Profile action: ${!isLiked ? 'Liked' : 'Unliked'}`);
     });
     
