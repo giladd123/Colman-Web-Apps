@@ -1,5 +1,11 @@
 const express = require("express");
 const app = express();
+const connectDB = require("./config/db");
+require("dotenv").config();
+const PORT = process.env.PORT || 8000;
+
+// Connect to MongoDB
+connectDB();
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
@@ -21,9 +27,8 @@ app.get("/main", (req, res) => {
   res.render("main_menu");
 });
 
-app.get("/selectContent", (req, res) => {
+app.get("/select-content", (req, res) => {
   res.render("select_content");
-});
+}
 
-const PORT = 8000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
