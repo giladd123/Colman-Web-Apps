@@ -3,8 +3,16 @@ import Content from "./content.js";
 
 const episodeSchema = new mongoose.Schema(
   {
-    title: {
+    episodeTitle: {
       type: String,
+      required: true,
+    },
+    seasonNumber : {
+      type: Number,
+      required: true,
+    },
+    episodeNumber: {
+      type: Number,
       required: true,
     },
     releaseDate: Date,

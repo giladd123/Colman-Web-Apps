@@ -24,7 +24,7 @@ const contentSchema = new mongoose.Schema(
   },
   {
     discriminatorKey: "type",
-    timestamps: true, // adds createdAt, updatedAt
+    timestamps: true,
   }
 );
 
