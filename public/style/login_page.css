@@ -3,6 +3,7 @@ body {
     center/cover no-repeat;
   min-height: 100vh;
   font-family: "Helvetica Neue", Arial, sans-serif;
+  background-attachment: fixed;
 }
 
 .netflix-logo {
@@ -118,6 +119,103 @@ body {
 .form-row select,
 .form-row input[type="number"] {
   flex: 1;
+}
+
+.form-row select,
+.form-row input[type="number"],
+#releaseDateField {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-row .form-control {
+  width: 100%;
+}
+
+.video-tab-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.video-tab {
+  flex: 1;
+  padding: 8px 12px;
+  text-align: center;
+  background-color: #333;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.video-tab:hover {
+  background-color: #444;
+}
+
+.video-tab.active {
+  background-color: #e50914;
+  color: #fff;
+}
+
+#addedGenres .genre-tag {
+  background-color: #333;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+#addedGenres .genre-tag:hover {
+  background-color: #444;
+}
+
+#addedGenres .genre-tag button.remove-genre {
+  background: none;
+  border: none;
+  color: #e50914;
+  margin-left: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#addedGenres .genre-tag button.remove-genre:hover {
+  color: #ff4747;
+}
+
+#genresContainer {
+  transition: all 0.3s ease;
+}
+
+#imdbAutoFill {
+  transform: scale(1.2);
+  margin-right: 6px;
+}
+label[for="imdbAutoFill"] {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+input[readonly],
+textarea[readonly],
+select[readonly] {
+  background-color: #2a2a2a !important;
+  color: #bbb !important;
+  border: 1px solid #444 !important;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+input[readonly]:hover,
+textarea[readonly]:hover {
+  border-color: #555 !important;
 }
 
 .btn-primary,

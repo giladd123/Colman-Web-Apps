@@ -5,62 +5,137 @@
   <body>
     <%- include('partials/admin_navbar') %>
 
-    <div class="row justify-content-center align-items-center" style="min-height: 80vh">
+    <div class="row justify-content-center align-items-center"
+      style="min-height: 80vh">
       <div class="container-fluid"></div>
       <div class="container-fluid">
 
         <div class="login-container">
-          <form action="/admin/add-content" method="POST" novalidate>
+          <form action="/admin/add-content" method="POST"
+            enctype="multipart/form-data" novalidate>
             <h2 class="form-title text-white mb-4">Add New Content</h2>
-
-            <input type="text" class="form-control mb-3" name="title" placeholder="Title" required />
-            <textarea class="form-control mb-3" name="description" placeholder="Description"></textarea>
 
             <div class="form-row">
               <select name="type" class="form-control mb-3" required>
-                <option value="">Select Type</option>
+                <option value>Select Type</option>
                 <option value="movie">Movie</option>
                 <option value="show">Show</option>
                 <option value="episode">Episode</option>
               </select>
 
-              <input type="number" class="form-control mb-3" name="year" placeholder="Release Year"
-                value="2025" min="1900" max="2025" step="1" />
+              <div class="form-row" id="dateRow">
+                <input type="number" class="form-control mb-3" name="year"
+                  placeholder="Release Year" value="2025" min="1900" max="2025"
+                  step="1" />
+                <input type="date" id="releaseDateField"
+                  class="form-control mb-3"
+                  name="releaseDate" placeholder="Release Date"
+                  style="display: none;" />
+              </div>
+            </div>
+
+            <!-- Existing title field -->
+            <input
+              type="text"
+              id="titleField"
+              class="form-control mb-3"
+              name="title"
+              placeholder="Title"
+              required />
+
+            <!-- Only for episodes -->
+            <div id="episodeFields" class="form-row" style="display: none;">
+              <input type="number" class="form-control mb-3" name="seasonNumber"
+                placeholder="Season Number" min="1" />
+              <input type="number" class="form-control mb-3"
+                name="episodeNumber"
+                placeholder="Episode Number" min="1" />
+            </div>
+
+            <div class="form-check mb-3 d-flex align-items-center"
+              style="gap: 8px;">
+              <input class="form-check-input" type="checkbox"
+                id="imdbAutoFill" />
+              <label class="form-check-label text-white" for="imdbAutoFill">
+                Pull information from IMDb
+              </label>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
+                alt="IMDb"
+                style="height: 22px; margin-left: 5px;" />
+            </div>
+
+            <!-- New episode title field (hidden initially) -->
+            <input
+              type="text"
+              id="episodeTitleField"
+              class="form-control mb-3"
+              name="episodeTitle"
+              placeholder="Episode Title"
+              style="display: none;" />
+
+            <!-- Existing description -->
+            <textarea
+              id="descriptionField"
+              class="form-control mb-3"
+              name="description"
+              placeholder="Description"
+              rows="3"></textarea>
+
+            <!-- New Episode Description (hidden by default) -->
+            <textarea
+              id="episodeDescriptionField"
+              class="form-control mb-3"
+              name="episodeDescription"
+              placeholder="Episode Description"
+              rows="3"
+              style="display: none;"></textarea>
+
+            <div id="imdbRatingContainer" class="text-white mb-3"
+              style="display: none;">
+              <strong>IMDb Rating:</strong> <span id="imdbRating">N/A</span>
             </div>
 
             <!-- Dynamic genre section -->
-            <div class="form-group mb-3">
-              <button type="button" id="toggleGenres" class="btn btn-secondary w-100 mb-2"
+            <div id="genresSection" class="form-group mb-3">
+              <button type="button" id="toggleGenres"
+                class="btn btn-secondary w-100 mb-2"
                 style="background-color: #333; border: none;">
                 Choose Genres ▾
               </button>
 
               <div id="genresContainer"
                 style="display: none; background-color: #222; padding: 10px; border-radius: 8px;">
-                
+
                 <% if (genres && genres.length > 0) { %>
-                  <% genres.forEach(function(genre) { %>
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" name="genres"
-                        value="<%= genre %>" id="genre<%= genre %>">
-                      <label class="form-check-label text-white" for="genre<%= genre %>"><%= genre %></label>
-                    </div>
-                  <% }); %>
+                <% genres.forEach(function(genre) { %>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="genres"
+                    value="<%= genre %>" id="genre<%= genre %>">
+                  <label class="form-check-label text-white"
+                    for="genre<%= genre %>"><%= genre %></label>
+                </div>
+                <% }); %>
                 <% } else { %>
-                  <p class="text-white mb-2">No existing genres found,add your own below</p>
+                <p class="text-white mb-2">No existing genres found,add your own
+                  below</p>
                 <% } %>
 
                 <div class="form-check mt-2">
-                  <input class="form-check-input" type="checkbox" id="genreOther" value="Other">
-                  <label class="form-check-label text-white" for="genreOther">Other</label>
+                  <input class="form-check-input" type="checkbox"
+                    id="genreOther" value="Other">
+                  <label class="form-check-label text-white"
+                    for="genreOther">Other</label>
                 </div>
 
-                <div id="otherGenresArea" style="display: none; margin-top: 10px;">
+                <div id="otherGenresArea"
+                  style="display: none; margin-top: 10px;">
                   <div class="d-flex mb-2 align-items-center">
                     <input type="text" id="newGenreInput" class="form-control"
                       placeholder="Enter new genre"
                       style="flex: 1; height: 42px; font-size: 0.95rem;" />
-                    <button type="button" id="addGenreBtn" class="btn btn-netflix"
+                    <button type="button" id="addGenreBtn"
+                      class="btn btn-netflix"
                       style="
                         margin-left: 8px;
                         width: 90px;
@@ -79,16 +154,40 @@
               </div>
             </div>
 
-            <input type="text" class="form-control mb-3" name="director" placeholder="Director" />
-            <input type="text" class="form-control mb-3" name="actors" placeholder="Actors (comma separated)" />
-            <input type="url" class="form-control mb-3" name="imageUrl" placeholder="Image URL" />
-            <input type="url" class="form-control mb-3" name="videoUrls" placeholder="Video URL(s) (comma separated)" />
+            <input type="text" id="directorField" class="form-control mb-3"
+              name="director" placeholder="Director" />
+            <input type="text" id="actorsField" class="form-control mb-3"
+              name="actors" placeholder="Actors (comma separated)" />
 
-            <button type="submit" class="btn btn-netflix">Upload Content</button>
+            <input type="url" class="form-control mb-3" name="posterUrl"
+              placeholder="Poster URL" />
+
+            <!-- Only for movies or episodes -->
+            <div id="videoFields" style="display: none;">
+              <div class="video-tab-container mb-2">
+                <div class="video-tab active" data-type="file">Upload MP4
+                  File</div>
+                <div class="video-tab" data-type="url">Video URL</div>
+              </div>
+
+              <div id="uploadOption">
+                <input type="file" class="form-control mb-3" name="videoFile"
+                  accept="video/mp4" />
+              </div>
+
+              <div id="urlOption" style="display: none;">
+                <input type="url" class="form-control mb-3" name="videoUrl"
+                  placeholder="https://..." />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-netflix">Upload
+              Content</button>
           </form>
         </div>
 
         <script>
+          // Genre Section
           const toggleGenres = document.getElementById("toggleGenres");
           const genresContainer = document.getElementById("genresContainer");
           const genreOther = document.getElementById("genreOther");
@@ -124,42 +223,211 @@
 
             tag.querySelector(".remove-genre").addEventListener("click", () => tag.remove());
           });
+
+          // Main Form Elements
+          const typeSelect = document.querySelector('select[name="type"]');
+          const videoFields = document.getElementById("videoFields");
+          const episodeFields = document.getElementById("episodeFields");
+          const titleField = document.getElementById("titleField");
+          const episodeTitleField = document.getElementById("episodeTitleField");
+          const genresSection = document.getElementById("genresSection");
+          const directorField = document.getElementById("directorField");
+          const actorsField = document.getElementById("actorsField");
+          const descriptionField = document.getElementById("descriptionField");
+          const episodeDescriptionField = document.getElementById("episodeDescriptionField");
+          const yearField = document.querySelector('input[name="year"]');
+          const releaseDateField = document.getElementById("releaseDateField");
+          const form = document.querySelector("form");
+
+          // Video Tab Elements
+          let lastVideoTab = "file"; // remember last selected tab
+          const videoTabs = document.querySelectorAll(".video-tab");
+          const uploadOption = document.getElementById("uploadOption");
+          const urlOption = document.getElementById("urlOption");
+
+          videoTabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+              videoTabs.forEach(t => t.classList.remove("active"));
+              tab.classList.add("active");
+
+              if (tab.dataset.type === "file") {
+                uploadOption.style.display = "block";
+                urlOption.style.display = "none";
+                lastVideoTab = "file";
+              } else {
+                uploadOption.style.display = "none";
+                urlOption.style.display = "block";
+                lastVideoTab = "url";
+              }
+            });
+          });
+
+          // Type Select Handling
+          typeSelect.addEventListener("change", () => {
+            const selected = typeSelect.value;
+
+            if (selected === "movie" || selected === "episode") {
+              videoFields.style.display = "block";
+              videoTabs.forEach(t => t.classList.remove("active"));
+              const activeTab = Array.from(videoTabs).find(t => t.dataset.type === lastVideoTab);
+              if (activeTab) activeTab.classList.add("active");
+              uploadOption.style.display = lastVideoTab === "file" ? "block" : "none";
+              urlOption.style.display = lastVideoTab === "url" ? "block" : "none";
+            } else videoFields.style.display = "none";
+
+            if (selected === "episode") {
+              episodeFields.style.display = "flex";
+              genresSection.style.display = "none";
+              directorField.style.display = "none";
+              actorsField.style.display = "none";
+              titleField.placeholder = "Series Title";
+              episodeTitleField.style.display = "block";
+              episodeTitleField.focus();
+              descriptionField.style.display = "none";
+              episodeDescriptionField.style.display = "block";
+              if (!episodeDescriptionField.value.trim() && descriptionField.value.trim()) {
+                episodeDescriptionField.value = descriptionField.value.trim();
+              }
+              yearField.style.display = "none";
+              releaseDateField.style.display = "block";
+              if (!releaseDateField.value) {
+                releaseDateField.value = new Date().toISOString().split("T")[0];
+              }
+            } else {
+              episodeFields.style.display = "none";
+              genresSection.style.display = "block";
+              directorField.style.display = "block";
+              actorsField.style.display = "block";
+              titleField.placeholder = "Title";
+              episodeTitleField.style.display = "none";
+              descriptionField.style.display = "block";
+              episodeDescriptionField.style.display = "none";
+              yearField.style.display = "block";
+              releaseDateField.style.display = "none";
+            }
+          });
+
+          // IMDb Auto-Fill
+          const imdbCheckbox = document.getElementById("imdbAutoFill");
+          const imdbRatingContainer = document.getElementById("imdbRatingContainer");
+          const imdbRatingSpan = document.getElementById("imdbRating");
+          const imdbLabel = document.querySelector('label[for="imdbAutoFill"]');
+          const originalImdbLabelText = imdbLabel ? imdbLabel.innerText : "Pull information automatically from IMDb";
+
+          function setReadonlyFields(fields, readonly) {
+            fields.forEach(f => {
+              if (f) {
+                f.readOnly = readonly;
+              }
+            });
+          }
+
+          function setGenresReadonly(readonly) {
+            document.querySelectorAll('#genresContainer input[type="checkbox"][name="genres"]').forEach(cb => cb.disabled = readonly);
+            const genreOtherCheckbox = document.getElementById("genreOther");
+            if (genreOtherCheckbox) genreOtherCheckbox.disabled = readonly;
+            const newGenreInput = document.getElementById("newGenreInput");
+            const addGenreBtn = document.getElementById("addGenreBtn");
+            if (newGenreInput) newGenreInput.disabled = readonly;
+            if (addGenreBtn) addGenreBtn.disabled = readonly;
+            document.querySelectorAll('#addedGenres .remove-genre').forEach(btn => btn.disabled = readonly);
+          }
+
+          function copyGenresToHidden() {
+            // For dynamically added tags
+            document.querySelectorAll('#addedGenres .genre-tag').forEach(tag => {
+              const input = tag.querySelector('input[type="hidden"]');
+              if (input) input.value = tag.querySelector('span').innerText;
+            });
+            // For checkboxes selected
+            document.querySelectorAll('#genresContainer input[type="checkbox"][name="genres"]').forEach(cb => {
+              if (cb.checked) {
+                let hidden = cb.nextElementSibling;
+                if (!hidden || hidden.type !== "hidden") {
+                  hidden = document.createElement("input");
+                  hidden.type = "hidden";
+                  hidden.name = cb.name;
+                  cb.parentNode.insertBefore(hidden, cb.nextSibling);
+                }
+                hidden.value = cb.value;
+              }
+            });
+          }
+
+          imdbCheckbox.addEventListener("change", async () => {
+            if (!imdbCheckbox.checked) {
+              imdbLabel.innerText = originalImdbLabelText;
+              imdbRatingContainer.style.display = "none";
+              imdbRatingSpan.textContent = "N/A";
+
+              setReadonlyFields([titleField, descriptionField, directorField, actorsField, document.querySelector('input[name="posterUrl"]'), yearField, episodeTitleField, episodeDescriptionField, releaseDateField], false);
+              setGenresReadonly(false);
+              return;
+            }
+
+            const type = typeSelect.value;
+            const seasonField = document.querySelector('input[name="seasonNumber"]');
+            const episodeField = document.querySelector('input[name="episodeNumber"]');
+
+            if (!titleField.value.trim()) { alert("Enter title first."); imdbCheckbox.checked = false; return; }
+            if (type === "episode" && (!seasonField.value || !episodeField.value)) { alert("Enter season & episode first."); imdbCheckbox.checked = false; return; }
+
+            if (imdbLabel) imdbLabel.innerText = "Fetching from IMDb...";
+            imdbCheckbox.disabled = true;
+
+            let query = `?title=${encodeURIComponent(titleField.value.trim())}`;
+            if (type === "episode") query += `&season=${encodeURIComponent(seasonField.value)}&episode=${encodeURIComponent(episodeField.value)}`;
+
+            try {
+              const res = await fetch(`/admin/fetch-imdb${query}`);
+              const imdbData = await res.json();
+
+              if (imdbData.error) { alert(imdbData.error); imdbCheckbox.checked = false; if (imdbLabel) imdbLabel.innerText = originalImdbLabelText; return; }
+
+              if (type === "episode") {
+                if (imdbData.seriesTitle) titleField.value = imdbData.seriesTitle;
+                if (imdbData.episodeTitle) { episodeTitleField.style.display = "block"; episodeTitleField.value = imdbData.episodeTitle; }
+                if (imdbData.description) { episodeDescriptionField.style.display = "block"; episodeDescriptionField.value = imdbData.description; }
+                if (imdbData.poster) document.querySelector('input[name="posterUrl"]').value = imdbData.poster;
+                if (imdbData.releaseDate) { releaseDateField.style.display = "block"; releaseDateField.value = imdbData.releaseDate; }
+
+                setReadonlyFields([episodeTitleField, episodeDescriptionField, releaseDateField, document.querySelector('input[name="posterUrl"]')], true);
+                setGenresReadonly(true);
+              } else {
+                if (imdbData.title) titleField.value = imdbData.title;
+                if (imdbData.description) descriptionField.value = imdbData.description;
+                if (imdbData.director) directorField.value = imdbData.director;
+                if (imdbData.actors) {
+                  if (Array.isArray(imdbData.actors)) {
+                    actorsField.value = imdbData.actors.join(", ");
+                  } else {
+                    actorsField.value = imdbData.actors;
+                  }
+                }
+                if (imdbData.poster) document.querySelector('input[name="posterUrl"]').value = imdbData.poster;
+                if (imdbData.year) yearField.value = imdbData.year;
+
+                if (imdbData.genre && imdbData.genre.length) {
+                  document.querySelectorAll('input[name="genres"]').forEach(cb => cb.checked = imdbData.genre.includes(cb.value));
+                }
+
+                setReadonlyFields([descriptionField, directorField, actorsField, yearField, document.querySelector('input[name="posterUrl"]')], true);
+                setGenresReadonly(true);
+              }
+
+              if (imdbLabel) imdbLabel.innerText = "Data pulled from IMDb ✓";
+            } catch (err) {
+              console.error(err); alert("Error fetching IMDb."); imdbCheckbox.checked = false; if (imdbLabel) imdbLabel.innerText = originalImdbLabelText;
+            } finally { imdbCheckbox.disabled = false; }
+          });
+
+          // Ensure hidden inputs updated on submit
+          form.addEventListener("submit", () => {
+            copyGenresToHidden();
+            // Also update all readonly clones
+            setReadonlyFields([titleField, descriptionField, directorField, actorsField, document.querySelector('input[name="posterUrl"]'), yearField, episodeTitleField, episodeDescriptionField, releaseDateField], true);
+          });
         </script>
-
-        <style>
-          #addedGenres .genre-tag {
-            background-color: #333;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
-            line-height: 1;
-            transition: background 0.2s;
-          }
-
-          #addedGenres .genre-tag:hover {
-            background-color: #444;
-          }
-
-          #addedGenres .genre-tag button.remove-genre {
-            background: none;
-            border: none;
-            color: #e50914;
-            margin-left: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-          }
-
-          #addedGenres .genre-tag button.remove-genre:hover {
-            color: #ff4747;
-          }
-
-          #genresContainer {
-            transition: all 0.3s ease;
-          }
-        </style>
       </div>
     </div>
   </body>
