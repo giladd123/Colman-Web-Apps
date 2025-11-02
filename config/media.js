@@ -97,16 +97,31 @@ async function getSignedUrlForGet(key, expiresInSeconds = 900) {
 
 function getObjectUrl(key) {
   if (!key) return null;
-  // If custom endpoint is provided (S3-compatible), use path style under endpoint
+  // If custom endpoint is provided (S3-compatible), prefer virtual-hosted style unless
+  // the endpoint explicitly requires path-style. If the endpoint is the default AWS
+  // s3 host (s3.amazonaws.com or *.amazonaws.com) we ignore the endpoint here so
+  // the standard virtual-hosted logic below will run and produce bucket-prefixed domains.
   if (ENDPOINT) {
-    return `${ENDPOINT.replace(/\/$/, "")}/${BUCKET}/${encodeURIComponent(key)}`;
+    const endpointHost = ENDPOINT.replace(/^https?:\/\//, "").replace(/\/$/, "");
+    // If endpoint is clearly the generic AWS host, fall through to standard handling
+    if (endpointHost === "s3.amazonaws.com" || endpointHost.endsWith(".amazonaws.com")) {
+      // fallthrough to default virtual-hosted handling below
+    } else {
+      // For custom endpoints, if forcePathStyle use path style under endpoint
+      if (FORCE_PATH_STYLE) {
+        return `${ENDPOINT.replace(/\/$/, "")}/${BUCKET}/${encodeURIComponent(key)}`;
+      }
+      // Virtual-hosted style under custom endpoint host
+      return `https://${BUCKET}.${endpointHost}/${encodeURIComponent(key)}`;
+    }
   }
   // If forcePathStyle is requested, construct path-style AWS url
   if (FORCE_PATH_STYLE) {
     const regionPart = REGION ? `${REGION}.` : "";
     return `https://s3.${regionPart}amazonaws.com/${BUCKET}/${encodeURIComponent(key)}`;
   }
-  // Default virtual-hosted style URL (works for most AWS buckets)
+  // Default AWS virtual-hosted style requested: always return bucket_name.s3.region.amazonaws.com/key
+  // For us-east-1 the host is bucket_name.s3.amazonaws.com
   if (REGION === "us-east-1") {
     return `https://${BUCKET}.s3.amazonaws.com/${encodeURIComponent(key)}`;
   }
@@ -145,4 +160,5 @@ export default {
   getSignedUrlForGet,
   deleteObject,
   listObjects,
+  getObjectUrl
 };
