@@ -1,3 +1,0 @@
-function readProfiles(db){
-    return {}
-}

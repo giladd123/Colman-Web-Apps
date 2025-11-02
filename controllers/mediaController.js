@@ -1,4 +1,4 @@
-const media = require("../config/media");
+import media from "../config/media.js";
 
 // Upload endpoint that accepts either:
 // - multipart file available at req.file (e.g. multer), or
@@ -77,8 +77,9 @@ const deleteMedia = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+export { uploadMedia, getMedia, listMedia, deleteMedia };
 
-module.exports = {
+export default {
   uploadMedia,
   getMedia,
   listMedia,

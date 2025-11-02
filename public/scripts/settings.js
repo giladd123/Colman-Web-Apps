@@ -10,11 +10,9 @@
 
 (function () {
   const MAX_PROFILES = 5;
-  const serverUrl =
-    (window.SERVER_URL || "http://localhost") +
-    (window.SERVER_PORT ? ":" + window.SERVER_PORT : ":3000");
-  const baseProfilesEndpoint = serverUrl + "/profiles";
-  const singleProfileCreateEndpoint = serverUrl + "/profile"; // per requirement POST /profile
+  // Use relative API endpoints mounted by the app
+  const baseProfilesEndpoint = "/api/profiles"; // list: /api/profiles/user/:userId
+  const singleProfileCreateEndpoint = "/api/profiles/create"; // create: POST /api/profiles/create
 
   // Elements
   const profilesListEl = () => document.getElementById("profilesList");
@@ -48,7 +46,10 @@
   }
   async function fetchProfiles() {
     try {
-      profiles = await apiGet(baseProfilesEndpoint);
+      const userId = localStorage.getItem("userId");
+      if (!userId) throw new Error("No userId in localStorage");
+      // Route: GET /api/profiles/user/:userId
+      profiles = await apiGet(baseProfilesEndpoint + "/user/" + userId);
     } catch (err) {
       console.error("Failed loading profiles, using fallback.", err);
       // Fallback: try localStorage cache or sample
@@ -60,19 +61,19 @@
   async function createProfile({ name, file }) {
     try {
       const fd = new FormData();
+      const userId = localStorage.getItem("userId");
       fd.append("name", name);
-      if (file) fd.append("image", file);
-      const created = await apiMultipart(
-        "POST",
-        singleProfileCreateEndpoint,
-        fd
-      );
-      profiles.push(created);
+      if (file) fd.append("avatar", file); // server expects req.file (multer) and uses media.uploadFromMultipart
+      fd.append("userId", userId);
+      const created = await apiMultipart("POST", singleProfileCreateEndpoint, fd);
+      // After create, refresh profiles list from backend to reflect authoritative state
+      await fetchProfiles();
     } catch (err) {
       console.error("Create failed, using temp ID.", err);
       const objectUrl = file
         ? URL.createObjectURL(file)
         : "../images/profiles/white.png";
+      // fallback local optimistic add
       profiles.push({ id: "temp-" + Date.now(), name, image_url: objectUrl });
     }
     renderProfiles();
@@ -81,14 +82,11 @@
     try {
       const fd = new FormData();
       fd.append("name", name);
-      if (file) fd.append("image", file);
-      const updated = await apiMultipart(
-        "PUT",
-        baseProfilesEndpoint + "/" + id,
-        fd
-      );
-      const idx = profiles.findIndex((p) => String(p.id) === String(id));
-      if (idx > -1) profiles[idx] = updated;
+      if (file) fd.append("avatar", file);
+      // Route: PUT /api/profiles/:profileId (multer single 'avatar')
+      const updated = await apiMultipart("PUT", baseProfilesEndpoint + "/" + id, fd);
+      // After successful update, refresh list from backend
+      await fetchProfiles();
     } catch (err) {
       console.error("Update failed, applying client-side only.", err);
       const p = profiles.find((p) => String(p.id) === String(id));
@@ -103,12 +101,14 @@
   }
   async function deleteProfile(id) {
     try {
-      await fetch(baseProfilesEndpoint + "/" + id, { method: "DELETE" });
+      // Route: DELETE /api/profiles/:profileId
+      const res = await fetch(baseProfilesEndpoint + "/" + id, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed: " + res.status);
     } catch (err) {
       console.warn("Delete failed, removing locally.", err);
     }
-    profiles = profiles.filter((p) => String(p.id) !== String(id));
-    renderProfiles();
+    // Refresh profiles from backend (or remove locally if backend failed)
+    await fetchProfiles();
   }
 
   // Rendering
@@ -127,6 +127,9 @@
       return;
     }
 
+    // Ensure each profile has `id` normalized to either `id` or `_id`
+    profiles = profiles.map((p) => ({ ...p, id: p.id || p._id }));
+
     profiles.forEach((p) => {
       const col = document.createElement("div");
       col.className = "col mb-3";
@@ -134,7 +137,7 @@
       card.className = "card h-100 bg-black border-secondary profile-card";
 
       const img = document.createElement("img");
-      img.src = p.image_url;
+      img.src = p.avatar || p.image_url;
       img.alt = p.name;
       img.className = "card-img-top profile-thumb";
       img.onerror = () => (img.src = "../images/profiles/white.png");

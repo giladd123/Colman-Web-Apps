@@ -24,17 +24,9 @@
     <script src="/scripts/profiles_page.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", (event) => {
-        const profiles = [
-          { name: "Simba", image: "/images/profiles/green.png" },
-          { name: "Nala", image: "/images/profiles/pink.png" },
-          { name: "Mufasa", image: "/images/profiles/white.png" },
-          { name: "Timon", image: "/images/profiles/purple.png" },
-          { name: "Pumbaa", image: "/images/profiles/yellow.png" },
-        ];
-
-        profiles.forEach((profile) => {
-          createProfileElement(document, profile);
-        });
+        if (typeof loadProfiles === "function") {
+          loadProfiles();
+        }
       });
     </script>
   </body>
