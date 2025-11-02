@@ -10,9 +10,8 @@
 
 (function () {
   const MAX_PROFILES = 5;
-  // Use relative API endpoints mounted by the app
-  const baseProfilesEndpoint = "/api/profiles"; // list: /api/profiles/user/:userId
-  const singleProfileCreateEndpoint = "/api/profiles/create"; // create: POST /api/profiles/create
+  const baseProfilesEndpoint = "/api/profiles";
+  const singleProfileCreateEndpoint = "/api/profiles/create";
 
   // Elements
   const profilesListEl = () => document.getElementById("profilesList");

@@ -11,9 +11,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 // AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME
 const REGION = process.env.AWS_REGION || "eu-north-1";
 const BUCKET = process.env.S3_BUCKET_NAME;
-// Optional: custom S3 endpoint (for S3-compatible providers or special endpoints)
+
 const ENDPOINT = process.env.S3_ENDPOINT || undefined;
-// Optional: force path style addressing (useful for some S3-compatible services like MinIO/DO)
 const FORCE_PATH_STYLE = (process.env.S3_FORCE_PATH_STYLE || "false") === "true";
 
 if (!BUCKET) {
