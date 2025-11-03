@@ -64,7 +64,11 @@ class UsersController {
         return res.status(400).json({ error: "Username already taken" });
       }
 
-      const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      // Limit email length to prevent ReDoS attacks
+      if (!email || email.length > 254) {
+        return res.status(400).json({ error: "Invalid email format" });
+      }
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailPattern.test(email)) {
         return res.status(400).json({ error: "Invalid email format" });
       }
@@ -109,7 +113,11 @@ class UsersController {
       
       // Validate email if provided
       if (email) {
-        const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+        // Limit email length to prevent ReDoS attacks
+        if (email.length > 254) {
+          return res.status(400).json({ error: "Invalid email format" });
+        }
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailPattern.test(email)) {
           return res.status(400).json({ error: "Invalid email format" });
         }
