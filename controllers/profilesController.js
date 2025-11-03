@@ -94,7 +94,6 @@ class ProfilesController {
         const generatedKey = crypto.randomUUID();
         const { key, url: uploadedUrl } = await media.uploadFromMultipart(avatar, generatedKey);
         updateFields.avatar = media.getObjectUrl(key) || uploadedUrl;
-        updateFields.avatarKey = key;
       }
       const profile = await Profile.findByIdAndUpdate(
         profileId,
