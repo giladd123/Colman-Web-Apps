@@ -6,74 +6,8 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-0">
-        <ul class="nav nav-tabs mt-3" id="settingsTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="profiles-tab" data-bs-toggle="tab" data-bs-target="#profilesTab"
-              type="button" role="tab" aria-controls="profilesTab" aria-selected="true">
-              Profiles
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#statsTab" type="button"
-              role="tab" aria-controls="statsTab" aria-selected="false">
-              Statistics
-            </button>
-          </li>
-        </ul>
-        <div class="tab-content pt-4" id="settingsTabsContent">
-          <!-- Profiles Manager Tab -->
-          <div class="tab-pane fade show active" id="profilesTab" role="tabpanel" aria-labelledby="profiles-tab">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="mb-0">
-                Manage Profiles
-                <small class="text-secondary" id="profilesCountLabel"></small>
-              </h6>
-              <button id="addProfileBtn" class="btn btn-sm btn-danger">
-                <i class="bi bi-plus-lg"></i> Add Profile
-              </button>
-            </div>
-            <div id="profilesList" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3"></div>
-            <!-- Profile Form (hidden by default) -->
-            <div id="profileFormWrapper" class="mt-4" style="display: none">
-              <h6 id="profileFormTitle">Create Profile</h6>
-              <form id="profileForm" class="row gy-3" enctype="multipart/form-data">
-                <input type="hidden" id="profileId" />
-                <div class="col-md-4">
-                  <label for="profileName" class="form-label">Name</label>
-                  <input type="text" class="form-control bg-dark text-white" id="profileName" maxlength="20" required />
-                </div>
-                <div class="col-md-5">
-                  <label for="profileImageFile" class="form-label">Profile Image</label>
-                  <input type="file" accept="image/*" class="form-control bg-dark text-white" id="profileImageFile" />
-                  <div class="form-text text-secondary">
-                    Max size ~2MB. JPG/PNG.
-                  </div>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                  <div id="imagePreview" class="image-preview border border-secondary rounded overflow-hidden w-100"
-                    style="
-                      height: 100px;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      background: #1f1f1f;
-                    ">
-                    <span class="text-secondary small">No Image</span>
-                  </div>
-                </div>
-                <div class="col-12 d-flex gap-2">
-                  <button type="submit" class="btn btn-danger" id="saveProfileBtn">
-                    Save
-                  </button>
-                  <button type="button" class="btn btn-outline-secondary" id="cancelProfileBtn">
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-          <!-- Statistics Tab -->
-          <div class="tab-pane fade" id="statsTab" role="tabpanel" aria-labelledby="stats-tab">
+        <div class="pt-2" id="settingsTabsContent">
+          <div id="statsTab" role="tabpanel" aria-labelledby="stats-tab">
             <div class="row g-4">
               <div class="col-lg-6">
                 <div class="card bg-black border-secondary h-100">

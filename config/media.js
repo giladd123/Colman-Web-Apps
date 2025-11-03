@@ -1,41 +1,53 @@
 import {
   S3Client,
   PutObjectCommand,
-  GetObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
+  ListBucketsCommand
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import sharp from "sharp";
 
 // S3 helper module. Uses environment variables:
 // AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME
-const REGION = process.env.AWS_REGION || "eu-north-1";
-const BUCKET = process.env.S3_BUCKET_NAME;
+const necessaryEnvVars = [
+  "AWS_ACCESS_KEY_ID",
+  "AWS_SECRET_ACCESS_KEY",
+  "AWS_REGION",
+  "S3_BUCKET_NAME",
+];
 
-const ENDPOINT = process.env.S3_ENDPOINT || undefined;
-const FORCE_PATH_STYLE = (process.env.S3_FORCE_PATH_STYLE || "false") === "true";
+let non_defined_vars = necessaryEnvVars.filter((v => !process.env[v]));
 
-if (!BUCKET) {
+if (non_defined_vars.length > 0) {
   console.warn(
-    "S3_BUCKET_NAME not set. S3 helpers will fail until configured."
+    `The following environment variables are not set: ${non_defined_vars.join(", ")}. Exiting...`
   );
+  process.exit(1);
 }
+
+
+const [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION, BUCKET] = necessaryEnvVars.map(v => process.env[v])
 
 const s3Client = new S3Client({
   region: REGION,
-  endpoint: ENDPOINT,
-  forcePathStyle: FORCE_PATH_STYLE,
-  credentials: process.env.AWS_ACCESS_KEY_ID
-    ? {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-    : undefined,
+  credentials: {
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
+  }
 });
 
-if (ENDPOINT) {
-  console.info(`S3 client configured with custom endpoint=${ENDPOINT} forcePathStyle=${FORCE_PATH_STYLE}`);
+async function checkS3Connection() {
+  try {
+    const data = await s3Client.send(new ListBucketsCommand({}));
+    console.log("✅ Connected to S3!");
+  } catch (err) {
+    console.error("❌ Failed to connect to S3:", err.message);
+    process.exit(1);
+  }
 }
+
+await checkS3Connection()
+
 
 function _makeKey(originalName) {
   if (!originalName) originalName = "file";
@@ -55,76 +67,38 @@ async function uploadBuffer(buffer, key, contentType) {
   return finalKey;
 }
 
-// Higher-level helper: accept a multer-style file object ({ buffer, originalname, mimetype })
 async function uploadFromMultipart(file, key = null) {
   if (!file || !file.buffer) throw new Error("Invalid multipart file");
 
   const suggestedKey = _makeKey(file.originalname || "upload");
   const chosenKey = key || suggestedKey;
-  const finalKey = await uploadBuffer(
-    file.buffer,
-    chosenKey,
-    file.mimetype || "application/octet-stream"
-  );
-  const url = await getSignedUrlForGet(finalKey);
-  return { key: finalKey, url };
-}
-
-// Higher-level helper: accept base64 string (data URL or raw base64) and a file name
-async function uploadFromBase64(base64str, name, type) {
-  if (!base64str || !name) throw new Error("Missing base64 data or name");
-  const matches = (base64str || "").match(/^data:(.+);base64,(.+)$/);
-  let buffer;
-  let mime = "application/octet-stream";
-  if (matches) {
-    mime = matches[1];
-    buffer = Buffer.from(matches[2], "base64");
-  } else {
-    buffer = Buffer.from(base64str, "base64");
-    if (type) mime = type;
+  let buffer = file.buffer;
+  let contentType = file.mimetype || "application/octet-stream";
+  try {
+    if (contentType && contentType.startsWith("image/")) {
+      // Normalize to square and consistent size for coherence
+      const SIZE = 320; // px
+      buffer = await sharp(file.buffer)
+        .rotate() // respect EXIF orientation
+        .resize(SIZE, SIZE, { fit: "cover", position: "centre" })
+        .toBuffer(); // keep original format by default
+      // contentType remains original (jpeg/png/webp)
+    }
+  } catch (err) {
+    console.warn("Image processing failed, uploading original buffer:", err.message);
   }
-  const suggestedKey = _makeKey(name);
-  const finalKey = await uploadBuffer(buffer, suggestedKey, mime);
-  const url = await getSignedUrlForGet(finalKey);
+  const finalKey = await uploadBuffer(
+    buffer,
+    chosenKey,
+    contentType
+  );
+  const url = getObjectUrl(finalKey);
   return { key: finalKey, url };
 }
 
-async function getSignedUrlForGet(key, expiresInSeconds = 900) {
-  if (!BUCKET) throw new Error("S3 bucket not configured");
-  const cmd = new GetObjectCommand({ Bucket: BUCKET, Key: key });
-  return await getSignedUrl(s3Client, cmd, { expiresIn: expiresInSeconds });
-}
 
 function getObjectUrl(key) {
   if (!key) return null;
-  // If custom endpoint is provided (S3-compatible), prefer virtual-hosted style unless
-  // the endpoint explicitly requires path-style. If the endpoint is the default AWS
-  // s3 host (s3.amazonaws.com or *.amazonaws.com) we ignore the endpoint here so
-  // the standard virtual-hosted logic below will run and produce bucket-prefixed domains.
-  if (ENDPOINT) {
-    const endpointHost = ENDPOINT.replace(/^https?:\/\//, "").replace(/\/$/, "");
-    // If endpoint is clearly the generic AWS host, fall through to standard handling
-    if (endpointHost === "s3.amazonaws.com" || endpointHost.endsWith(".amazonaws.com")) {
-      // fallthrough to default virtual-hosted handling below
-    } else {
-      // For custom endpoints, if forcePathStyle use path style under endpoint
-      if (FORCE_PATH_STYLE) {
-        return `${ENDPOINT.replace(/\/$/, "")}/${BUCKET}/${encodeURIComponent(key)}`;
-      }
-      // Virtual-hosted style under custom endpoint host
-      return `https://${BUCKET}.${endpointHost}/${encodeURIComponent(key)}`;
-    }
-  }
-  // If forcePathStyle is requested, construct path-style AWS url
-  if (FORCE_PATH_STYLE) {
-    const regionPart = REGION ? `${REGION}.` : "";
-    return `https://s3.${regionPart}amazonaws.com/${BUCKET}/${encodeURIComponent(key)}`;
-  }
-  // Default AWS virtual-hosted style requested: always return bucket_name.s3.region.amazonaws.com/key
-  // For us-east-1 the host is bucket_name.s3.amazonaws.com
-  if (REGION === "us-east-1") {
-    return `https://${BUCKET}.s3.amazonaws.com/${encodeURIComponent(key)}`;
-  }
   return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${encodeURIComponent(key)}`;
 }
 
@@ -145,8 +119,6 @@ export {
   s3Client,
   uploadBuffer,
   uploadFromMultipart,
-  uploadFromBase64,
-  getSignedUrlForGet,
   getObjectUrl,
   deleteObject,
   listObjects,
@@ -156,8 +128,6 @@ export default {
   s3Client,
   uploadBuffer,
   uploadFromMultipart,
-  uploadFromBase64,
-  getSignedUrlForGet,
   deleteObject,
   listObjects,
   getObjectUrl
