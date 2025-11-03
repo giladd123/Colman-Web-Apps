@@ -1,5 +1,25 @@
 // Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
 
+function showLoading(container, msg = "Loading...") {
+  container.innerHTML = `
+    <div class="w-100 d-flex flex-column align-items-center py-4 text-secondary">
+      <div class="spinner-border text-light mb-3" role="status" aria-hidden="true"></div>
+      <div>${msg}</div>
+    </div>
+  `;
+}
+
+function showError(container, msg = "Something went wrong.") {
+  container.innerHTML = `
+    <div class="w-100 d-flex flex-column align-items-center py-4">
+      <div class="text-danger mb-2">${msg}</div>
+      <button class="btn btn-sm btn-outline-light" id="retryLoadProfiles">Retry</button>
+    </div>
+  `;
+  const retry = document.getElementById('retryLoadProfiles');
+  if (retry) retry.onclick = () => loadProfiles();
+}
+
 function createProfileElement(document, profile) {
   const profilesContainer = document.querySelector(".profiles");
 
@@ -65,14 +85,13 @@ function createProfileElement(document, profile) {
     }
   });
 
-  // Allow Enter key to select when not editing
+  // allow Enter key to select when not editing
   profileDiv.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && input.disabled) {
       saveProfile(input, img);
     }
   });
 
-  // set data attribute to real id if present
   if (profile.id) {
     profileDiv.setAttribute("profileid", profile.id);
   } else if (profile._id) {
@@ -365,25 +384,34 @@ function saveProfile(input, img) {
   window.location.href = "main";
 }
 
-// Fetch profiles from server for current user and render them
+// fetch profiles from server for current user and render them
 async function loadProfiles() {
   const profilesContainer = document.querySelector(".profiles");
-  profilesContainer.innerHTML = "";
+  showLoading(profilesContainer, "Loading profiles...");
   const userId = localStorage.getItem("userId");
   if (!userId) {
-    profilesContainer.textContent = "No user selected.";
+    profilesContainer.innerHTML = '<div class="text-secondary py-4">No user selected.</div>';
     return;
   }
 
   try {
     const res = await fetch(`/api/profiles/user/${userId}`);
     if (!res.ok) {
-      profilesContainer.textContent = "Failed to load profiles.";
+      showError(profilesContainer, "Failed to load profiles.");
       return;
     }
     const profiles = await res.json();
-    if (!Array.isArray(profiles) || profiles.length === 0) {
-      profilesContainer.textContent = "No profiles found.";
+    if (!Array.isArray(profiles)) {
+      showError(profilesContainer, "Failed to load profiles.");
+      return;
+    }
+
+    // clear and dynamically render tiles
+    profilesContainer.innerHTML = "";
+
+    if (profiles.length === 0) {
+      // no profiles yet: show only the add tile
+      createAddProfileTile(profilesContainer);
       return;
     }
 
@@ -401,6 +429,6 @@ async function loadProfiles() {
     }
   } catch (err) {
     console.error("Error loading profiles:", err);
-    profilesContainer.textContent = "Failed to load profiles.";
+    showError(profilesContainer, "Failed to load profiles.");
   }
 }
