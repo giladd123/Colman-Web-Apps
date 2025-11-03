@@ -32,6 +32,7 @@ class ProfilesController {
       console.error(
         `A request tried to create a profile with illegal name ${name}. Name doesn't adhere to ${nameRegex}`
       );
+      return res.status(400).json({ error: "Invalid profile name format" });
     }
 
     if (!avatar && (!body || !body.base64 || !body.name)) {
@@ -41,7 +42,6 @@ class ProfilesController {
       });
     }
     let url = null;
-    let avatarKey = null;
     if (avatar) {
       const generatedKey = crypto.randomUUID();
       const { key, url: uploadedUrl } = await media.uploadFromMultipart(avatar, generatedKey);
