@@ -41,7 +41,6 @@ class ProfilesController {
       });
     }
     let url = null;
-    let avatarKey = null;
     if (avatar) {
       const generatedKey = crypto.randomUUID();
       const { key, url: uploadedUrl } = await media.uploadFromMultipart(avatar, generatedKey);

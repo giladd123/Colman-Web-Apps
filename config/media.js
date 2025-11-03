@@ -38,7 +38,7 @@ const s3Client = new S3Client({
 
 async function checkS3Connection() {
   try {
-    const data = await s3Client.send(new ListBucketsCommand({}));
+    await s3Client.send(new ListBucketsCommand({}));
     console.log("✅ Connected to S3!");
   } catch (err) {
     console.error("❌ Failed to connect to S3:", err.message);

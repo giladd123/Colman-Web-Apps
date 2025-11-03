@@ -16,7 +16,6 @@ function setMode(isSignup) {
   const authTitle = document.getElementById("authTitle");
   const primaryAction = document.getElementById("primaryAction");
   const secondaryText = document.getElementById("secondaryText");
-  const secondaryAction = document.getElementById("secondaryAction");
 
   // show/hide signup-only fields
   const signupOnlyFields = document.querySelectorAll(".signup-only");
@@ -136,7 +135,6 @@ document
       // decide route based on primary action text
       // already computed isSignup above
       const url = isSignup ? "/api/user/create" : "/api/user/login";
-      const method = "POST";
       const response = await fetch(url, {
         method: "POST",
         headers: {
