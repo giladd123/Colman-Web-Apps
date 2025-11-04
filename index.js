@@ -3,6 +3,7 @@ import { connectDB } from "./config/db.js";
 import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 app.use(express.json());
@@ -33,5 +34,7 @@ app.get("/main", (req, res) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

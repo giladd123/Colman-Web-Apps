@@ -1,7 +1,12 @@
-import { Router } from 'express';
-import ProfilesController from '../controllers/profilesController.js';
-import asyncHandler from '../controllers/utils.js';
-import multer from 'multer';
+import { Router } from "express";
+import ProfilesController from "../controllers/profilesController.js";
+import catchAsync from "../controllers/utils.js";
+import multer from "multer";
+import {
+  validateCreateProfile,
+  validateUpdateProfile,
+} from "../middleware/validateProfile.js";
+import loadProfile from "../middleware/loadProfile.js";
 
 const router = Router();
 
@@ -9,13 +14,28 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-router.get('/user/:userId', asyncHandler(ProfilesController.getProfilesByUserId));
+router.get("/user/:userId", catchAsync(ProfilesController.getProfilesByUserId));
 
 // Accept multipart form with field name 'avatar' for file uploads
-router.post('/create', upload.single('avatar'), asyncHandler(ProfilesController.createProfileRequest));
+router.post(
+  "/create",
+  upload.single("avatar"),
+  validateCreateProfile,
+  catchAsync(ProfilesController.createProfileRequest)
+);
 
-router.delete('/:profileId', asyncHandler(ProfilesController.deleteProfile));
+router.delete(
+  "/:profileId",
+  loadProfile,
+  catchAsync(ProfilesController.deleteProfile)
+);
 
-router.put('/:profileId', upload.single('avatar'), asyncHandler(ProfilesController.updateProfile));
+router.put(
+  "/:profileId",
+  upload.single("avatar"),
+  loadProfile,
+  validateUpdateProfile,
+  catchAsync(ProfilesController.updateProfile)
+);
 
 export default router;

@@ -1,117 +1,100 @@
 import Profile from "../models/profile.js";
-import User from "../models/user.js";
 import media from "../config/media.js";
+import { info, error as logError } from "../utils/logger.js";
+import { ok, created, notFound, serverError } from "../utils/apiResponse.js";
 import crypto from "crypto";
+// Create a profile from multipart upload or base64 body
+async function createProfileRequest(req, res) {
+  // Support multipart form or JSON: validated values are provided by middleware
+  const validated = req.validatedProfile || {};
+  const userId = validated.userId;
+  const name = validated.name;
+  let avatar = req.file;
 
-class ProfilesController {
-  // Create a profile from multipart upload or base64 body
-  static async createProfileRequest(req, res) {
-    // Support multipart form or JSON: userId may be in req.body or in params
-    const body = req.body || {};
-    const userId = body.userId || req.params.userId;
-    const name = body.name;
-    let avatar = req.file;
-
-    const userExists = await User.findById(userId);
-    if (!userExists) {
-      console.error(
-        `A request tried to create a profile to a non existing user id ${userId}`
+  let url = null;
+  if (avatar) {
+    const generatedKey = crypto.randomUUID();
+    try {
+      const { key, url: uploadedUrl } = await media.uploadFromMultipart(
+        avatar,
+        generatedKey
       );
-      return res.status(404).json({ error: `User with id ${userId} not found` });
-    }
-
-    const allProfiles = await Profile.find({ user: userId });
-    if (allProfiles.length >= 5) {
-      return res
-        .status(400)
-        .json({ error: "Cannot create more than 5 profiles per user" });
-    }
-    // put hyphen at the end of the class to avoid range interpretation
-    let nameRegex = /^[A-Za-z0-9 _-]+$/;
-    if (!nameRegex.test(name)) {
-      console.error(
-        `A request tried to create a profile with illegal name ${name}. Name doesn't adhere to ${nameRegex}`
-      );
-    }
-
-    if (!avatar && (!body || !body.base64 || !body.name)) {
-      return res.status(400).json({
-        error:
-          "No file uploaded. Provide multipart req.file or base64 body with name.",
-      });
-    }
-    let url = null;
-    if (avatar) {
-      const generatedKey = crypto.randomUUID();
-      const { key, url: uploadedUrl } = await media.uploadFromMultipart(avatar, generatedKey);
       url = media.getObjectUrl(key) || uploadedUrl;
-    }
-    const profile = Profile({ name: name, user: userId, avatar: url });
-    await profile.save();
-    return res.status(201).json(profile);
-  }
-
-  static async getProfilesByUserId(req, res) {
-    const userId = req.params.userId;
-    try {
-      const profiles = await Profile.find({ user: userId });
-      return res.status(200).json(profiles);
-    } catch (error) {
-      console.error(
-        `Error retrieving profiles for user id ${userId}: ${error.message}`
-      );
-      return res.status(500).json({ error: `Internal Server Error` });
+    } catch (err) {
+      logError(`Error uploading avatar for user ${userId}: ${err.message}`, {
+        stack: err.stack,
+      });
+      return serverError(res);
     }
   }
+  const profile = Profile({ name: name, user: userId, avatar: url });
+  await profile.save();
+  info(`profile created: ${profile._id}`, { userId, name });
+  return created(res, profile);
+}
 
-  static async deleteProfile(req, res) {
-    // Route uses :profileId
-    const profileId = req.params.profileId;
-    try {
-      const profile = await Profile.findByIdAndDelete(profileId);
-      if (!profile) {
-        return res.status(404).json({ error: `Profile with id ${profileId} not found` });
-      }
-      return res.status(200).json({ message: `Profile with id ${profileId} deleted successfully` });
-    } catch (error) {
-      console.error(
-        `Error deleting profile with id ${profileId}: ${error.message}`
-      );
-      return res.status(500).json({ error: `Error deleting profile with id ${profileId}` });
-    }
-  }
-
-  static async updateProfile(req, res) {
-    const profileId = req.params.profileId;
-    const name = (req.body && req.body.name) || undefined;
-    const avatar = req.file;
-
-    try {
-      let updateFields = {};
-      if (name !== undefined) updateFields.name = name;
-      if (avatar) {
-        const generatedKey = crypto.randomUUID();
-        const { key, url: uploadedUrl } = await media.uploadFromMultipart(avatar, generatedKey);
-        updateFields.avatar = media.getObjectUrl(key) || uploadedUrl;
-        updateFields.avatarKey = key;
-      }
-      const profile = await Profile.findByIdAndUpdate(
-        profileId,
-        updateFields,
-        { new: true, runValidators: true }
-      );
-      if (!profile) {
-        return res.status(404).json({ error: `Profile with id ${profileId} not found` });
-      }
-      return res.status(200).json(profile);
-    } catch (error) {
-      console.error(
-        `Error updating profile id ${profileId}: ${error.message}`
-      );
-      return res.status(500).json({ error: `Error updating profile with id ${profileId}` });
-    }
+async function getProfilesByUserId(req, res) {
+  const userId = req.params.userId;
+  try {
+    const profiles = await Profile.find({ user: userId });
+    return ok(res, profiles);
+  } catch (error) {
+    logError(
+      `Error retrieving profiles for user id ${userId}: ${error.message}`,
+      { stack: error.stack }
+    );
+    return serverError(res);
   }
 }
 
-export default ProfilesController;
+async function deleteProfile(req, res) {
+  // Route uses :profileId
+  // req.profile is attached by loadProfile middleware
+  try {
+    const profile = req.profile;
+    await profile.deleteOne();
+    return ok(res, {
+      message: `Profile with id ${profile._id} deleted successfully`,
+    });
+  } catch (error) {
+    logError(
+      `Error deleting profile with id ${req.params.profileId}: ${error.message}`,
+      { stack: error.stack }
+    );
+    return serverError(res);
+  }
+}
 
+async function updateProfile(req, res) {
+  const profileId = req.params.profileId;
+  const validated = req.validatedProfile || {};
+  const name = validated.name;
+  const avatar = req.file;
+  try {
+    const profile = req.profile;
+    if (name !== undefined) profile.name = name;
+    if (avatar) {
+      const generatedKey = crypto.randomUUID();
+      const { key, url: uploadedUrl } = await media.uploadFromMultipart(
+        avatar,
+        generatedKey
+      );
+      profile.avatar = media.getObjectUrl(key) || uploadedUrl;
+      profile.avatarKey = key;
+    }
+    await profile.save();
+    return ok(res, profile);
+  } catch (error) {
+    logError(`Error updating profile id ${profileId}: ${error.message}`, {
+      stack: error.stack,
+    });
+    return serverError(res);
+  }
+}
+
+export default {
+  createProfileRequest,
+  getProfilesByUserId,
+  deleteProfile,
+  updateProfile,
+};
