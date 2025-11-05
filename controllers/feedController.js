@@ -1,85 +1,169 @@
-import Content from "../models/contentModel.js";
-import Profile from "../models/profileModel.js";
-import WatchingHabit from "../models/watchingHabitModel.js";
+// controllers/feedController.js
+import Content from "../models/content.js";
+import Profile from "../models/profile.js";
+import watchingHabit from "../models/habit.js";
 
-/**
- * Feed page controller
- * - Profile switching
- * - Continue watching
- * - Personalized recommendations
- * - Popular content
- * - Newest by genre (dynamic)
- */
-export const getFeed = async (req, res) => {
+export async function testContent(req, res) {
   try {
-    const profileId = req.params.profileId; // e.g., /feed/:profileId
-    const profile = await Profile.findById(profileId)
-      .populate("likedContent")
-      .populate("viewingHistory.contentId")
+    const contents = await Content.aggregate([{ $sample: { size: 5 } }]);
+
+    res.status(200).json(contents);
+  } catch (err) {
+    console.error("Error fetching test content:", err);
+    res.status(500).json({ error: "Failed to fetch test content" });
+  }
+}
+
+export async function testContent2(req, res) {
+  try {
+    const contents = await Content.aggregate([{ $sample: { size: 22 } }]);
+
+    res.status(200).json(contents);
+  } catch (err) {
+    console.error("Error fetching test content:", err);
+    res.status(500).json({ error: "Failed to fetch test content" });
+  }
+}
+
+// Fetch all content (movies, shows, etc.) VV
+export const getAllContent = async (req, res, next) => {
+  try {
+    const contents = await Content.find().sort({ popularity: -1 }).lean();
+    res.status(200).json(contents);
+  } catch (err) {
+    next(err); // pass to centralized error handler
+  }
+};
+
+// GET /api/content/:id - Fetch a specific content item by ID
+// export const getContentById = async (req, res, next) => {
+//   try {
+//     const content = await Content.findById(req.params.id).lean();
+//     if (!content) {
+//       return res.status(404).json({ message: "Content not found" });
+//     }
+//     res.status(200).json(content);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+//General For All Profiles
+//Fetch content by genre
+export async function getContentByGenre(req, res, next) {
+  try {
+    const { genre } = req.params;
+    const content = await Content.find({ genres: genre })
+      .sort({ releaseYear: -1 })
       .lean();
+    res.status(200).json(content);
+  } catch (err) {
+    next(err);
+  }
+}
+
+//-------------------------------------------------------------------
+
+//Per Profile
+async function continueWatchingForProfile(profileId) {
+  const habits = await watchingHabit.find({
+    profileId,
+    completed: false,
+    watchedTimeInSeconds: { $gt: 0 },
+  })
+    .sort({ updatedAt: -1 })
+    .limit(10)
+    .populate("contentId")
+    .lean();
+
+  return habits.map(h => h.contentId);
+}
+
+async function completedWatchingByProfile(profileId) {
+  const habits = await watchingHabit.find({ profileId, completed: true })
+    .sort({ updatedAt: -1 })
+    .populate("contentId")
+    .lean();
+
+  return habits.map(h => h.contentId);
+}
+
+async function likedByProfile(profileId) {
+  const habits = await watchingHabit.find({ profileId, liked: true })
+    .populate("contentId")
+    .lean();
+
+  return habits.map(h => h.contentId);
+}
+
+async function recommendationsForProfile(profileId) {
+  const liked = await likedByProfile(profileId);
+  if (!liked.length) {
+    // Fallback: top popular content
+    return await Content.find().sort({ popularity: -1 }).limit(10).lean();
+  }
+
+  // Collect genres from liked content
+  const likedGenres = liked.flatMap(item => item.genres || []);
+  const topGenres = [...new Set(likedGenres)];
+
+  // Find more content in similar genres (excluding already liked)
+  return await Content.find({
+    genres: { $in: topGenres },
+    _id: { $nin: liked.map(c => c._id) },
+  })
+    .sort({ popularity: -1 })
+    .limit(10)
+    .lean();
+}
+
+// -------------------------------------------------------------------
+
+// For generating feed
+export async function getFeedForProfile(req, res) {
+  try {
+    const profileName = req.params.profileName;
+    const profile = await Profile.findOne({ name: profileName });
 
     if (!profile) {
-      return res.status(404).send("Profile not found");
+      return res.status(404).json({ error: "Profile not found" });
     }
 
-    // --- 1️⃣ Continue watching (incomplete viewing history)
-    const continueWatching = profile.viewingHistory
-      .filter(v => v.watchedTimeInSeconds > 0 && v.watchedTimeInSeconds < 3600 * 0.9)
-      .sort((a, b) => b.lastWatchedAt - a.lastWatchedAt);
+    const profileId = profile._id;
 
-    // --- 2️⃣ Personalized recommendations
-    // Find genres of liked content
-    const likedGenres = profile.likedContent.map(c => c.genre);
-    const viewedIds = profile.viewingHistory.map(v => v.contentId?._id);
-    const likedIds = profile.likedContent.map(c => c._id);
+    // Continue Watching
+    const continueWatching = await continueWatchingForProfile(profileId);
 
-    let recommendations = [];
-    if (likedGenres.length) {
-      recommendations = await Content.find({
-        genre: { $in: likedGenres },
-        _id: { $nin: [...viewedIds, ...likedIds] },
-      })
-        .sort({ rating: -1, popularity: -1 })
-        .limit(10)
-        .lean();
-    }
+    // Recommendations
+    const recommendations = await recommendationsForProfile(profileId);
 
-    // --- 3️⃣ Popular content (top by popularity)
-    const popularContent = await Content.find()
+    // Most Popular
+    const mostPopular = await Content.find()
       .sort({ popularity: -1 })
       .limit(10)
       .lean();
 
-    // --- 4️⃣ Newest content by genre (auto-detect)
-    const genres = await Content.distinct("genre");
+    // Newest by Genre
+    const contents = await Content.find().sort({ releaseYear: -1 }).lean();
     const newestByGenre = {};
-    for (const genre of genres) {
-      const newest = await Content.find({ genre })
-        .sort({ uploadedAt: -1 })
-        .limit(10)
-        .lean();
-      newestByGenre[genre] = newest;
+    for (const movie of contents) {
+      for (const genre of movie.genres || []) {
+        if (!newestByGenre[genre]) newestByGenre[genre] = [];
+        if (newestByGenre[genre].length < 10) {
+          newestByGenre[genre].push(movie);
+        }
+      }
     }
 
-    // Fetch the full user (to list all profiles)
-    const user = await Profile.findById(profileId)
-      .populate({
-        path: "userId",
-        populate: { path: "profiles" },
-      })
-      .then(p => p.userId)
-      .lean();
-
-    res.render("main_menu", {
-      profile,
-      user,
+    res.json({
       continueWatching,
       recommendations,
-      popularContent,
+      mostPopular,
       newestByGenre,
     });
+    // console.log(continueWatching, newestByGenre) //,  mostPopular recommendations, newestByGenre
   } catch (err) {
-    console.error("❌ Error in getFeed:", err);
-    res.status(500).send("Server error loading feed");
+    console.error("Error building feed:", err);
+    res.status(500).json({ error: "Failed to build feed" });
   }
-};
+}

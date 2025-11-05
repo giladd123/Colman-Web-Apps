@@ -1,10 +1,13 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
-function initializeApp() {
+async function initializeApp() {
   // Initialize profile display
   const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
   document.getElementById("helloMessage").innerText = `Hello, ${selectedProfileName}`;
   document.getElementById("currentProfileImg").src = selectedProfileImage;
+
+  // await fetchMoviesFromDB(); // <-- wait here before rendering
+  const feedData = await fetchFeedForProfile(selectedProfileName);
+  renderFeed(feedData, selectedProfileName);
+
 
   // Initialize search functionality
   initializeSearch();

@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function initializeSearch() {
   const searchIcon = document.querySelector(".bi-search");
   const searchInput = document.getElementById("searchInput");
@@ -58,7 +56,7 @@ function initializeSearch() {
     } else {
       // If there's an active search input, show search results
       const filtered = movies.filter((movie) =>
-        movie.Title.toLowerCase().includes(query)
+        movie.title.toLowerCase().includes(query)
       );
       renderContent(filtered);
     }

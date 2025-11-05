@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function createRowTitle(title) {
   const h3 = document.createElement("h3");
   h3.className = "row-title";

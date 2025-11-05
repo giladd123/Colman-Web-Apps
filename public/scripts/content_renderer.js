@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function createNoResultsMessage() {
   const noResult = document.createElement("p");
   noResult.textContent = "No results found";

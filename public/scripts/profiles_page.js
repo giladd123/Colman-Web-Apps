@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function showLoading(container, msg = "Loading...") {
   container.innerHTML = `
     <div class="w-100 d-flex flex-column align-items-center py-4 text-secondary">
