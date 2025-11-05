@@ -1,8 +1,7 @@
 /* Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 */
 
 body {
-  background: url("../images/backgrounds/netflix_login_background.jpg") center
-    center/cover no-repeat;
+  background: url("../images/backgrounds/netflix_login_background.jpg") center center/cover no-repeat;
   min-height: 100vh;
   font-family: "Helvetica Neue", Arial, sans-serif;
 }
@@ -44,6 +43,8 @@ body {
   border-radius: 4px;
   width: 100%;
 }
+
+/* Single primary action button now; no special white button styles needed */
 
 .error-message {
   color: #e50914;
@@ -90,6 +91,10 @@ body {
 .signup-link a {
   color: white;
   text-decoration: none;
+}
+
+.signup-only {
+  display: none;
 }
 
 .form-check-input:checked {
