@@ -3,10 +3,6 @@ function renderFeed(feedData, profileName) {
   content.innerHTML = "";
   let rowIndex = 0;
 
-  // My List
-  if (feedData.myList?.length)
-    rowIndex = createRow("My List", feedData.myList, rowIndex);
-
   // Continue Watching
   if (feedData.continueWatching?.length)
     rowIndex = createRow(
@@ -14,10 +10,6 @@ function renderFeed(feedData, profileName) {
       feedData.continueWatching,
       rowIndex
     );
-
-  // Liked by profile
-  if (feedData.likedBy?.length)
-    rowIndex = createRow(`Liked by ${profileName}`, feedData.likedBy, rowIndex);
 
   // Recommendations
   if (feedData.recommendations?.length)
@@ -30,6 +22,13 @@ function renderFeed(feedData, profileName) {
   // Most Popular
   if (feedData.mostPopular?.length)
     rowIndex = createRow("Most Popular", feedData.mostPopular, rowIndex);
+
+  // Place 'My List' and 'Liked by' just above the per-genre rows
+  if (feedData.myList?.length)
+    rowIndex = createRow("My List", feedData.myList, rowIndex);
+
+  if (feedData.likedBy?.length)
+    rowIndex = createRow(`Liked by ${profileName}`, feedData.likedBy, rowIndex);
 
   // Dynamic rows for each genre
   for (const [genre, genreMovies] of Object.entries(

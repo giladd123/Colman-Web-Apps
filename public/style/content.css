@@ -11,12 +11,19 @@
   .scroll-wrapper {
     position: relative;
   }
-  .scroll-container {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding-bottom: 6px;
+    .scroll-container {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 6px;
+      direction: ltr;
+    }
+  /* Subtle fade used when we programmatically 'jump' the scroller to create the infinite illusion */
+  .scroll-container.scroll-jumping {
+    transition: opacity 120ms ease;
+    opacity: 0.65;
   }
   .scroll-container::-webkit-scrollbar {
     display: none;

@@ -25,50 +25,7 @@ function createScrollContainer(movies, rowIndex) {
   return scroller;
 }
 
-// Makes a scroller infinitely loop by cloning first and last few cards
-function makeInfiniteScroller(scroller, cloneCount = 3) {
-  let cards = Array.from(scroller.children);
-  if (!cards.length) return;
 
-  // If there are not enough original items to meaningfully clone, skip infinite behavior
-  const originalCountBeforeCloning = cards.length;
-  if (originalCountBeforeCloning <= cloneCount) return;
-
-  // Clone cards
-  const clonesLeft = cards.slice(-cloneCount).map((c) => c.cloneNode(true));
-  const clonesRight = cards.slice(0, cloneCount).map((c) => c.cloneNode(true));
-
-  clonesLeft.forEach((c) => scroller.insertBefore(c, scroller.firstChild));
-  clonesRight.forEach((c) => scroller.appendChild(c));
-
-  // Recalculate all cards including clones
-  cards = Array.from(scroller.children);
-
-  const cardWidth =
-    cards[0].offsetWidth +
-    parseInt(getComputedStyle(cards[0]).marginRight || 0);
-  const originalCount = cards.length - cloneCount * 2; // exclude clones
-
-  // Start scroll at first original card — set inside rAF to avoid layout/timing races
-  requestAnimationFrame(() => {
-    scroller.scrollLeft = cardWidth * cloneCount;
-  });
-
-  // Continuous scroll with small tolerance to avoid jumping due to fractional pixels
-  const tolerance = 1; // pixels
-  scroller.addEventListener("scroll", () => {
-    requestAnimationFrame(() => {
-      if (scroller.scrollLeft < cardWidth * cloneCount - tolerance) {
-        scroller.scrollLeft += cardWidth * originalCount;
-      } else if (
-        scroller.scrollLeft >=
-        cardWidth * (cloneCount + originalCount) - tolerance
-      ) {
-        scroller.scrollLeft -= cardWidth * originalCount;
-      }
-    });
-  });
-}
 
 function addScrollListeners(leftBtn, rightBtn, scroller) {
   if (!scroller) return;
@@ -117,19 +74,10 @@ function createRow(title, movies, rowIndex) {
 
   addScrollListeners(leftBtn, rightBtn, scroller);
 
-  // Enable infinite scrolling immediately
+  // Show/hide arrows based on overflow
   if (scroller.scrollWidth > scroller.clientWidth) {
-    // Ensure layout is ready
-    Promise.all(
-      [...scroller.querySelectorAll("img")].map((img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise((res) => (img.onload = res))
-      )
-    ).then(() => {
-      // Initialize infinite scroller after images/layout are ready.
-      makeInfiniteScroller(scroller, 3);
-    });
+    leftBtn.style.display = "";
+    rightBtn.style.display = "";
   } else {
     leftBtn.style.display = "none";
     rightBtn.style.display = "none";
@@ -147,4 +95,62 @@ function createRow(title, movies, rowIndex) {
   });
 
   return section;
+}
+
+// Replace the movies inside an existing row matching the given title.
+// Returns true if the row was found and updated, false otherwise.
+function updateRowMovies(title, movies) {
+  try {
+    const titles = Array.from(document.querySelectorAll(".row-title"));
+    const match = titles.find((h3) => h3.textContent.trim() === title);
+    if (!match) return false;
+
+    const section = match.closest("section.row-section");
+    if (!section) return false;
+
+    // If there are no movies, remove the entire section so the title doesn't remain
+    if (!movies || !movies.length) {
+      section.remove();
+      return true;
+    }
+
+    const wrapper = section.querySelector(".scroll-wrapper");
+    if (!wrapper) return false;
+
+    const leftBtn = wrapper.querySelector(".scroll-btn.left");
+    const rightBtn = wrapper.querySelector(".scroll-btn.right");
+    const oldScroller = wrapper.querySelector(".scroll-container");
+    const scrollerId = oldScroller
+      ? oldScroller.id
+      : `row-updated-${Date.now()}`;
+
+    // Create fresh scroller and populate
+    const newScroller = document.createElement("div");
+    newScroller.className = "scroll-container";
+    newScroller.id = scrollerId;
+
+    movies.forEach((movie) => newScroller.appendChild(createCard(movie)));
+
+    // Replace the old scroller with the new one (preserve button positions)
+    if (oldScroller) wrapper.replaceChild(newScroller, oldScroller);
+    else if (rightBtn) wrapper.insertBefore(newScroller, rightBtn);
+    else wrapper.appendChild(newScroller);
+
+    // Reattach listeners
+    addScrollListeners(leftBtn, rightBtn, newScroller);
+
+    // Show/hide arrows based on overflow
+    if (newScroller.scrollWidth > newScroller.clientWidth) {
+      if (leftBtn) leftBtn.style.display = "";
+      if (rightBtn) rightBtn.style.display = "";
+    } else {
+      if (leftBtn) leftBtn.style.display = "none";
+      if (rightBtn) rightBtn.style.display = "none";
+    }
+
+    return true;
+  } catch (err) {
+    console.error("updateRowMovies failed:", err);
+    return false;
+  }
 }
