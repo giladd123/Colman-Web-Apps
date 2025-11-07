@@ -35,7 +35,38 @@ h1 {
 .profile img {
   display: block;
   width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius: 8px;
+}
+
+.profile.add-profile .add-tile {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px dashed #555;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile.add-profile .add-tile:hover {
+  border-color: #aaa;
+  color: #fff;
+}
+
+.profile.add-profile .add-tile i {
+  font-size: 2rem;
+}
+
+.new-profile-editor .editor-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
 }
 
 .profile:hover img,

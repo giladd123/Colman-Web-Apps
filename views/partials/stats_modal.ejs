@@ -1,0 +1,45 @@
+<section class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+    <section class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-md-down">
+        <section class="modal-content bg-dark text-white border-secondary">
+            <header class="modal-header border-secondary">
+                <h5 class="modal-title" id="settingsModalLabel">Profile Statistics</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </header>
+            <section class="modal-body pt-0">
+                <section class="pt-2" id="settingsTabsContent">
+                    <section id="statsTab" role="tabpanel" aria-labelledby="stats-tab">
+                        <section class="row g-4">
+                            <section class="col-lg-6">
+                                <section class="card bg-black border-secondary h-100">
+                                    <header class="card-header border-secondary py-2">
+                                        <strong class="text-white">Daily Watches Per Profile (Last 7 Days)</strong>
+                                    </header>
+                                    <section class="card-body">
+                                        <canvas id="dailyWatchesChart" height="220"></canvas>
+                                    </section>
+                                </section>
+                            </section>
+                            <section class="col-lg-6">
+                                <section class="card bg-black border-secondary h-100">
+                                    <header class="card-header border-secondary py-2">
+                                        <strong class="text-white">Content Popularity</strong>
+                                    </header>
+                                    <section class="card-body">
+                                        <canvas id="contentPopularityChart" height="220"></canvas>
+                                    </section>
+                                </section>
+                            </section>
+                        </section>
+                        <script src="/scripts/profile_stats.js"></script>
+                    </section>
+                </section>
+            </section>
+            <footer class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </footer>
+        </section>
+    </section>
+</section>
