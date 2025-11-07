@@ -1,5 +1,3 @@
-/* Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 */
-
 .navbar {
   background: linear-gradient(
     to bottom,
@@ -37,4 +35,14 @@
 .dropdown-menu .dropdown-item:focus {
   color: #fff !important;
   background: transparent;
+}
+
+/* When navbar is fixed to the top, add top padding so content isn't hidden behind it */
+body {
+  padding-top: 70px; /* adjust if your navbar height differs */
+}
+
+/* Ensure navbar sits above other content */
+.navbar.fixed-top {
+  z-index: 1030;
 }

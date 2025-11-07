@@ -1,0 +1,70 @@
+/* Plus button styling */
+.watchlist-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  padding: 0;
+  font-size: 1rem;
+  margin-right: 2px;
+}
+
+.watchlist-btn:hover i {
+  transform: scale(1.2);
+}
+
+.watchlist-btn.in-list {
+  color: #e5e5e5;
+}
+
+.watchlist-btn i {
+  display: inline-block;
+  position: relative;
+  transform-origin: center center;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+/* Watchlist button animations */
+.watchlist-btn i {
+  transition: transform 0.15s ease-in-out;
+}
+
+.watchlist-btn i.add-animate {
+  animation: addToList 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.watchlist-btn i.remove-animate {
+  animation: removeFromList 0.3s ease-in-out;
+}
+
+@keyframes addToList {
+  0% {
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes removeFromList {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

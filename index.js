@@ -7,6 +7,8 @@ import errorHandler from "./middleware/errorHandler.js";
 import mainRoutes from './routes/mainRoutes.js';
 import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
+import likesRoutes from "./routes/likesRoutes.js";
+import watchlistRoutes from "./routes/watchlistRoutes.js";
 
 
 const app = express();
@@ -50,6 +52,8 @@ app.get("/main", (req, res) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
+app.use("/api/likes", likesRoutes);
+app.use("/api/watchlist", watchlistRoutes);
 
 app.use(errorHandler);
 

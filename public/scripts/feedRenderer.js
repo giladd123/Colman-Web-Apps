@@ -3,6 +3,10 @@ function renderFeed(feedData, profileName) {
   content.innerHTML = "";
   let rowIndex = 0;
 
+  // My List
+  if (feedData.myList?.length)
+    rowIndex = createRow("My List", feedData.myList, rowIndex);
+
   // Continue Watching
   if (feedData.continueWatching?.length)
     rowIndex = createRow(
@@ -10,6 +14,10 @@ function renderFeed(feedData, profileName) {
       feedData.continueWatching,
       rowIndex
     );
+
+  // Liked by profile
+  if (feedData.likedBy?.length)
+    rowIndex = createRow(`Liked by ${profileName}`, feedData.likedBy, rowIndex);
 
   // Recommendations
   if (feedData.recommendations?.length)

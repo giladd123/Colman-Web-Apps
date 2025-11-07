@@ -22,7 +22,13 @@ function createCard(movie) {
 
   card.appendChild(createMovieImage(movie));
   card.appendChild(createMovieBadge(movie));
-  card.appendChild(createLikeButton(movie));
+
+  // Create container for like and watchlist buttons
+  const actionsContainer = document.createElement("div");
+  actionsContainer.className = "actions-container";
+  actionsContainer.appendChild(createWatchlistButton(movie));
+  actionsContainer.appendChild(createLikeButton(movie));
+  card.appendChild(actionsContainer);
   const id = movie.imdbID;
   card.addEventListener('click', () => {
       if (movie && movie.imdbID) {

@@ -30,6 +30,10 @@ function makeInfiniteScroller(scroller, cloneCount = 3) {
   let cards = Array.from(scroller.children);
   if (!cards.length) return;
 
+  // If there are not enough original items to meaningfully clone, skip infinite behavior
+  const originalCountBeforeCloning = cards.length;
+  if (originalCountBeforeCloning <= cloneCount) return;
+
   // Clone cards
   const clonesLeft = cards.slice(-cloneCount).map((c) => c.cloneNode(true));
   const clonesRight = cards.slice(0, cloneCount).map((c) => c.cloneNode(true));
@@ -45,17 +49,20 @@ function makeInfiniteScroller(scroller, cloneCount = 3) {
     parseInt(getComputedStyle(cards[0]).marginRight || 0);
   const originalCount = cards.length - cloneCount * 2; // exclude clones
 
-  // Start scroll at first original card
-  scroller.scrollLeft = cardWidth * cloneCount;
+  // Start scroll at first original card — set inside rAF to avoid layout/timing races
+  requestAnimationFrame(() => {
+    scroller.scrollLeft = cardWidth * cloneCount;
+  });
 
-  // Continuous scroll
+  // Continuous scroll with small tolerance to avoid jumping due to fractional pixels
+  const tolerance = 1; // pixels
   scroller.addEventListener("scroll", () => {
     requestAnimationFrame(() => {
-      if (scroller.scrollLeft < cardWidth * cloneCount) {
+      if (scroller.scrollLeft < cardWidth * cloneCount - tolerance) {
         scroller.scrollLeft += cardWidth * originalCount;
       } else if (
         scroller.scrollLeft >=
-        cardWidth * (cloneCount + originalCount)
+        cardWidth * (cloneCount + originalCount) - tolerance
       ) {
         scroller.scrollLeft -= cardWidth * originalCount;
       }
@@ -120,12 +127,8 @@ function createRow(title, movies, rowIndex) {
           : new Promise((res) => (img.onload = res))
       )
     ).then(() => {
+      // Initialize infinite scroller after images/layout are ready.
       makeInfiniteScroller(scroller, 3);
-      const firstCard = scroller.children[0];
-      const cardWidth =
-        firstCard.offsetWidth +
-        parseInt(getComputedStyle(firstCard).marginRight || 0);
-      scroller.scrollLeft = cardWidth * 3; // cloneCount
     });
   } else {
     leftBtn.style.display = "none";
