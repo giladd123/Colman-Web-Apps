@@ -12,6 +12,8 @@ function formatIMDBData(IMDBData) {
   let releaseYear = IMDBData.Year || "";
   if (releaseYear.includes("–")) releaseYear = releaseYear.split("–")[0].trim();
 
+  const isEpisode = IMDBData.Type === "episode";
+
   return {
     title: IMDBData.Title || "",
     description: IMDBData.Plot && IMDBData.Plot !== "N/A" ? IMDBData.Plot : "",
@@ -24,6 +26,15 @@ function formatIMDBData(IMDBData) {
     imdbID: IMDBData.imdbID || "",
     year: releaseYear || "",
     releaseDate: parseReleaseDate(IMDBData.Released),
+
+    // NEW FIELDS for episodes
+    ...(isEpisode && {
+      episodeTitle: IMDBData.Title || "",
+      seriesTitle:
+        IMDBData.SeriesTitle || IMDBData.Series || IMDBData.showTitle || "", // OMDb field may vary
+      season: IMDBData.Season,
+      episode: IMDBData.Episode,
+    }),
   };
 }
 
@@ -35,7 +46,11 @@ export async function fetchIMDBData({ title, type, season, episode }) {
   // Episode fetch
   if (type === "episode" && season && episode) {
     try {
-      const epRes = await axios.get(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&Season=${season}&Episode=${episode}&plot=full&apikey=${apiKey}`);
+      const epRes = await axios.get(
+        `https://www.omdbapi.com/?t=${encodeURIComponent(
+          title
+        )}&Season=${season}&Episode=${episode}&plot=full&apikey=${apiKey}`
+      );
 
       if (epRes.data.Response === "False") return null;
       return epRes.data;
@@ -49,8 +64,18 @@ export async function fetchIMDBData({ title, type, season, episode }) {
   const typeQuery = type === "movie" ? "movie" : "series";
   try {
     const resData = await axios.get(
-      `https://www.omdbapi.com/?t=${encodeURIComponent(title)}&type=${typeQuery}&plot=full&apikey=${apiKey}`);
+      `https://www.omdbapi.com/?t=${encodeURIComponent(
+        title
+      )}&type=${typeQuery}&plot=full&apikey=${apiKey}`
+    );
     if (resData.data.Response === "False") return null;
+    if (
+      !resData.data.Title ||
+      resData.data.Title.trim().toLowerCase() !== title.trim().toLowerCase()
+    ) {
+      return null;
+    }
+
     return resData.data;
   } catch (err) {
     console.error("Failed fetching movie/show info from IMDb:", err.message);
