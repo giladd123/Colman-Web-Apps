@@ -173,9 +173,9 @@ body {
 
 .episode-item img,
 .season-card img {
-  width: 180px;       /* fixed width */
-  height: 100px;      /* fixed height */
-  object-fit: cover;  /* crop the image nicely */
-  border-radius: 8px; /* optional – rounded corners */
-  display: block;     /* remove gaps under images */
+  width: 180px;       
+  height: 100px;      
+  object-fit: cover;  
+  border-radius: 8px; 
+  display: block;     
 }
