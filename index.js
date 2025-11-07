@@ -4,12 +4,10 @@ import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
+import mainRoutes from './routes/mainRoutes.js';
 
 const app = express();
 app.use(express.json());
-import connectDB from "./config/db.js";
-import dotenv from "dotenv";
-import mainRoutes from './routes/mainRoutes.js';
 const PORT = process.env.PORT || 8000;
 
 // Connect to MongoDB
