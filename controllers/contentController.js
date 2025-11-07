@@ -4,6 +4,7 @@ import Movie from "../models/movie.js";
 import Show from "../models/show.js";
 import Episode from "../models/episode.js";
 import { fetchIMDBData } from "./imdbController.js";
+import { uploadFromMultipart } from "../config/media.js";
 
 // Normalize form input
 function normalizeFormData(req) {
@@ -42,7 +43,6 @@ function normalizeFormData(req) {
 
   // Determine video path (uploaded or provided URL)
   let videoPath = videoUrl || "";
-  if (req.file?.filename) videoPath = `/uploads/${req.file.filename}`;
 
   // Return normalized object
   return {
@@ -104,21 +104,7 @@ async function fetchRuntimeAndRating(
 
 // Extract video duration via ffmpeg if not provided by IMDb
 async function extractVideoLength(req, currentLength) {
-  if (currentLength > 0 || !req.file) return currentLength;
-
-  try {
-    // Analyze video metadata
-    const metadata = await new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(`public/uploads/${req.file.filename}`, (err, data) =>
-        err ? reject(err) : resolve(data)
-      );
-    });
-    // Convert seconds to minutes (rounded up)
-    return Math.ceil(metadata.format.duration / 60);
-  } catch (err) {
-    console.warn("Failed to read video duration:", err.message);
-    return currentLength;
-  }
+  return currentLength; // Keep IMDb runtime or user-provided value
 }
 
 // Create Movie
@@ -161,7 +147,8 @@ async function createShow(data) {
 // Create Episode and link to parent show
 async function createEpisode(data) {
   // Case-insensitive show lookup
-  const show = await Show.findOne({title: new RegExp(`^${data.title}$`, "i"),
+  const show = await Show.findOne({
+    title: new RegExp(`^${data.title}$`, "i"),
   });
   if (!show) throw new Error(`Show "${data.title}" not found.`);
 
@@ -217,6 +204,12 @@ export async function addContent(req, res) {
   try {
     // Normalize form data
     const data = normalizeFormData(req);
+
+    // Upload video to S3 if provided:
+    if (req.file) {
+      const uploadResult = await uploadFromMultipart(req.file);
+      data.videoPath = uploadResult.url;
+    }
 
     // Fetch IMDb info
     const { imdbRating, runtimeMinutes } = await fetchRuntimeAndRating(
