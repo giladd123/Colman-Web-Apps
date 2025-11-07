@@ -123,7 +123,10 @@ async function recommendationsForProfile(profileId) {
 export async function getFeedForProfile(req, res) {
   try {
     const profileName = req.params.profileName;
-    const profile = await Profile.findOne({ name: profileName });
+    // populate likedContents and watchlist
+    const profile = await Profile.findOne({ name: profileName })
+      .populate("likedContents")
+      .populate("watchlist");
 
     if (!profile) {
       return res.status(404).json({ error: "Profile not found" });
@@ -131,6 +134,15 @@ export async function getFeedForProfile(req, res) {
 
     const profileId = profile._id;
 
+    // Liked by profile - prefer explicit likedContents on the profile document,
+    // otherwise fall back to habits where 'liked' was recorded.
+    let likedBy = [];
+    if (profile.likedContents && profile.likedContents.length) {
+      // profile.likedContents are populated documents (or ObjectIds) - ensure they're plain objects
+      likedBy = profile.likedContents.map((c) => (c.toObject ? c.toObject() : c));
+    } else {
+      likedBy = await likedByProfile(profileId);
+    }
     // Continue Watching
     const continueWatching = await continueWatchingForProfile(profileId);
 
@@ -155,7 +167,12 @@ export async function getFeedForProfile(req, res) {
       }
     }
 
+    // My List (watchlist)
+    const myList = profile.watchlist?.map(c => c.toObject ? c.toObject() : c) || [];
+
     res.json({
+      likedBy,
+      myList,
       continueWatching,
       recommendations,
       mostPopular,

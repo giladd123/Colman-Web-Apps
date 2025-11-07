@@ -12,6 +12,20 @@ const profileSchema = new mongoose.Schema(
       required: true,
     },
     avatar: String,
+    likedContents: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Content",
+        default: [],
+      },
+    ],
+    watchlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Content",
+        default: [],
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -29,7 +29,12 @@ function initializeSearch() {
         movieCards.style.flexWrap = "";
         movieCards.style.gap = "";
         movieCards.style.padding = "";
-        loadAndRender();
+        // Restore the profile feed if available, otherwise fall back to loadAll-movies view
+        if (window.currentFeedData && window.currentProfileName) {
+          renderFeed(window.currentFeedData, window.currentProfileName);
+        } else {
+          loadAndRender(); // fallback: render flat rows from all movies
+        }
       }
     }
   });
@@ -46,13 +51,16 @@ function initializeSearch() {
         renderContent(movies);
       } else {
         // Show default view
-        const movieCards = document.getElementById("content");
-        movieCards.style.display = "";
-        movieCards.style.flexWrap = "";
-        movieCards.style.gap = "";
-        movieCards.style.padding = "";
-        //loadAndRender();
-        renderFeed(feedData, selectedProfileName);
+      const movieCards = document.getElementById("content");
+      movieCards.style.display = "";
+      movieCards.style.flexWrap = "";
+      movieCards.style.gap = "";
+      movieCards.style.padding = "";
+      if (window.currentFeedData && window.currentProfileName) {
+        renderFeed(window.currentFeedData, window.currentProfileName);
+      } else {
+        loadAndRender();
+      }
       }
     } else {
       // If there's an active search input, show search results
@@ -92,8 +100,11 @@ function initializeAlphabeticalSorting() {
       movieCards.style.flexWrap = "";
       movieCards.style.gap = "";
       movieCards.style.padding = "";
-      //loadAndRender();
-      renderFeed(feedData, selectedProfileName);
+      if (window.currentFeedData && window.currentProfileName) {
+        renderFeed(window.currentFeedData, window.currentProfileName);
+      } else {
+        loadAndRender();
+      }
     }
   });
 }

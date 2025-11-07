@@ -13,10 +13,13 @@ async function initializeApp() {
 
   // Fetch feed for profile
   const feedData = await fetchFeedForProfile(selectedProfileName);
-  //console.log("Feed data for profile:", selectedProfileName, feedData);
+
+  // Expose the last rendered feed and profile on window so other modules (search) can restore it.
+  window.currentFeedData = feedData;
+  window.currentProfileName = selectedProfileName;
 
   // Render the feed rows
-  renderFeed(feedData, selectedProfileName);
+  renderFeed(window.currentFeedData, window.currentProfileName);
 
   // Initialize search & sorting
   initializeSearch();
