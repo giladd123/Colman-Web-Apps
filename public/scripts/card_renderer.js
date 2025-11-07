@@ -29,10 +29,10 @@ function createCard(movie) {
   actionsContainer.appendChild(createWatchlistButton(movie));
   actionsContainer.appendChild(createLikeButton(movie));
   card.appendChild(actionsContainer);
-  const id = movie.imdbID;
+  const id = movie._id;
   card.addEventListener('click', () => {
-      if (movie && movie.imdbID) {
-        window.location.href = `/select-content/${movie.imdbID}`; 
+      if (movie && id) {
+        window.location.href = `/select-content/${id}`; 
       } else {
         console.error("Movie data or imdbID missing, cannot redirect."); 
       }
