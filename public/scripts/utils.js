@@ -1,12 +1,4 @@
-const ROW_SIZE = 12;
-const ROW_TITLES = [
-  "Popular",
-  "Trending",
-  "Because you watched",
-  "Watch it Again",
-  "Top Rated",
-  "Action",
-];
+const ROW_SIZE = 30;
 
 function updateTooltip(el, text) {
   try {

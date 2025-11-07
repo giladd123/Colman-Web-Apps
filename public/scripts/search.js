@@ -37,7 +37,7 @@ function initializeSearch() {
   // Filter content on input
   searchInput.addEventListener("input", (e) => {
     const query = e.target.value.toLowerCase().trim();
-    
+
     if (query === "") {
       // If search input is empty, check if sorting is active
       const abcIcon = document.querySelector(".bi-alphabet");
@@ -51,7 +51,8 @@ function initializeSearch() {
         movieCards.style.flexWrap = "";
         movieCards.style.gap = "";
         movieCards.style.padding = "";
-        loadAndRender();
+        //loadAndRender();
+        renderFeed(feedData, selectedProfileName);
       }
     } else {
       // If there's an active search input, show search results
@@ -91,7 +92,8 @@ function initializeAlphabeticalSorting() {
       movieCards.style.flexWrap = "";
       movieCards.style.gap = "";
       movieCards.style.padding = "";
-      loadAndRender();
+      //loadAndRender();
+      renderFeed(feedData, selectedProfileName);
     }
   });
 }

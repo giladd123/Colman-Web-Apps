@@ -379,7 +379,7 @@ async function applyAvatarSelection() {
 function saveProfile(input, img) {
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
-  window.location.href = "main";
+  window.location.href = "feed";
 }
 
 // fetch profiles from server for current user and render them

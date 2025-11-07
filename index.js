@@ -6,11 +6,10 @@ import profilesRoutes from "./routes/profilesRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import feedRoutes from "./routes/feedRoutes.js";
 
-app.use(express.json());
-
 const PORT = process.env.PORT || 8000;
 const app = express();
-dotenv.config();
+
+app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
@@ -30,10 +29,6 @@ app.get("/login", (req, res) => {
 
 app.get("/profiles", (req, res) => {
   res.render("profiles_page");
-});
-
-app.get("/main", (req, res) => {
-  res.render("main_menu");
 });
 
 app.use("/api/user", userRoutes);

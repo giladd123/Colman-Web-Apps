@@ -14,17 +14,17 @@ function setGridLayout(container) {
   container.style.padding = "20px";
 }
 
-function loadAndRender() {
-  const content = document.getElementById("content");
-  content.innerHTML = "";
+// function loadAndRender() {
+//   const content = document.getElementById("content");
+//   content.innerHTML = "";
 
-  const chunks = chunkArray(movies, ROW_SIZE);
-  chunks.forEach((chunk, i) => {
-    const title = ROW_TITLES[i % ROW_TITLES.length];
-    const row = createRow(title, chunk, i);
-    content.appendChild(row);
-  });
-}
+//   const chunks = chunkArray(movies, ROW_SIZE);
+//   chunks.forEach((chunk, i) => {
+//     const title = ROW_TITLES[i % ROW_TITLES.length];
+//     const row = createRow(title, chunk, i);
+//     content.appendChild(row);
+//   });
+// }
 
 function renderContent(filtered) {
   const movieCards = document.getElementById("content");
