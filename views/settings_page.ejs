@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <%- include('partials/head', { extraCss: [ "/style/settings_page.css",
+  "/style/profile_stats.css" ] }) %>
+
+  <body>
+    <main class="settings-page">
+      <header class="settings-page__header">
+        <h1>Account Settings</h1>
+        <p class="settings-page__subtitle">
+          Manage your profiles and explore household viewing trends.
+        </p>
+      </header>
+
+      <section class="settings-card">
+        <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link active"
+              id="profiles-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#profilesTab"
+              type="button"
+              role="tab"
+              aria-controls="profilesTab"
+              aria-selected="true"
+            >
+              Profile Settings
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              id="stats-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#statisticsTab"
+              type="button"
+              role="tab"
+              aria-controls="statisticsTab"
+              aria-selected="false"
+            >
+              User Statistics
+            </button>
+          </li>
+        </ul>
+
+        <section
+          class="tab-content settings-card__content"
+          id="settingsTabsContent"
+        >
+          <section
+            class="tab-pane fade show active"
+            id="profilesTab"
+            role="tabpanel"
+            aria-labelledby="profiles-tab"
+          >
+            <section class="profiles-settings">
+              <aside
+                class="profiles-settings__sidebar"
+                aria-label="Profiles list"
+              >
+                <header class="profiles-settings__sidebar-header">
+                  <h2>Profiles</h2>
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    id="addProfileBtn"
+                  >
+                    <i class="bi bi-plus-lg me-1"></i>
+                    New profile
+                  </button>
+                </header>
+                <section
+                  id="profilesList"
+                  class="profiles-settings__list"
+                  role="listbox"
+                  aria-labelledby="profiles-tab"
+                ></section>
+                <section
+                  id="profilesListEmpty"
+                  class="profiles-settings__empty d-none"
+                >
+                  <p class="mb-2">No profiles yet.</p>
+                  <p class="text-secondary small mb-3">
+                    Create up to five profiles for your household.
+                  </p>
+                  <button
+                    type="button"
+                    class="btn btn-outline-light btn-sm"
+                    id="createFirstProfileBtn"
+                  >
+                    Create the first profile
+                  </button>
+                </section>
+              </aside>
+
+              <section class="profiles-settings__editor" aria-live="polite">
+                <section
+                  id="profileEditorEmptyState"
+                  class="profiles-settings__editor-empty"
+                >
+                  <div class="profiles-settings__editor-empty-card">
+                    <i class="bi bi-people-fill mb-3"></i>
+                    <h3>Select a profile</h3>
+                    <p class="text-secondary">
+                      Choose a profile from the left or create a new one.
+                    </p>
+                  </div>
+                </section>
+
+                <form
+                  id="profileEditorForm"
+                  class="profile-editor d-none"
+                  novalidate
+                >
+                  <section
+                    id="profileEditorFlash"
+                    class="alert d-none"
+                    role="alert"
+                  ></section>
+
+                  <section class="profile-editor__body">
+                    <section class="profile-editor__avatar">
+                      <div
+                        class="image-preview image-preview--square profile-editor__avatar-preview"
+                      >
+                        <img
+                          id="profileAvatarPreview"
+                          alt="Profile avatar preview"
+                          src="/images/profiles/green.png"
+                        />
+                      </div>
+
+                      <section
+                        class="profile-editor__avatar-grid"
+                        id="defaultAvatarGrid"
+                        aria-label="Default avatars"
+                      ></section>
+
+                      <label class="form-label mt-3" for="avatarUploadInput"
+                        >Upload a custom picture</label
+                      >
+                      <input
+                        type="file"
+                        class="form-control form-control-sm"
+                        id="avatarUploadInput"
+                        accept="image/*"
+                      />
+                      <p class="text-secondary small mt-2">
+                        Supported formats: JPG, PNG. Max size 2MB.
+                      </p>
+                    </section>
+
+                    <section class="profile-editor__details">
+                      <div class="mb-3">
+                        <label for="profileNameInput" class="form-label"
+                          >Profile name</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="profileNameInput"
+                          maxlength="32"
+                          autocomplete="off"
+                          required
+                        />
+                      </div>
+
+                      <div class="profile-editor__actions">
+                        <button
+                          type="submit"
+                          class="btn btn-danger"
+                          id="saveProfileBtn"
+                        >
+                          Save changes
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-outline-light"
+                          id="cancelEditBtn"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        class="btn btn-outline-danger mt-4"
+                        id="deleteProfileBtn"
+                      >
+                        Delete profile
+                      </button>
+                    </section>
+                  </section>
+                </form>
+              </section>
+            </section>
+          </section>
+
+          <section
+            class="tab-pane fade"
+            id="statisticsTab"
+            role="tabpanel"
+            aria-labelledby="stats-tab"
+          >
+            <section id="statsLoadingState" class="stats-placeholder">
+              <div
+                class="spinner-border text-light"
+                role="status"
+                aria-hidden="true"
+              ></div>
+              <p class="text-secondary mt-3">Loading statistics...</p>
+            </section>
+
+            <section id="statsContent" class="stats-layout d-none">
+              <section class="row g-4">
+                <section class="col-xl-6">
+                  <section class="card bg-black border-secondary h-100">
+                    <header class="card-header border-secondary py-2">
+                      <strong class="text-white"
+                        >Content popularity by genre</strong
+                      >
+                    </header>
+                    <section class="card-body">
+                      <canvas id="contentPopularityChart" height="260"></canvas>
+                    </section>
+                  </section>
+                </section>
+                <section class="col-xl-6">
+                  <section class="card bg-black border-secondary h-100">
+                    <header class="card-header border-secondary py-2">
+                      <strong class="text-white"
+                        >Daily watches per profile</strong
+                      >
+                    </header>
+                    <section class="card-body">
+                      <canvas id="dailyWatchesChart" height="260"></canvas>
+                    </section>
+                  </section>
+                </section>
+              </section>
+            </section>
+
+            <section id="statsEmptyState" class="stats-placeholder d-none">
+              <i class="bi bi-graph-up-arrow mb-3"></i>
+              <h3>No activity yet</h3>
+              <p class="text-secondary">
+                Start watching to see your household insights here.
+              </p>
+            </section>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/scripts/settings_page.js"></script>
+    <script src="/scripts/settings_stats.js"></script>
+  </body>
+</html>

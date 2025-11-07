@@ -14,6 +14,11 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+router.get(
+  "/default-avatars",
+  catchAsync(ProfilesController.getDefaultAvatars)
+);
+
 router.get("/user/:userId", catchAsync(ProfilesController.getProfilesByUserId));
 
 // Accept multipart form with field name 'avatar' for file uploads

@@ -3,6 +3,7 @@ import { connectDB } from "./config/db.js";
 import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
+import habitsRoutes from "./routes/habitsRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
@@ -32,8 +33,13 @@ app.get("/main", (req, res) => {
   res.render("main_menu");
 });
 
+app.get("/settings", (req, res) => {
+  res.render("settings_page");
+});
+
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
+app.use("/api/habits", habitsRoutes);
 
 app.use(errorHandler);
 
