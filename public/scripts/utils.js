@@ -1,14 +1,4 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
-const ROW_SIZE = 12;
-const ROW_TITLES = [
-  "Popular",
-  "Trending", 
-  "Because you watched",
-  "Watch it Again",
-  "Top Rated",
-  "Action",
-];
+const ROW_SIZE = 30;
 
 function updateTooltip(el, text) {
   try {

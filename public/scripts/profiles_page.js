@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function showLoading(container, msg = "Loading...") {
   container.innerHTML = `
     <div class="w-100 d-flex flex-column align-items-center py-4 text-secondary">
@@ -381,7 +379,7 @@ async function applyAvatarSelection() {
 function saveProfile(input, img) {
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
-  window.location.href = "main";
+  window.location.href = "feed";
 }
 
 // fetch profiles from server for current user and render them
