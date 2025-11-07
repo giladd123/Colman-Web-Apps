@@ -4,23 +4,32 @@ import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
-<<<<<<< HEAD
 import mainRoutes from './routes/mainRoutes.js';
-=======
+import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
->>>>>>> b2387c3c9aceae7178da1598b045101fcf479e53
 
-const PORT = process.env.PORT || 8000;
+
 const app = express();
-
+app.set("view engine", "ejs");
+app.set('views', 'views');
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-you-should-change',
+  resave: false,
+  saveUninitialized: false, // Don't create sessions for unauthenticated users
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+    httpOnly: true, // Prevents client-side JS from accessing the cookie
+    maxAge: 1000 * 60 * 60 * 24 // 1 day
+  }
+}));
+const PORT = process.env.PORT || 8000;
 
 // Connect to MongoDB
 connectDB();
-
-app.use(express.static("public"));
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.get("/", (req, res) => {
@@ -35,19 +44,21 @@ app.get("/profiles", (req, res) => {
   res.render("profiles_page");
 });
 
+app.get("/main", (req, res) => {
+  res.render("main_menu");
+});
+
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
 
 app.use(errorHandler);
 
-<<<<<<< HEAD
-app.use("/select-content", mainRoutes);
-=======
 app.use("/feed", feedRoutes);
 
 app.get("/feed", (req, res) => {
   res.render("feed");
 });
->>>>>>> b2387c3c9aceae7178da1598b045101fcf479e53
+
+app.use("/select-content", mainRoutes);
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
