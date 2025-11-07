@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function createRowTitle(title) {
   const h3 = document.createElement("h3");
   h3.className = "row-title";
@@ -27,13 +25,62 @@ function createScrollContainer(movies, rowIndex) {
   return scroller;
 }
 
+// Makes a scroller infinitely loop by cloning first and last few cards
+function makeInfiniteScroller(scroller, cloneCount = 3) {
+  let cards = Array.from(scroller.children);
+  if (!cards.length) return;
+
+  // Clone cards
+  const clonesLeft = cards.slice(-cloneCount).map((c) => c.cloneNode(true));
+  const clonesRight = cards.slice(0, cloneCount).map((c) => c.cloneNode(true));
+
+  clonesLeft.forEach((c) => scroller.insertBefore(c, scroller.firstChild));
+  clonesRight.forEach((c) => scroller.appendChild(c));
+
+  // Recalculate all cards including clones
+  cards = Array.from(scroller.children);
+
+  const cardWidth =
+    cards[0].offsetWidth +
+    parseInt(getComputedStyle(cards[0]).marginRight || 0);
+  const originalCount = cards.length - cloneCount * 2; // exclude clones
+
+  // Start scroll at first original card
+  scroller.scrollLeft = cardWidth * cloneCount;
+
+  // Continuous scroll
+  scroller.addEventListener("scroll", () => {
+    requestAnimationFrame(() => {
+      if (scroller.scrollLeft < cardWidth * cloneCount) {
+        scroller.scrollLeft += cardWidth * originalCount;
+      } else if (
+        scroller.scrollLeft >=
+        cardWidth * (cloneCount + originalCount)
+      ) {
+        scroller.scrollLeft -= cardWidth * originalCount;
+      }
+    });
+  });
+}
+
 function addScrollListeners(leftBtn, rightBtn, scroller) {
-  leftBtn.addEventListener("click", () =>
-    scroller.scrollBy({ left: -600, behavior: "smooth" })
-  );
-  rightBtn.addEventListener("click", () =>
-    scroller.scrollBy({ left: 600, behavior: "smooth" })
-  );
+  if (!scroller) return;
+
+  const scrollAmount = Math.round(scroller.clientWidth * 0.6);
+
+  if (leftBtn) {
+    leftBtn.onclick = null;
+    leftBtn.addEventListener("click", () => {
+      scroller.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+    });
+  }
+
+  if (rightBtn) {
+    rightBtn.onclick = null;
+    rightBtn.addEventListener("click", () => {
+      scroller.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    });
+  }
 }
 
 function createRow(title, movies, rowIndex) {
@@ -45,9 +92,12 @@ function createRow(title, movies, rowIndex) {
 
   const leftBtn = createScrollButton("left", "bi-chevron-left");
   const rightBtn = createScrollButton("right", "bi-chevron-right");
-  const scroller = createScrollContainer(movies, rowIndex);
 
-  addScrollListeners(leftBtn, rightBtn, scroller);
+  const scroller = document.createElement("div");
+  scroller.className = "scroll-container";
+  scroller.id = `row-${rowIndex}`;
+
+  movies.forEach((movie) => scroller.appendChild(createCard(movie)));
 
   wrapper.appendChild(leftBtn);
   wrapper.appendChild(scroller);
@@ -55,5 +105,43 @@ function createRow(title, movies, rowIndex) {
 
   section.appendChild(createRowTitle(title));
   section.appendChild(wrapper);
+
+  document.getElementById("content").appendChild(section);
+
+  addScrollListeners(leftBtn, rightBtn, scroller);
+
+  // Enable infinite scrolling immediately
+  if (scroller.scrollWidth > scroller.clientWidth) {
+    // Ensure layout is ready
+    Promise.all(
+      [...scroller.querySelectorAll("img")].map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise((res) => (img.onload = res))
+      )
+    ).then(() => {
+      makeInfiniteScroller(scroller, 3);
+      const firstCard = scroller.children[0];
+      const cardWidth =
+        firstCard.offsetWidth +
+        parseInt(getComputedStyle(firstCard).marginRight || 0);
+      scroller.scrollLeft = cardWidth * 3; // cloneCount
+    });
+  } else {
+    leftBtn.style.display = "none";
+    rightBtn.style.display = "none";
+  }
+
+  // Update arrows on resize
+  window.addEventListener("resize", () => {
+    if (scroller.scrollWidth <= scroller.clientWidth) {
+      leftBtn.style.display = "none";
+      rightBtn.style.display = "none";
+    } else {
+      leftBtn.style.display = "";
+      rightBtn.style.display = "";
+    }
+  });
+
   return section;
 }

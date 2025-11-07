@@ -1,17 +1,17 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function createMovieBadge(movie) {
   const badge = document.createElement("span");
   badge.className = "badge-pill";
-  badge.textContent = movie.imdbRating ? `${movie.imdbRating}` : movie.Year || "";
+  badge.textContent = movie.imdbRating
+    ? `${movie.imdbRating}`
+    : movie.releaseYear || "";
   return badge;
 }
 
 function createMovieImage(movie) {
   const img = document.createElement("img");
   img.className = "movie-poster";
-  img.alt = movie.Title || "Poster";
-  img.src = movie.Poster;
+  img.alt = movie.title || "Poster";
+  img.src = movie.posterUrl;
   img.loading = "lazy";
   return img;
 }

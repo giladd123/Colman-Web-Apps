@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function redirectAfterLogin() {
   if (localStorage.getItem("isLoggedIn") != "true") {
     return;
@@ -7,7 +5,7 @@ function redirectAfterLogin() {
   if (!localStorage.getItem("selectedProfileName")) {
     window.location.href = "profiles";
   } else {
-    window.location.href = "main";
+    window.location.href = "feed";
   }
 }
 

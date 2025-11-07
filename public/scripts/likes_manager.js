@@ -1,8 +1,6 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function getOrCreateLikesData(movieId) {
   const likesDataAll = JSON.parse(localStorage.getItem("likesData")) || {};
-  
+
   let entry = likesDataAll[movieId];
   if (!entry) {
     entry = {
@@ -16,7 +14,7 @@ function getOrCreateLikesData(movieId) {
 
   entry.base = Number(entry.base);
   entry.extra = Number(entry.extra);
-  
+
   return entry;
 }
 
@@ -44,8 +42,11 @@ function updateLikeButton(likeBtn, cur) {
   if (countEl) countEl.textContent = newTotal;
 
   likeBtn.setAttribute("aria-pressed", cur.liked ? "true" : "false");
-  likeBtn.setAttribute("aria-label", cur.liked ? "Unlike this movie" : "Like this movie");
-  
+  likeBtn.setAttribute(
+    "aria-label",
+    cur.liked ? "Unlike this movie" : "Like this movie"
+  );
+
   const newTooltip = cur.liked ? `Unlike 💔` : "Like ❤️";
   updateTooltip(likeBtn, newTooltip);
 }
@@ -84,7 +85,8 @@ function createLikeButton(movie) {
 
   const movieId = movie.imdbID || movie.Title;
   const entry = getOrCreateLikesData(movieId);
-  const totalLikes = entry.base + entry.extra;
+  //const totalLikes = entry.base + entry.extra;
+  const totalLikes = movie.popularity;
 
   const icon = document.createElement("i");
   icon.className = `bi ${entry.liked ? "bi-heart-fill" : "bi-heart"} pe-1`;
@@ -96,12 +98,17 @@ function createLikeButton(movie) {
   likeBtn.appendChild(icon);
   likeBtn.appendChild(countSpan);
   likeBtn.setAttribute("aria-pressed", entry.liked ? "true" : "false");
-  likeBtn.setAttribute("aria-label", entry.liked ? "Unlike this movie" : "Like this movie");
+  likeBtn.setAttribute(
+    "aria-label",
+    entry.liked ? "Unlike this movie" : "Like this movie"
+  );
 
   const tooltipText = entry.liked ? `Unlike 💔` : "Like ❤️";
   updateTooltip(likeBtn, tooltipText);
 
-  likeBtn.addEventListener("click", () => handleLikeClick(likeBtn, movieId, entry));
+  likeBtn.addEventListener("click", () =>
+    handleLikeClick(likeBtn, movieId, entry)
+  );
 
   return likeBtn;
 }
