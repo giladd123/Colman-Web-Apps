@@ -23,9 +23,14 @@ function createCard(movie) {
   card.appendChild(createMovieImage(movie));
   card.appendChild(createMovieBadge(movie));
   card.appendChild(createLikeButton(movie));
+  const id = movie.imdbID;
   card.addEventListener('click', () => {
-    window.location.href = '/selectContent'; 
-  });
+      if (movie && movie.imdbID) {
+        window.location.href = `/select-content/${movie.imdbID}`; 
+      } else {
+        console.error("Movie data or imdbID missing, cannot redirect."); 
+      }
+    });
 
   return card;
 }

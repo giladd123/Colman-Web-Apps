@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect("mongodb+srv://<user>:<password>@webcluster.ywjnajg.mongodb.net/Netflix?retryWrites=true&w=majority", {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
