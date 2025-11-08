@@ -25,8 +25,6 @@ function createScrollContainer(movies, rowIndex) {
   return scroller;
 }
 
-
-
 function addScrollListeners(leftBtn, rightBtn, scroller) {
   if (!scroller) return;
 
@@ -94,7 +92,8 @@ function createRow(title, movies, rowIndex) {
     }
   });
 
-  return section;
+  // Return the next rowIndex so callers can keep IDs unique across batches
+  return rowIndex + 1;
 }
 
 // Replace the movies inside an existing row matching the given title.
