@@ -1,6 +1,8 @@
 import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
+import Episode from "../models/episode.js";
+import Show from "../models/show.js";
 import { ok, notFound, serverError } from "../utils/apiResponse.js";
 import { error as logError } from "../utils/logger.js";
 
@@ -43,31 +45,128 @@ export async function getContentByGenre(req, res) {
 }
 
 async function continueWatchingForProfile(profileId) {
-  const habits = await watchingHabit
-    .find({
-      profileId,
-      completed: false,
-      watchedTimeInSeconds: { $gt: 0 },
-    })
-    .sort({ updatedAt: -1 })
-    .limit(10)
-    .populate("contentId")
-    .lean();
-  // Filter out any populated Episode items
-  return habits
-    .map((h) => h.contentId)
-    .filter((c) => c && c.type !== "Episode");
+  try {
+    // Find all habits for this profile where watching is in progress
+    const habits = await watchingHabit
+      .find({
+        profileId,
+        completed: false,
+        watchedTimeInSeconds: { $ne: 0 },
+      })
+      .sort({ lastWatchedAt: -1 }) // Most recent first
+      .populate("contentId")
+      .lean();
+
+    const result = [];
+    const addedShowIds = new Set(); // Track shows we've already added
+
+    for (const habit of habits) {
+      if (!habit.contentId) continue;
+
+      const content = habit.contentId;
+
+      if (content.type === "Episode") {
+        // For episodes, find the parent show
+        const episode = await Episode.findById(content._id).lean();
+        if (!episode) continue;
+
+        // Find the show that contains this episode
+        const parentShow = await Show.findOne({
+          seasons: { $exists: true },
+        }).lean();
+
+        // Search through all shows to find which one contains this episode
+        const shows = await Show.find({}).lean();
+        let foundShow = null;
+
+        for (const show of shows) {
+          if (!show.seasons) continue;
+          // Check if any season contains this episode
+          for (const [seasonNum, episodeIds] of Object.entries(show.seasons)) {
+            if (
+              episodeIds.some((id) => id.toString() === content._id.toString())
+            ) {
+              foundShow = show;
+              break;
+            }
+          }
+          if (foundShow) break;
+        }
+
+        // Only add the show if we haven't added it yet
+        if (foundShow && !addedShowIds.has(foundShow._id.toString())) {
+          result.push(foundShow);
+          addedShowIds.add(foundShow._id.toString());
+        }
+      } else if (content.type === "Movie") {
+        // For movies, add directly
+        result.push(content);
+      }
+    }
+
+    return result;
+  } catch (err) {
+    console.error("Error in continueWatchingForProfile:", err);
+    return [];
+  }
 }
 
 async function completedWatchingByProfile(profileId) {
-  const habits = await watchingHabit
-    .find({ profileId, completed: true })
-    .sort({ updatedAt: -1 })
-    .populate("contentId")
-    .lean();
-  return habits
-    .map((h) => h.contentId)
-    .filter((c) => c && c.type !== "Episode");
+  try {
+    // Find all habits for this profile that are completed
+    const habits = await watchingHabit
+      .find({ profileId, completed: true })
+      .sort({ lastWatchedAt: -1 }) // Most recently completed first
+      .populate("contentId")
+      .lean();
+
+    const result = [];
+    const addedShowIds = new Set(); // Track shows we've already added
+
+    for (const habit of habits) {
+      if (!habit.contentId) continue;
+
+      const content = habit.contentId;
+
+      if (content.type === "Episode") {
+        // For episodes, find the parent show
+        const episode = await Episode.findById(content._id).lean();
+        if (!episode) continue;
+
+        // Search through all shows to find which one contains this episode
+        const shows = await Show.find({}).lean();
+        let foundShow = null;
+
+        for (const show of shows) {
+          if (!show.seasons) continue;
+          // Check if any season contains this episode
+          for (const [seasonNum, episodeIds] of Object.entries(show.seasons)) {
+            if (
+              episodeIds.some((id) => id.toString() === content._id.toString())
+            ) {
+              foundShow = show;
+              break;
+            }
+          }
+          if (foundShow) break;
+        }
+
+        // Only add the show if we haven't added it yet
+        if (foundShow && !addedShowIds.has(foundShow._id.toString())) {
+          result.push(foundShow);
+          addedShowIds.add(foundShow._id.toString());
+        }
+      } else if (content.type === "Movie") {
+        // For movies, add directly
+        result.push(content);
+      }
+    }
+
+    return result;
+  } catch (err) {
+    console.error("Error in completedWatchingByProfile:", err);
+    return [];
+  }
 }
 
 async function likedByProfile(profileId) {
@@ -133,18 +232,19 @@ export async function getFeedForProfile(req, res) {
     // Continue Watching
     const continueWatching = await continueWatchingForProfile(profileId);
 
+    // Watch Again (completed content)
+    const watchAgain = await completedWatchingByProfile(profileId);
+
     // Recommendations
     const recommendations = await recommendationsForProfile(profileId);
 
     // Most Popular
-    // Exclude episodes from most popular
     const mostPopular = await Content.find({ type: { $ne: "Episode" } })
       .sort({ popularity: -1 })
       .limit(10)
       .lean();
 
     // Newest by Genre
-    // Use only movies and shows for the per-genre newest lists
     const contents = await Content.find({ type: { $ne: "Episode" } })
       .sort({ releaseYear: -1 })
       .lean();
@@ -169,6 +269,7 @@ export async function getFeedForProfile(req, res) {
     return ok(res, {
       likedBy,
       myList,
+      watchAgain,
       continueWatching,
       recommendations,
       mostPopular,

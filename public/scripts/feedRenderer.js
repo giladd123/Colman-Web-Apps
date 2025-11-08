@@ -53,6 +53,10 @@ function appendFeedRows(feedData, profileName) {
       rowIndex = createRow(`Newest in ${genre}`, genreMovies, rowIndex);
   }
 
+  // Watch Again
+  if (feedData.watchAgain?.length)
+    rowIndex = createRow("Watch Again", feedData.watchAgain, rowIndex);
+
   // Move the newly created sections into this batch wrapper
   const newlyCreated = Array.from(
     document.querySelectorAll("section.row-section")
@@ -131,6 +135,8 @@ async function fetchFeedForProfile(profileName) {
       continueWatching: [],
       recommendations: [],
       mostPopular: [],
+      myList: [],
+      watchAgain: [],
       newestByGenre: {},
     };
   }
