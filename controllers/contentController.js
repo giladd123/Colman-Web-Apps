@@ -23,7 +23,6 @@ function normalizeFormData(req) {
     genres = [],
     customGenres = [],
     posterUrl,
-    videoUrl,
     lengthMinutes,
   } = req.body;
 
@@ -41,8 +40,8 @@ function normalizeFormData(req) {
     .map((g) => g.trim())
     .filter((g) => g !== "");
 
-  // Determine video path (uploaded or provided URL)
-  let videoPath = videoUrl || "";
+  // Initialize videoPath as empty - will be set after file upload
+  let videoPath = "";
 
   // Return normalized object
   return {
@@ -204,6 +203,12 @@ export async function addContent(req, res) {
   try {
     // Normalize form data
     const data = normalizeFormData(req);
+
+    // Server-side guard: require a valid content type
+    const allowedTypes = ["movie", "show", "episode"];
+    if (!data.type || !allowedTypes.includes(data.type)) {
+      return res.render("upload_fail", { message: "Content type is required" });
+    }
 
     // Upload video to S3 if provided:
     if (req.file) {

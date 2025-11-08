@@ -51,12 +51,13 @@ export async function fetchIMDBData({ title, type, season, episode }) {
           title
         )}&Season=${season}&Episode=${episode}&plot=full&apikey=${apiKey}`
       );
-
       if (epRes.data.Response === "False") return null;
       return epRes.data;
     } catch (err) {
-      console.error("Failed fetching episode info from IMDb:", err.message);
-      return null;
+      // Throw custom error for middleware
+      const imdbErr = new Error("Unable to access IMDB");
+      imdbErr.name = "IMDB_ACCESS_ERROR";
+      throw imdbErr;
     }
   }
 
@@ -75,11 +76,12 @@ export async function fetchIMDBData({ title, type, season, episode }) {
     ) {
       return null;
     }
-
     return resData.data;
   } catch (err) {
-    console.error("Failed fetching movie/show info from IMDb:", err.message);
-    return null;
+    // Throw custom error for middleware
+    const imdbErr = new Error("Unable to access IMDB");
+    imdbErr.name = "IMDB_ACCESS_ERROR";
+    throw imdbErr;
   }
 }
 
@@ -97,14 +99,14 @@ export async function fetchIMDB(req, res) {
     });
 
     if (!data)
-      return res.status(404).json({ error: "Content not found on IMDb" });
+      return res.status(404).json({ success: false, error: "Content not found on IMDb" });
 
     // Format response
     const result = formatIMDBData(data);
 
     res.json(result);
   } catch (err) {
-    console.error("IMDb fetch route error:", err.message);
-    res.status(500).json({ error: "Server error fetching IMDb data" });
+    // Pass error to middleware for consistent error handling
+    return req.app && req.app.emit ? req.app.emit('error', err, req, res) : next(err);
   }
 }

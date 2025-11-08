@@ -22,12 +22,6 @@ imdbInfoClose.addEventListener("click", () => {
   imdbInfoMessage.style.display = "none";
 });
 
-// Video tabs
-let lastVideoTab = "file";
-const videoTabs = videoFields.querySelectorAll(".video-tab");
-const uploadOption = document.getElementById("uploadOption");
-const urlOption = document.getElementById("urlOption");
-
 // Genre section
 const toggleGenres = document.getElementById("toggleGenres");
 const genresContainer = document.getElementById("genresContainer");
@@ -46,6 +40,68 @@ const originalImdbLabelText = imdbLabel
   ? imdbLabel.innerText
   : "Pull information from IMDb";
 
+// Clear errors and reset IMDb when user edits these fields
+titleField.addEventListener("input", () => {
+  clearError(titleField);
+  // Reset IMDb data if user edits the title
+  if (imdbCheckbox.checked) {
+    imdbCheckbox.checked = false;
+    imdbLabel.innerText = originalImdbLabelText;
+    imdbRatingContainer.style.display = "none";
+    imdbRatingSpan.textContent = "N/A";
+
+    // Reset readonly fields
+    setReadonlyFields(
+      [
+        titleField,
+        descriptionField,
+        directorField,
+        actorsField,
+        posterUrlField,
+        yearField,
+        episodeTitleField,
+        episodeDescriptionField,
+        releaseDateField,
+      ],
+      false
+    );
+    setGenresReadonly(false);
+
+    // Clear episode-specific fields if we're in episode mode
+    if (typeSelect.value === "episode") {
+      episodeTitleField.value = "";
+      episodeDescriptionField.value = "";
+      releaseDateField.value = new Date().toISOString().split("T")[0];
+      posterUrlField.value = "";
+    }
+  }
+});
+
+typeSelect.addEventListener("change", () => {
+  clearError(typeSelect);
+  // also clear any episode-related anchored error when changing type
+  clearErrorByKey("seasonEpisode");
+});
+
+// Episode fields (may be hidden) - attach clearing handlers if present
+const seasonFieldInit = form.querySelector('input[name="seasonNumber"]');
+const episodeFieldInit = form.querySelector('input[name="episodeNumber"]');
+const clearSeasonEpisodeErrors = () => {
+  clearErrorByKey("seasonEpisode");
+  if (seasonFieldInit) {
+    clearError(seasonFieldInit);
+    seasonFieldInit.classList.remove("is-invalid");
+  }
+  if (episodeFieldInit) {
+    clearError(episodeFieldInit);
+    episodeFieldInit.classList.remove("is-invalid");
+  }
+};
+if (seasonFieldInit)
+  seasonFieldInit.addEventListener("input", clearSeasonEpisodeErrors);
+if (episodeFieldInit)
+  episodeFieldInit.addEventListener("input", clearSeasonEpisodeErrors);
+
 // --- Utilities ---
 function setReadonlyFields(fields, readonly) {
   fields.forEach((f) => f && (f.readOnly = readonly));
@@ -63,12 +119,18 @@ function setGenresReadonly(readonly) {
 }
 
 function showError(input, message) {
+  const args = Array.from(arguments);
+  const anchor = args[2] || input;
   input.classList.add("is-invalid");
-  let errorEl = input.nextElementSibling;
-  if (!errorEl || !errorEl.classList.contains("error-message")) {
+  const key = args[3] || input.name || input.id || "__unknown__";
+  let errorEl = document.querySelector(`.error-message[data-for="${key}"]`);
+  if (!errorEl) {
     errorEl = document.createElement("div");
-    errorEl.className = "error-message active";
-    input.parentNode.insertBefore(errorEl, input.nextSibling);
+    errorEl.className = "error-message active d-block";
+    errorEl.dataset.for = key;
+    errorEl.style.cssText =
+      "color: #dc3545; font-size: 0.875em; margin: -0.5rem 0 1rem 0;";
+    anchor.parentNode.insertBefore(errorEl, anchor.nextSibling);
   }
   errorEl.textContent = message;
   errorEl.classList.add("active");
@@ -76,11 +138,21 @@ function showError(input, message) {
 
 function clearError(input) {
   input.classList.remove("is-invalid");
-  const errorEl = input.nextElementSibling;
-  if (errorEl && errorEl.classList.contains("error-message")) {
+  const key = input.name || input.id;
+  if (!key) return;
+  const errorEl = document.querySelector(`.error-message[data-for="${key}"]`);
+  if (errorEl) {
     errorEl.classList.remove("active");
     errorEl.textContent = "";
+    // remove node to avoid stale anchors
+    errorEl.remove();
   }
+}
+// Remove anchored error by explicit key
+function clearErrorByKey(key) {
+  if (!key) return;
+  const errorEl = document.querySelector(`.error-message[data-for="${key}"]`);
+  if (errorEl) errorEl.remove();
 }
 
 function isValidUrl(url) {
@@ -93,11 +165,11 @@ function isValidUrl(url) {
   }
 }
 
-async function checkSeriesExists(seriesTitle) {
-  if (!seriesTitle.trim()) return false;
+async function checkShowExists(showTitle) {
+  if (!showTitle.trim()) return false;
   try {
     const res = await fetch(
-      `/admin/fetch-imdb?title=${encodeURIComponent(seriesTitle)}&type=series`
+      `/admin/fetch-imdb?title=${encodeURIComponent(showTitle)}&type=series`
     );
     const data = await res.json();
     return !data.error;
@@ -127,23 +199,6 @@ function copyGenresToHidden() {
       }
     });
 }
-
-// --- Video Tabs ---
-videoTabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    videoTabs.forEach((t) => t.classList.remove("active"));
-    tab.classList.add("active");
-    if (tab.dataset.type === "file") {
-      uploadOption.style.display = "block";
-      urlOption.style.display = "none";
-      lastVideoTab = "file";
-    } else {
-      uploadOption.style.display = "none";
-      urlOption.style.display = "block";
-      lastVideoTab = "url";
-    }
-  });
-});
 
 // --- Genres Toggle ---
 toggleGenres.addEventListener("click", () => {
@@ -183,19 +238,11 @@ function updateFormByType() {
     type === "episode" ? "none" : "block";
   directorField.style.display = type === "episode" ? "none" : "block";
   actorsField.style.display = type === "episode" ? "none" : "block";
-  titleField.placeholder = type === "episode" ? "Series Title" : "Title";
+  titleField.placeholder = type === "episode" ? "Show Title" : "Title";
   yearField.style.display = type === "episode" ? "none" : "block";
   releaseDateField.style.display = type === "episode" ? "block" : "none";
   if (type === "episode" && !releaseDateField.value)
     releaseDateField.value = new Date().toISOString().split("T")[0];
-  // Reset video tab
-  videoTabs.forEach((t) => t.classList.remove("active"));
-  const activeTab = Array.from(videoTabs).find(
-    (t) => t.dataset.type === lastVideoTab
-  );
-  if (activeTab) activeTab.classList.add("active");
-  uploadOption.style.display = lastVideoTab === "file" ? "block" : "none";
-  urlOption.style.display = lastVideoTab === "url" ? "block" : "none";
 }
 typeSelect.addEventListener("change", updateFormByType);
 updateFormByType(); // initial load
@@ -237,10 +284,55 @@ imdbCheckbox.addEventListener("change", async () => {
 
   imdbLabel.innerText = "Fetching from IMDb...";
   imdbCheckbox.disabled = true;
-
   const type = typeSelect.value;
+  // Ensure type is valid before continuing
+  const allowedTypes = ["movie", "show", "episode"];
+  if (!type || !allowedTypes.includes(type)) {
+    const dateRow = document.getElementById("dateRow") || typeSelect;
+    showError(typeSelect, "Type is required", dateRow);
+    imdbCheckbox.checked = false;
+    imdbLabel.innerText = originalImdbLabelText;
+    imdbCheckbox.disabled = false;
+    return;
+  }
   const seasonField = form.querySelector('input[name="seasonNumber"]');
   const episodeField = form.querySelector('input[name="episodeNumber"]');
+  // If episode type, require season and episode before fetching
+  if (type === "episode") {
+    if (
+      !seasonField ||
+      !episodeField ||
+      !seasonField.value ||
+      !episodeField.value
+    ) {
+      const anchor =
+        document.getElementById("episodeFields") || seasonField || episodeField;
+      const emptySeasonField = !seasonField?.value;
+      const emptyEpisodeField = !episodeField?.value;
+
+      showError(
+        seasonField || episodeField || typeSelect,
+        emptySeasonField && emptyEpisodeField
+          ? "Season and episode number are required"
+          : emptySeasonField
+          ? "Season number is required"
+          : "Episode number is required",
+        anchor,
+        "seasonEpisode"
+      );
+
+      // Only mark empty fields as invalid
+      if (seasonField)
+        seasonField.classList.toggle("is-invalid", emptySeasonField);
+      if (episodeField)
+        episodeField.classList.toggle("is-invalid", emptyEpisodeField);
+      imdbCheckbox.checked = false;
+      imdbLabel.innerText = originalImdbLabelText;
+      imdbCheckbox.disabled = false;
+      return;
+    }
+  }
+
   let query = `?title=${encodeURIComponent(titleField.value.trim())}`;
   if (type === "episode")
     query += `&season=${encodeURIComponent(
@@ -261,8 +353,11 @@ imdbCheckbox.addEventListener("change", async () => {
 
     // Populate fields
     if (type === "episode") {
-      if (data.seriesTitle) titleField.value = data.seriesTitle;
-      if (data.episodeTitle) episodeTitleField.value = data.episodeTitle;
+      if (data.showTitle) titleField.value = data.showTitle;
+      if (data.episodeTitle) {
+        episodeTitleField.value = data.episodeTitle;
+        clearError(episodeTitleField);
+      }
       if (data.description) episodeDescriptionField.value = data.description;
       if (data.poster) posterUrlField.value = data.poster;
       if (data.releaseDate) releaseDateField.value = data.releaseDate;
@@ -318,16 +413,102 @@ imdbCheckbox.addEventListener("change", async () => {
     imdbCheckbox.disabled = false;
   }
 });
+// Save form data to sessionStorage
+function saveFormData() {
+  const formData = {
+    type: typeSelect.value,
+    title: titleField.value,
+    description: descriptionField.value,
+    episodeTitle: episodeTitleField.value,
+    episodeDescription: episodeDescriptionField.value,
+    year: yearField.value,
+    releaseDate: releaseDateField.value,
+    director: directorField.value,
+    actors: actorsField.value,
+    posterUrl: posterUrlField.value,
+    season: document.querySelector('input[name="seasonNumber"]')?.value,
+    episode: document.querySelector('input[name="episodeNumber"]')?.value,
+    genres: [
+      ...genresContainer.querySelectorAll(
+        'input[type="checkbox"][name="genres"]:checked'
+      ),
+    ].map((cb) => cb.value),
+    otherGenres: [...addedGenres.querySelectorAll(".genre-tag span")].map(
+      (span) => span.textContent
+    ),
+  };
+  sessionStorage.setItem("addContentFormData", JSON.stringify(formData));
+}
+
+// Restore form data from sessionStorage
+function restoreFormData() {
+  const savedData = sessionStorage.getItem("addContentFormData");
+  if (!savedData) return;
+
+  const formData = JSON.parse(savedData);
+
+  // Restore basic fields
+  typeSelect.value = formData.type;
+  titleField.value = formData.title;
+  descriptionField.value = formData.description;
+  episodeTitleField.value = formData.episodeTitle;
+  episodeDescriptionField.value = formData.episodeDescription;
+  yearField.value = formData.year;
+  releaseDateField.value = formData.releaseDate;
+  directorField.value = formData.director;
+  actorsField.value = formData.actors;
+  posterUrlField.value = formData.posterUrl;
+
+  // Restore season/episode
+  const seasonField = document.querySelector('input[name="seasonNumber"]');
+  const episodeField = document.querySelector('input[name="episodeNumber"]');
+  if (seasonField) seasonField.value = formData.season;
+  if (episodeField) episodeField.value = formData.episode;
+
+  // Restore genres
+  genresContainer
+    .querySelectorAll('input[type="checkbox"][name="genres"]')
+    .forEach((cb) => (cb.checked = formData.genres.includes(cb.value)));
+
+  // Restore other genres
+  formData.otherGenres.forEach((genre) => {
+    const tag = document.createElement("div");
+    tag.className = "genre-tag";
+    tag.innerHTML = `<span>${genre}</span><button type="button" class="remove-genre" style="background:none; border:none; color:#e50914; margin-left:6px;">✖</button><input type="hidden" name="genres" value="${genre}">`;
+    addedGenres.appendChild(tag);
+    tag
+      .querySelector(".remove-genre")
+      .addEventListener("click", () => tag.remove());
+  });
+
+  // Update form visibility based on type
+  updateFormByType();
+
+  // Clear storage after restore
+  sessionStorage.removeItem("addContentFormData");
+}
+
+// Load saved data when page loads
+document.addEventListener("DOMContentLoaded", restoreFormData);
+
 // --- Form Submission ---
 form.addEventListener("submit", async (e) => {
   e.preventDefault(); // immediately stop default submission
 
   let valid = true;
 
-  // Clear previous errors
-  [...form.querySelectorAll("input, textarea")].forEach(clearError);
+  // Clear previous errors (include selects)
+  [...form.querySelectorAll("input, textarea, select")].forEach(clearError);
 
   const type = typeSelect.value;
+
+  // Validate type selection and show anchored error below the entire form-row
+  const allowedTypes = ["movie", "show", "episode"];
+  if (!type || !allowedTypes.includes(type)) {
+    const typeRow = typeSelect.closest(".form-row");
+    showError(typeSelect, "Type is required", typeRow);
+    valid = false;
+  }
 
   // Basic validation
   if (!titleField.value.trim()) {
@@ -341,6 +522,19 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (type === "episode") {
+    // First check if the show exists before any other episode validations
+    if (titleField.value.trim()) {
+      const exists = await checkShowExists(titleField.value);
+      if (!exists) {
+        showError(
+          titleField,
+          `Show "${titleField.value}" does not exist. Create the show first before adding an episode.`
+        );
+        valid = false;
+        return; // Stop further validations if show doesn't exist
+      }
+    }
+
     if (!episodeTitleField.value.trim()) {
       showError(episodeTitleField, "Episode title is required");
       valid = false;
@@ -348,25 +542,35 @@ form.addEventListener("submit", async (e) => {
 
     const seasonField = form.querySelector('input[name="seasonNumber"]');
     const episodeField = form.querySelector('input[name="episodeNumber"]');
-    if (!seasonField.value) {
-      showError(seasonField, "Season number is required");
-      valid = false;
-    }
-    if (!episodeField.value) {
-      showError(episodeField, "Episode number is required");
-      valid = false;
-    }
+    // Combined validation: if either missing, show a single anchored error
+    if (
+      !seasonField ||
+      !episodeField ||
+      !seasonField.value ||
+      !episodeField.value
+    ) {
+      const anchor =
+        document.getElementById("episodeFields") || seasonField || episodeField;
+      const emptySeasonField = !seasonField?.value;
+      const emptyEpisodeField = !episodeField?.value;
 
-    // Check if the series exists
-    if (titleField.value.trim()) {
-      const exists = await checkSeriesExists(titleField.value);
-      if (!exists) {
-        showError(
-          titleField,
-          `Series "${titleField.value}" does not exist. Create the show first before adding an episode.`
-        );
-        valid = false;
-      }
+      showError(
+        seasonField || episodeField || typeSelect,
+        emptySeasonField && emptyEpisodeField
+          ? "Season and episode number are required"
+          : emptySeasonField
+          ? "Season number is required"
+          : "Episode number is required",
+        anchor,
+        "seasonEpisode"
+      );
+
+      // Only mark the empty field as invalid
+      if (seasonField)
+        seasonField.classList.toggle("is-invalid", emptySeasonField);
+      if (episodeField)
+        episodeField.classList.toggle("is-invalid", emptyEpisodeField);
+      valid = false;
     }
   }
 
@@ -379,30 +583,11 @@ form.addEventListener("submit", async (e) => {
 
   // Video validation (required for movie and episode)
   const videoFileField = form.querySelector('input[name="videoFile"]');
-  const videoUrlField = form.querySelector('input[name="videoUrl"]');
   if (type === "movie" || type === "episode") {
-    if (
-      videoFileField &&
-      !videoFileField.value &&
-      videoUrlField &&
-      !videoUrlField.value
-    ) {
-      showError(
-        videoFileField || videoUrlField,
-        "Video is required for this type"
-      );
+    if (!videoFileField || !videoFileField.value) {
+      showError(videoFileField, "MP4 video file is required for this type");
       valid = false;
     }
-  }
-
-  // Video URL format check
-  if (
-    videoUrlField &&
-    videoUrlField.value &&
-    !isValidUrl(videoUrlField.value)
-  ) {
-    showError(videoUrlField, "Invalid video URL");
-    valid = false;
   }
 
   // Stop submission if invalid
@@ -410,6 +595,9 @@ form.addEventListener("submit", async (e) => {
 
   // Copy genres to hidden fields
   copyGenresToHidden();
+
+  // Save form data before submission
+  saveFormData();
 
   // Submit the form manually since default was prevented
   form.submit();
