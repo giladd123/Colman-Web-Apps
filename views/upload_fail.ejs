@@ -6,17 +6,44 @@
         <%- include('partials/admin_navbar') %>
         <div class="login-container">
             <div class="login-form">
-                <h2 style="color: #e50914;">Upload Failed</h2>
+                <h2 style="color: #e50914;">
+                    <% if (locals.isDuplicate) { %>
+                    Content Already Exists
+                    <% } else { %>
+                    Upload Failed
+                    <% } %>
+                </h2>
+
                 <p style="text-align: center; color: #ccc; margin-top: 1rem;">
+                    <% if (locals.message) { %>
+                    <%= message %>
+                    <% } else { %>
                     Something went wrong while uploading your content.<br />
                     Please check your inputs or try again later.
+                    <% } %>
                 </p>
+
+                <% if (locals.isDuplicate) { %>
+                <p
+                    style="text-align: center; color: #ffa500; margin-top: 1rem; font-size: 0.9rem;">
+                    You can try uploading different content or contact an
+                    administrator to edit existing content.
+                </p>
+                <% } %>
 
                 <div
                     style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
+                    <% if (locals.isDuplicate) { %>
+                    <a href="/admin/edit/<%= locals.existingContentId %>"
+                        class="btn-primary">Edit Existing Content</a>
+                    <a href="/admin/add-content" class="btn-secondary">Add
+                        Different Content</a>
+                    <a href="/feed" class="btn-secondary">Back to Feed</a>
+                    <% } else { %>
                     <a href="/admin/add-content" class="btn-primary">Try
                         Again</a>
                     <a href="/feed" class="btn-secondary">Back to Feed</a>
+                    <% } %>
                 </div>
             </div>
         </div>

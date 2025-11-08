@@ -61,5 +61,10 @@ contentSchema.post("save", function (doc) {
   }
 });
 
+// Add indexes for duplicate checking performance
+contentSchema.index({ title: 1, releaseYear: 1, type: 1 }); // For movies/shows
+contentSchema.index({ title: 1, seasonNumber: 1, episodeNumber: 1, type: 1 }); // For episodes
+contentSchema.index({ title: "text" }); // For text search capabilities
+
 const Content = mongoose.model("Content", contentSchema);
 export default Content;

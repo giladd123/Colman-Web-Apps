@@ -1,4 +1,6 @@
 import axios from "axios";
+import apiResponse from "../utils/apiResponse.js";
+import { error as logError, warn as logWarn } from "../utils/logger.js";
 
 // Parse IMDb release date to YYYY-MM-DD format
 function parseReleaseDate(dateStr) {
@@ -41,7 +43,10 @@ function formatIMDBData(IMDBData) {
 // Fetch IMDb data
 export async function fetchIMDBData({ title, type, season, episode }) {
   const apiKey = process.env.OMDB_API_KEY;
-  if (!title) throw new Error("Title is required");
+  if (!title) {
+    const error = new Error("Title is required");
+    throw error;
+  }
 
   // Episode fetch
   if (type === "episode" && season && episode) {
@@ -51,9 +56,15 @@ export async function fetchIMDBData({ title, type, season, episode }) {
           title
         )}&Season=${season}&Episode=${episode}&plot=full&apikey=${apiKey}`
       );
-      if (epRes.data.Response === "False") return null;
+      if (epRes.data.Response === "False") {
+        return null;
+      }
       return epRes.data;
     } catch (err) {
+      logError(
+        `Failed to access IMDb for episode "${title}" S${season}E${episode}: ${err.message}`,
+        { stack: err.stack }
+      );
       // Throw custom error for middleware
       const imdbErr = new Error("Unable to access IMDB");
       imdbErr.name = "IMDB_ACCESS_ERROR";
@@ -69,7 +80,9 @@ export async function fetchIMDBData({ title, type, season, episode }) {
         title
       )}&type=${typeQuery}&plot=full&apikey=${apiKey}`
     );
-    if (resData.data.Response === "False") return null;
+    if (resData.data.Response === "False") {
+      return null;
+    }
     if (
       !resData.data.Title ||
       resData.data.Title.trim().toLowerCase() !== title.trim().toLowerCase()
@@ -78,6 +91,9 @@ export async function fetchIMDBData({ title, type, season, episode }) {
     }
     return resData.data;
   } catch (err) {
+    logError(`Failed to access IMDb for ${type} "${title}": ${err.message}`, {
+      stack: err.stack,
+    });
     // Throw custom error for middleware
     const imdbErr = new Error("Unable to access IMDB");
     imdbErr.name = "IMDB_ACCESS_ERROR";
@@ -88,7 +104,10 @@ export async function fetchIMDBData({ title, type, season, episode }) {
 // Route handler for /fetch-imdb
 export async function fetchIMDB(req, res) {
   const { title, season, episode } = req.query;
-  if (!title) return res.status(400).json({ error: "Title is required" });
+
+  if (!title) {
+    return apiResponse.badRequest(res, "Title is required");
+  }
 
   try {
     const data = await fetchIMDBData({
@@ -98,15 +117,22 @@ export async function fetchIMDB(req, res) {
       episode,
     });
 
-    if (!data)
-      return res.status(404).json({ success: false, error: "Content not found on IMDb" });
+    if (!data) {
+      return apiResponse.notFound(res, "Content not found on IMDb");
+    }
 
     // Format response
     const result = formatIMDBData(data);
 
-    res.json(result);
+    return apiResponse.ok(res, result);
   } catch (err) {
+    logError(`Error in IMDb fetch for "${title}": ${err.message}`, {
+      stack: err.stack,
+    });
+
     // Pass error to middleware for consistent error handling
-    return req.app && req.app.emit ? req.app.emit('error', err, req, res) : next(err);
+    return req.app && req.app.emit
+      ? req.app.emit("error", err, req, res)
+      : apiResponse.serverError(res, "Failed to fetch IMDb data");
   }
 }
