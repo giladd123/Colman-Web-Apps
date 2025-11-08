@@ -7,9 +7,7 @@ async function initializeApp() {
   document.getElementById("currentProfileImg").src = selectedProfileImage;
 
   // Fetch movies globally
-  //const movies = await fetchMoviesFromDB();
   window.movies = await fetch("/feed/allContent").then((res) => res.json());
-  console.log("Movies:", movies);
 
   // Fetch feed for profile
   const feedData = await fetchFeedForProfile(selectedProfileName);

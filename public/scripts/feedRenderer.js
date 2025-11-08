@@ -54,9 +54,10 @@ function appendFeedRows(feedData, profileName) {
   }
 
   // Move the newly created sections into this batch wrapper
-  const newlyCreated = Array.from(document.querySelectorAll("section.row-section"))
-    .slice(-(rowIndex - (window.__feedRowIndex || 0)));
-  newlyCreated.forEach(sec => batch.appendChild(sec));
+  const newlyCreated = Array.from(
+    document.querySelectorAll("section.row-section")
+  ).slice(-(rowIndex - (window.__feedRowIndex || 0)));
+  newlyCreated.forEach((sec) => batch.appendChild(sec));
 
   // Append batch and sentinel
   content.appendChild(batch);
@@ -86,17 +87,20 @@ function enableVerticalInfinite(feedData, profileName) {
   }
 
   let loading = false;
-  const observer = new IntersectionObserver(async (entries) => {
-    const entry = entries[0];
-    if (entry.isIntersecting && !loading) {
-      loading = true;
-      // Append the same rows as a new batch
-      appendFeedRows(feedData, profileName);
-      // Move sentinel to bottom again
-      content.appendChild(sentinel);
-      loading = false;
-    }
-  }, { root: null, threshold: 0.1 });
+  const observer = new IntersectionObserver(
+    async (entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting && !loading) {
+        loading = true;
+        // Append the same rows as a new batch
+        appendFeedRows(feedData, profileName);
+        // Move sentinel to bottom again
+        content.appendChild(sentinel);
+        loading = false;
+      }
+    },
+    { root: null, threshold: 0.1 }
+  );
 
   observer.observe(sentinel);
 }
@@ -106,7 +110,6 @@ async function fetchMoviesFromDB() {
     const response = await fetch("/feed/allContent");
     if (!response.ok) throw new Error("Failed to fetch content");
     const data = await response.json();
-    console.log("Fetched movies:", data);
     return data;
   } catch (err) {
     console.error("Error fetching movies:", err);
@@ -121,7 +124,6 @@ async function fetchFeedForProfile(profileName) {
     const response = await fetch(`/feed/${encodeURIComponent(profileName)}`);
     if (!response.ok) throw new Error("Failed to fetch feed");
     const data = await response.json();
-    console.log("Feed fetched for profile:", data);
     return data;
   } catch (err) {
     console.error("Error fetching feed:", err);

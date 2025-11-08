@@ -12,22 +12,25 @@ function createScrollButton(direction, iconClass) {
   return button;
 }
 
-function createScrollContainer(movies, rowIndex) {
-  const scroller = document.createElement("div");
-  scroller.className = "scroll-container";
-  scroller.id = `row-${rowIndex}`;
-
-  movies.forEach((movie) => {
-    const card = createCard(movie);
-    scroller.appendChild(card);
-  });
-
-  return scroller;
-}
-
-// Helper: render cards for an array of movies into a given scroller
+// Render cards for an array of movies into a given scroller
 function renderCardsFor(scroller, movies) {
   movies.forEach((movie) => scroller.appendChild(createCard(movie)));
+}
+
+// Disable infinite effect and restore original content
+function disableRowInfinite(scroller, movies) {
+  try {
+    if (!scroller || scroller.dataset.infinite !== "1") return;
+
+    // Restore original single set of content
+    scroller.innerHTML = "";
+    renderCardsFor(scroller, movies);
+    scroller.scrollLeft = 0;
+    scroller.dataset.infinite = "0";
+    delete scroller.dataset.segment;
+  } catch (e) {
+    console.error("disableRowInfinite failed:", e);
+  }
 }
 
 // Enable per-row horizontal infinite effect by tripling content and looping scrollLeft
@@ -56,15 +59,16 @@ function enableRowInfinite(scroller, movies) {
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = null;
-        const segment = parseFloat(scroller.dataset.segment || "0") ||
+        const segment =
+          parseFloat(scroller.dataset.segment || "0") ||
           scroller.scrollWidth / 3;
         const left = scroller.scrollLeft;
-        const tolerance = Math.max(2, segment * 0.02); // 2% tolerance or 2px
+        const tolerance = Math.max(2, segment * 0.02);
         const min = segment - tolerance;
         const max = segment * 2 + tolerance;
 
         if (left < min) {
-          // Jump forward by one segment (disable smooth temporarily)
+          // Jump forward by one segment
           const prev = scroller.style.scrollBehavior;
           scroller.style.scrollBehavior = "auto";
           scroller.scrollLeft = left + segment;
@@ -148,21 +152,43 @@ function createRow(title, movies, rowIndex) {
     leftBtn.style.display = "";
     rightBtn.style.display = "";
     // Enable per-row horizontal infinite effect for overflowing rows
-    // Recreate middle-after-paint to ensure widths are measured
     requestAnimationFrame(() => enableRowInfinite(scroller, movies));
   } else {
     leftBtn.style.display = "none";
     rightBtn.style.display = "none";
   }
 
-  // Update arrows on resize
+  // Update arrows and infinite scroll on resize
   window.addEventListener("resize", () => {
-    if (scroller.scrollWidth <= scroller.clientWidth) {
-      leftBtn.style.display = "none";
-      rightBtn.style.display = "none";
+    const wasInfinite = scroller.dataset.infinite === "1";
+
+    // Check overflow based on current state
+    let hasOverflow;
+    if (wasInfinite) {
+      // When infinite is active, check against segment width (1/3 of scrollWidth)
+      const segment = scroller.scrollWidth / 3;
+      hasOverflow = segment > scroller.clientWidth;
     } else {
+      // Normal overflow check
+      hasOverflow = scroller.scrollWidth > scroller.clientWidth;
+    }
+
+    if (hasOverflow) {
+      // Show arrows
       leftBtn.style.display = "";
       rightBtn.style.display = "";
+      // Enable infinite scroll if not already enabled
+      if (!wasInfinite) {
+        requestAnimationFrame(() => enableRowInfinite(scroller, movies));
+      }
+    } else {
+      // Hide arrows
+      leftBtn.style.display = "none";
+      rightBtn.style.display = "none";
+      // Disable infinite scroll if it was enabled
+      if (wasInfinite) {
+        disableRowInfinite(scroller, movies);
+      }
     }
   });
 
