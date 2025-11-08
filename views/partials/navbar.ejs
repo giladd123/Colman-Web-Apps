@@ -2,16 +2,21 @@
   <a class="navbar-brand" href="#">NETFLIX</a>
   <div class="collapse navbar-collapse">
     <ul class="navbar-nav me-auto">
-      <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+      <li class="nav-item"><a class="nav-link active" href="/feed">Home</a></li>
       <li class="nav-item"><a class="nav-link" href="#">TV Shows</a></li>
       <li class="nav-item"><a class="nav-link" href="#">Movies</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Games</a></li>
       <li class="nav-item">
         <a class="nav-link" href="#">New & Popular</a>
       </li>
       <li class="nav-item"><a class="nav-link" href="#">My List</a></li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Browse by Languages</a>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="genresDropdown" role="button" 
+           data-bs-toggle="dropdown" aria-expanded="false">
+          Browse by Genres
+        </a>
+        <ul class="dropdown-menu bg-dark" aria-labelledby="genresDropdown" id="genresDropdownMenu">
+          <li><a class="dropdown-item text-white" href="#">Loading genres...</a></li>
+        </ul>
       </li>
     </ul>
     <div class="d-flex align-items-center">

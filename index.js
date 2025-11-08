@@ -7,6 +7,7 @@ import errorHandler from "./middleware/errorHandler.js";
 import feedRoutes from "./routes/feedRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
+import genreRoutes from "./routes/genreRoutes.js";
 
 const PORT = process.env.PORT || 8000;
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/watchlist", watchlistRoutes);
 app.use(errorHandler);
 
 app.use("/feed", feedRoutes);
+app.use("/genres", genreRoutes);
 
 app.get("/feed", (req, res) => {
   res.render("feed");
