@@ -1,8 +1,6 @@
-<!-- Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 -->
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <%- include('partials/head', { extraCss: ["/style/select_content.css",
+<%- include('partials/head', { extraCss: ["/style/select_content.css",
     "/style/content.css",
     "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css", 
     "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css",
@@ -12,17 +10,14 @@
 <body>
     <main>
         <section class="hero-section">
-            <div class="hero-background" style="background-image: url('<%= content.posterUrl %>')"></div>
-            <div class="container-fluid">
+            <div class="hero-background"></div> <div class="container-fluid">
                 <div class="hero-content">
-                    <h1><%= content.title %></h1>
-                    <div class="hero-meta my-3">
-                        <span class="border rounded px-2"><%= content.imdbRating %></span>
-                        <span class="border rounded px-2"><%= content.type %></span>
-                        <span class="border rounded px-2"><%= content.releaseYear %></span>
+                    <h1 id="content-title"></h1> <div classs="hero-meta my-3">
+                        <span id="content-rating" class="border rounded px-2"></span>
+                        <span id="content-type" class="border rounded px-2"></span>
+                        <span id="content-year" class="border rounded px-2"></span>
                     </div>
-                    <p class="hero-description d-none d-md-block"><%= content.description %></p>
-
+                    <p id="content-description" class="hero-description d-none d-md-block"></p>
                     <div class="hero-actions mt-4 d-flex">
                         <button class="btn btn-play">
                             <i class="bi bi-play-fill"></i> Play
@@ -37,126 +32,28 @@
 
         <section class="details-section container-fluid mt-4">
             <div class="row">
-                <!-- (Req 6, 7) -->
-                 
-                <%# Use the discriminator key to check if this is a Show %>
-                <% if (content.type === 'Show') { %>
-                <%# Get all season numbers and sort them (e.g., ['1', '2', '3']) %>
-                <% const seasonNumbers = Array.from(content.seasons.keys()).sort((a, b) => a - b) %>
-
-                <div class="col-12">
-                    
-                    <div class="episodes-header mb-3">
-                        <h3>Episodes</h3>
-                        <div class="dropdown">
-                            <a class="btn btn-dark dropdown-toggle" href="#" role="button" id="seasonDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                Season <%= seasonNumbers[0] %>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="seasonDropdownButton">
-                                <%# Loop over the sorted season numbers to create dropdown items %>
-                                <% for (const num of seasonNumbers) { %>
-                                    <li><a class="dropdown-item season-select-btn" data-season="<%= num %>" href="#">Season <%= num %></a></li>
-                                <% } %>
-                            </ul>
-                        </div>
+                <div id="episodes-section" class="col-12">
                     </div>
-
-                    <div id="episode-list-container">
-                        <%# Loop through each season number again to create the lists %>
-                        <% for (const seasonNum of seasonNumbers) { %>
-                            <%# Get the array of episode objects from the Map %>
-                            <% const episodes = content.seasons.get(seasonNum) || []; %>
-                            
-                            <div id="season-<%= seasonNum %>-list" class="episode-list <%= (seasonNum !== seasonNumbers[0]) ? 'd-none' : '' %>">
-                                
-                                <%# Loop through all episodes for this season %>
-                                <% for (const episode of episodes) { %>
-                                    <div class="episode-item" data-episode-id="<%= episode._id %>">
-                                        <div class="episode-number"><%= episode.episodeNumber %></div>
-                                        <div class="episode-thumbnail mx-3">
-                                            <img src="<%= episode.posterUrl || 'https://placehold.co/300x170/222/FFF?text=No+Image' %>" alt="<%= episode.episodeTitle %>">
-                                            <div class="episode-progress-bar"><div style="width: 75%;"></div></div>
-                                        </div>
-                                        <div class="episode-info">
-                                            <div class="episode-title">
-                                                <span><%= episode.episodeTitle %></span>
-                                                <span><%= episode.lengthMinutes %> min</span>
-                                            </div>
-                                            <p class="episode-description d-none d-md-block">
-                                                <%= episode.description %>
-                                            </p>
-                                        </div>
-                                    </div>
-                                <% } %>
-                            </div>
-                        <% } %>
-                    </div>
-                </div>
-                <% } %>
-
-                    <p>
-                <strong>Cast:</strong>
-                    <% if (content.actors && content.actors.length > 0) { %>
-                        <% content.actors.forEach((actor, index) => { %>
-                        <%# Construct the Wikipedia search URL and URL-encode the actor's name %>
-                        <a href="https://en.wikipedia.org/wiki/Special:Search?search=<%= encodeURIComponent(actor) %>" target="_blank"><%= actor %></a>
-                        <% if (index < content.actors.length - 1) { %>, <% } %>
-                        <% }); %>
-                        <% } else { %>
-                        <span>N/A</span>
-                        <% } %>
-                        </p>
-                    <p>
-                        <strong>Genres:</strong>
-                        <% if (content.genres && content.genres.length > 0) { %>
-                        <% content.genres.forEach((genres, index) => { %>
-                        <a><%= genres %></a>
-                        <% if (index < content.genres.length - 1) { %>, <% } %>
-                        <% }); %>
-                        <% } else { %>
-                        <span>N/A</span>
-                        <% } %>
-                    </p>
-                </div>
+                
+                <div id="details-cast-genres" class="col-12">
+                   <p><strong>Cast:</strong> <span id="content-cast"></span></p>
+                   <p><strong>Genres:</strong> <span id="content-genres"></span></p>
                 </div>
             </div>
 
-            <!-- (Req 5) -->
             <aside class="mt-5">
-             <h3 class="mb-3">More Like This</h3>
- 
-                <% if (similarContent && similarContent.length > 0) { %>
-                  <%# We re-use the movie card styles from content.css %>
-                  <section class="row-section">
-                    <div class="scroll-wrapper">
-                      <div class="scroll-container">
-                        
-                        <% for (const item of similarContent) { %>
-                          <%# This HTML structure mimics the cards from card_renderer.js %>
-                          <a href="/select-content/<%= item._id %>" class="movie-card" style="text-decoration: none;">
-                            <img class="movie-poster" src="<%= item.posterUrl %>" alt="<%= item.title %>">
-                            <span class="badge-pill">
-                              <%= item.imdbRating ? item.imdbRating : (item.releaseYear || '') %>
-                            </span>
-                          </a>
-                        <% } %>
-
-                      </div>
-                    </div>
-                  </section>
-                <% } else { %>
-                  <p style="color: #808080;">No similar content found.</p>
-                <% } %>
+                <h3 class="mb-3">More Like This</h3>
+                <section id="similar-content-container" class="row-section">
+                    </section>
             </aside>
         </section>
-
     </main>
     
-    </body>
-    </body>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/scripts/select_content.js"></script>
+    <script src="/scripts/utils.js"></script>
     <script src="/scripts/card_renderer.js"></script>
+    <script src="/scripts/likes_manager.js"></script>
+    <script src="/scripts/watchlist_manager.js"></script>
+</body>
 </html>
-
-  

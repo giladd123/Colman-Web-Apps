@@ -3,6 +3,12 @@ import Content from "./content.js";
 
 const episodeSchema = new mongoose.Schema(
   {
+    showId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Show",
+      required: true,
+      index: true, // This makes querying much faster
+    },
     episodeTitle: {
       type: String,
       required: true,

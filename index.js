@@ -9,6 +9,8 @@ import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
+import playerRoutes from "./routes/playerRoutes.js"; // <-- ADD THIS
+
 
 
 const app = express();
@@ -55,6 +57,7 @@ app.use("/api/profiles", profilesRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 
+
 app.use(errorHandler);
 
 app.use("/feed", feedRoutes);
@@ -64,5 +67,6 @@ app.get("/feed", (req, res) => {
 });
 
 app.use("/select-content", mainRoutes);
+app.use("/player", playerRoutes); // <-- ADD THIS
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
