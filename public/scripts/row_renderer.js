@@ -25,6 +25,77 @@ function createScrollContainer(movies, rowIndex) {
   return scroller;
 }
 
+// Helper: render cards for an array of movies into a given scroller
+function renderCardsFor(scroller, movies) {
+  movies.forEach((movie) => scroller.appendChild(createCard(movie)));
+}
+
+// Enable per-row horizontal infinite effect by tripling content and looping scrollLeft
+function enableRowInfinite(scroller, movies) {
+  try {
+    if (!scroller || scroller.dataset.infinite === "1") return;
+    if (!movies || !movies.length) return;
+
+    // Rebuild content as [segment][segment][segment]
+    scroller.innerHTML = "";
+    renderCardsFor(scroller, movies);
+    renderCardsFor(scroller, movies);
+    renderCardsFor(scroller, movies);
+
+    scroller.dataset.infinite = "1";
+
+    // Position at middle segment after layout paints
+    requestAnimationFrame(() => {
+      const segment = scroller.scrollWidth / 3;
+      scroller.dataset.segment = String(segment);
+      scroller.scrollLeft = segment;
+    });
+
+    let rafId = null;
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const segment = parseFloat(scroller.dataset.segment || "0") ||
+          scroller.scrollWidth / 3;
+        const left = scroller.scrollLeft;
+        const tolerance = Math.max(2, segment * 0.02); // 2% tolerance or 2px
+        const min = segment - tolerance;
+        const max = segment * 2 + tolerance;
+
+        if (left < min) {
+          // Jump forward by one segment (disable smooth temporarily)
+          const prev = scroller.style.scrollBehavior;
+          scroller.style.scrollBehavior = "auto";
+          scroller.scrollLeft = left + segment;
+          scroller.style.scrollBehavior = prev;
+        } else if (left > max) {
+          const prev = scroller.style.scrollBehavior;
+          scroller.style.scrollBehavior = "auto";
+          scroller.scrollLeft = left - segment;
+          scroller.style.scrollBehavior = prev;
+        }
+      });
+    };
+
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+
+    // Recompute segment on resize
+    const onResize = () => {
+      const segment = scroller.scrollWidth / 3;
+      scroller.dataset.segment = String(segment);
+      // Keep user in middle band when resizing to reduce edge jumps
+      const prev = scroller.style.scrollBehavior;
+      scroller.style.scrollBehavior = "auto";
+      scroller.scrollLeft = segment;
+      scroller.style.scrollBehavior = prev;
+    };
+    window.addEventListener("resize", onResize);
+  } catch (e) {
+    console.error("enableRowInfinite failed:", e);
+  }
+}
+
 function addScrollListeners(leftBtn, rightBtn, scroller) {
   if (!scroller) return;
 
@@ -76,6 +147,9 @@ function createRow(title, movies, rowIndex) {
   if (scroller.scrollWidth > scroller.clientWidth) {
     leftBtn.style.display = "";
     rightBtn.style.display = "";
+    // Enable per-row horizontal infinite effect for overflowing rows
+    // Recreate middle-after-paint to ensure widths are measured
+    requestAnimationFrame(() => enableRowInfinite(scroller, movies));
   } else {
     leftBtn.style.display = "none";
     rightBtn.style.display = "none";
@@ -142,6 +216,7 @@ function updateRowMovies(title, movies) {
     if (newScroller.scrollWidth > newScroller.clientWidth) {
       if (leftBtn) leftBtn.style.display = "";
       if (rightBtn) rightBtn.style.display = "";
+      requestAnimationFrame(() => enableRowInfinite(newScroller, movies));
     } else {
       if (leftBtn) leftBtn.style.display = "none";
       if (rightBtn) rightBtn.style.display = "none";
