@@ -37,7 +37,7 @@ export async function validateCreateProfile(req, res, next) {
       return badRequest(res, "Invalid profile name format");
     }
 
-    if (!req.file) {
+    if (!req.body.avatarUrl && !req.file) {
       warn("validateCreateProfile - missing avatar", { userId });
       return badRequest(
         res,
