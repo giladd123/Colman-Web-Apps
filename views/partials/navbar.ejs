@@ -1,46 +1,65 @@
+<% const currentNav = typeof activeNav !== 'undefined' ? activeNav : 'home'; %>
 <nav class="navbar navbar-expand-lg fixed-top px-4">
   <a class="navbar-brand" href="#">NETFLIX</a>
   <div class="collapse navbar-collapse">
     <ul class="navbar-nav me-auto">
-      <li class="nav-item"><a class="nav-link active" href="/feed">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">TV Shows</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Movies</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'home' ? ' active' : '' %>"
+          href="/feed">Home</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'shows' ? ' active' : '' %>"
+          href="#">TV Shows</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'movies' ? ' active' : '' %>"
+          href="#">Movies</a></li>
       <li class="nav-item">
-        <a class="nav-link" href="#">New & Popular</a>
+        <a class="nav-link<%= currentNav === 'new' ? ' active' : '' %>"
+          href="#">New & Popular</a>
       </li>
-      <li class="nav-item"><a class="nav-link" href="#">My List</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'list' ? ' active' : '' %>"
+          href="#">My List</a></li>
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="genresDropdown" role="button" 
-           data-bs-toggle="dropdown" aria-expanded="false">
+        <a
+          class="nav-link dropdown-toggle<%= currentNav === 'genres' ? ' active' : '' %>"
+          href="#" id="genresDropdown" role="button"
+          data-bs-toggle="dropdown" aria-expanded="false">
           Browse by Genres
         </a>
-        <ul class="dropdown-menu bg-dark" aria-labelledby="genresDropdown" id="genresDropdownMenu">
-          <li><a class="dropdown-item text-white" href="#">Loading genres...</a></li>
+        <ul class="dropdown-menu bg-dark" aria-labelledby="genresDropdown"
+          id="genresDropdownMenu">
+          <li><a class="dropdown-item text-white" href="#">Loading
+              genres...</a></li>
         </ul>
       </li>
     </ul>
     <div class="d-flex align-items-center">
       <p class="mb-0 text-white" id="helloMessage">Hello USERNAME</p>
       <span class="icon-btn"><i class="bi bi-search"></i></span>
-      <input id="searchInput" type="text" class="form-control form-control-sm bg-dark text-white ms-2"
+      <input id="searchInput" type="text"
+        class="form-control form-control-sm bg-dark text-white ms-2"
         placeholder="Search..." style="display: none; width: 180px" />
       <span class="icon-btn"><i class="bi bi-alphabet"></i></span>
       <span class="icon-btn"><i class="bi bi-bell"></i></span>
 
       <div class="nav-item dropdown ms-2">
-        <a id="profileDropdown" class="nav-link dropdown-toggle p-0" role="button" data-bs-toggle="dropdown"
+        <a id="profileDropdown" class="nav-link dropdown-toggle p-0"
+          role="button" data-bs-toggle="dropdown"
           aria-expanded="false">
-          <img id="currentProfileImg" src="/images/profiles/yellow.png" alt="Profile" class="profile-img" />
+          <img id="currentProfileImg" src="/images/profiles/yellow.png"
+            alt="Profile" class="profile-img" />
         </a>
 
-        <ul class="dropdown-menu dropdown-menu-end bg-dark" aria-labelledby="profileDropdown" style="min-width: 180px">
+        <ul class="dropdown-menu dropdown-menu-end bg-dark"
+          aria-labelledby="profileDropdown" style="min-width: 180px">
           <li>
             <a class="dropdown-item text-white text-start" href="profiles">
               <i class="bi bi-person-circle ms-2 me-2"></i> Select Profile
             </a>
           </li>
           <li>
-            <a class="dropdown-item text-white text-start" onclick="logout()" style="cursor: pointer">
+            <a class="dropdown-item text-white text-start" onclick="logout()"
+              style="cursor: pointer">
               <i class="bi bi-box-arrow-right ms-2 me-2"></i> Log Out
             </a>
           </li>

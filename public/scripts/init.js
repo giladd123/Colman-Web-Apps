@@ -1,30 +1,41 @@
 async function initializeApp() {
-  // Initialize profile display
-  const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
-  document.getElementById(
-    "helloMessage"
-  ).innerText = `Hello, ${selectedProfileName}`;
-  document.getElementById("currentProfileImg").src = selectedProfileImage;
+  const loadingIndicator = document.getElementById("loading");
+  if (loadingIndicator) loadingIndicator.style.display = "block";
 
-  // Fetch movies globally
-  window.movies = await fetch("/feed/allContent").then((res) => res.json());
+  try {
+    const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
+    const profileName = selectedProfileName || "";
 
-  // Fetch feed for profile
-  const feedData = await fetchFeedForProfile(selectedProfileName);
+    const helloMessage = document.getElementById("helloMessage");
+    if (helloMessage) helloMessage.innerText = `Hello, ${profileName}`;
 
-  // Expose the last rendered feed and profile on window so other modules (search) can restore it.
-  window.currentFeedData = feedData;
-  window.currentProfileName = selectedProfileName;
+    const profileImg = document.getElementById("currentProfileImg");
+    if (profileImg && selectedProfileImage)
+      profileImg.src = selectedProfileImage;
 
-  // Render the feed rows
-  renderFeed(window.currentFeedData, window.currentProfileName);
+    window.movies = await fetchMoviesFromDB();
 
-  // Initialize search & sorting
+    const feedData = await fetchFeedForProfile(profileName);
+
+    window.currentFeedData = feedData;
+    window.currentProfileName = profileName;
+
+    renderFeed(window.currentFeedData, window.currentProfileName);
+
   initializeSearch();
   initializeAlphabeticalSorting();
-  
-  // Initialize genres dropdown
+
+  if (loadingIndicator) loadingIndicator.style.display = "none";
+
   await initializeGenresDropdown();
+  } catch (error) {
+    console.error("Error initializing feed:", error);
+    if (loadingIndicator) {
+      loadingIndicator.innerHTML =
+        '<p class="text-white mt-2 mb-0">Failed to load feed. Please refresh.</p>';
+      loadingIndicator.style.display = "block";
+    }
+  }
 }
 
 // Initialize the genres dropdown

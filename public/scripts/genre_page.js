@@ -11,12 +11,19 @@ let allContent = [];
 function initializeGenrePage(genre) {
   currentGenre = genre;
 
-  document.addEventListener("DOMContentLoaded", async function () {
-    // Initialize basic navbar functionality first (this loads feed data)
-    await initializeNavbarForGenrePage();
+  document.addEventListener("DOMContentLoaded", function () {
+    const loadingIndicator = document.getElementById("loading");
+    if (loadingIndicator) loadingIndicator.style.display = "block";
 
-    // Then load genre content (buttons will now have correct states)
-    loadGenreContent(true); // true = reset content
+    initializeNavbarForGenrePage()
+      .catch((err) => {
+        console.error("Failed to initialize navbar for genre page:", err);
+      })
+      .finally(() => {
+        refreshInteractiveStates();
+      });
+
+    loadGenreContent(true);
     setupInfiniteScroll();
   });
 }
@@ -25,50 +32,44 @@ function initializeGenrePage(genre) {
 async function initializeNavbarForGenrePage() {
   // Initialize profile display
   const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
-  document.getElementById(
-    "helloMessage"
-  ).innerText = `Hello, ${selectedProfileName}`;
-  document.getElementById("currentProfileImg").src = selectedProfileImage;
+  const helloMessage = document.getElementById("helloMessage");
+  if (helloMessage)
+    helloMessage.innerText = `Hello, ${selectedProfileName || ""}`;
+  const profileImg = document.getElementById("currentProfileImg");
+  if (profileImg && selectedProfileImage) profileImg.src = selectedProfileImage;
 
   // Set up global variables for likes and watchlist functionality
   window.currentProfileName = selectedProfileName;
+  window.currentFeedData = window.currentFeedData || {
+    likedBy: [],
+    myList: [],
+  };
 
   // Fetch user's feed data to get likes and watchlist info
-  try {
-    const feedResponse = await fetch(`/feed/${selectedProfileName}`);
-    if (feedResponse.ok) {
-      window.currentFeedData = await feedResponse.json();
-    } else {
+  const profileKey = selectedProfileName
+    ? encodeURIComponent(selectedProfileName)
+    : "";
+  if (profileKey) {
+    try {
+      const feedResponse = await fetch(`/feed/${profileKey}`);
+      if (feedResponse.ok) {
+        window.currentFeedData = await feedResponse.json();
+      } else {
+        window.currentFeedData = { likedBy: [], myList: [] };
+      }
+    } catch (error) {
+      console.error("Error fetching feed data:", error);
       window.currentFeedData = { likedBy: [], myList: [] };
     }
-  } catch (error) {
-    console.error("Error fetching feed data:", error);
-    window.currentFeedData = { likedBy: [], myList: [] };
   }
-
-  // Update navbar active states for genre page
-  updateNavbarActiveState();
 
   // Initialize genres dropdown
   initializeGenresDropdown();
 
   // Initialize search functionality for genre page
   initializeGenrePageSearch();
-}
 
-// Update navbar active states
-function updateNavbarActiveState() {
-  // Remove active class from Home link
-  const homeLink = document.querySelector('a[href="/feed"]');
-  if (homeLink) {
-    homeLink.classList.remove("active");
-  }
-
-  // Add active class to Browse by Genres dropdown
-  const genresDropdownLink = document.getElementById("genresDropdown");
-  if (genresDropdownLink) {
-    genresDropdownLink.classList.add("active");
-  }
+  refreshInteractiveStates();
 }
 
 // Initialize search functionality specifically for genre page
@@ -128,7 +129,8 @@ async function loadGenreContent(reset = false) {
   if (isLoading || (!hasMore && !reset)) return;
 
   isLoading = true;
-  document.getElementById("loading").style.display = "block";
+  const loadingIndicator = document.getElementById("loading");
+  if (loadingIndicator) loadingIndicator.style.display = "block";
 
   if (reset) {
     currentPage = 1;
@@ -155,6 +157,7 @@ async function loadGenreContent(reset = false) {
     if (data.content && data.content.length > 0) {
       allContent.push(...data.content);
       renderGenreContent(data.content, !reset);
+      refreshInteractiveStates();
       hasMore = data.pagination.hasMore;
       currentPage++;
     } else {
@@ -166,10 +169,9 @@ async function loadGenreContent(reset = false) {
       }
     }
 
-    // Show/hide no more content message
-    document.getElementById("noMoreContent").style.display = hasMore
-      ? "none"
-      : "block";
+    const noMoreContent = document.getElementById("noMoreContent");
+    if (noMoreContent)
+      noMoreContent.style.display = hasMore ? "none" : "block";
   } catch (error) {
     console.error("Error loading genre content:", error);
     if (reset) {
@@ -179,7 +181,7 @@ async function loadGenreContent(reset = false) {
     }
   } finally {
     isLoading = false;
-    document.getElementById("loading").style.display = "none";
+    if (loadingIndicator) loadingIndicator.style.display = "none";
   }
 }
 
@@ -246,5 +248,58 @@ function setupInfiniteScroll() {
     ) {
       loadGenreContent();
     }
+  });
+}
+
+function refreshInteractiveStates() {
+  if (!window.currentFeedData) return;
+
+  const contentLookup = new Map();
+  allContent.forEach((item) => {
+    const id = contentIdFor(item);
+    if (id) {
+      contentLookup.set(String(id), item);
+    }
+  });
+
+  const likeButtons = document.querySelectorAll(".like-btn");
+  likeButtons.forEach((btn) => {
+    const movieId = btn.getAttribute("data-id");
+    if (!movieId) return;
+    const movie = contentLookup.get(String(movieId));
+    if (!movie) return;
+
+    const isLiked = isLikedInProfile(movie);
+    const icon = btn.querySelector("i");
+    if (icon) {
+      icon.classList.remove("bi-heart", "bi-heart-fill");
+      icon.classList.add(isLiked ? "bi-heart-fill" : "bi-heart");
+    }
+
+    btn.classList.toggle("liked", isLiked);
+    btn.setAttribute("aria-pressed", isLiked ? "true" : "false");
+    btn.setAttribute(
+      "aria-label",
+      isLiked ? "Unlike this movie" : "Like this movie"
+    );
+    updateTooltip(btn, isLiked ? "Unlike 💔" : "Like ❤️");
+  });
+
+  const watchlistButtons = document.querySelectorAll(".watchlist-btn");
+  watchlistButtons.forEach((btn) => {
+    const movieId = btn.getAttribute("data-id");
+    if (!movieId) return;
+    const movie = contentLookup.get(String(movieId));
+    if (!movie) return;
+
+    const inList = isInWatchlist(movie);
+    const icon = btn.querySelector("i");
+    if (icon) {
+      icon.classList.remove("bi-plus", "bi-check2");
+      icon.classList.add(inList ? "bi-check2" : "bi-plus");
+    }
+
+    btn.classList.toggle("in-list", inList);
+    updateWatchlistButton(btn, inList);
   });
 }
