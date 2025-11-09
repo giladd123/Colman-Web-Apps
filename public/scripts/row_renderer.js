@@ -12,62 +12,92 @@ function createScrollButton(direction, iconClass) {
   return button;
 }
 
-function createScrollContainer(movies, rowIndex) {
-  const scroller = document.createElement("div");
-  scroller.className = "scroll-container";
-  scroller.id = `row-${rowIndex}`;
-
-  movies.forEach((movie) => {
-    const card = createCard(movie);
-    scroller.appendChild(card);
-  });
-
-  return scroller;
+// Render cards for an array of movies into a given scroller
+function renderCardsFor(scroller, movies) {
+  movies.forEach((movie) => scroller.appendChild(createCard(movie)));
 }
 
-// Makes a scroller infinitely loop by cloning first and last few cards
-function makeInfiniteScroller(scroller, cloneCount = 3) {
-  let cards = Array.from(scroller.children);
-  if (!cards.length) return;
+// Disable infinite effect and restore original content
+function disableRowInfinite(scroller, movies) {
+  try {
+    if (!scroller || scroller.dataset.infinite !== "1") return;
 
-  // If there are not enough original items to meaningfully clone, skip infinite behavior
-  const originalCountBeforeCloning = cards.length;
-  if (originalCountBeforeCloning <= cloneCount) return;
+    // Restore original single set of content
+    scroller.innerHTML = "";
+    renderCardsFor(scroller, movies);
+    scroller.scrollLeft = 0;
+    scroller.dataset.infinite = "0";
+    delete scroller.dataset.segment;
+  } catch (e) {
+    console.error("disableRowInfinite failed:", e);
+  }
+}
 
-  // Clone cards
-  const clonesLeft = cards.slice(-cloneCount).map((c) => c.cloneNode(true));
-  const clonesRight = cards.slice(0, cloneCount).map((c) => c.cloneNode(true));
+// Enable per-row horizontal infinite effect by tripling content and looping scrollLeft
+function enableRowInfinite(scroller, movies) {
+  try {
+    if (!scroller || scroller.dataset.infinite === "1") return;
+    if (!movies || !movies.length) return;
 
-  clonesLeft.forEach((c) => scroller.insertBefore(c, scroller.firstChild));
-  clonesRight.forEach((c) => scroller.appendChild(c));
+    // Rebuild content as [segment][segment][segment]
+    scroller.innerHTML = "";
+    renderCardsFor(scroller, movies);
+    renderCardsFor(scroller, movies);
+    renderCardsFor(scroller, movies);
 
-  // Recalculate all cards including clones
-  cards = Array.from(scroller.children);
+    scroller.dataset.infinite = "1";
 
-  const cardWidth =
-    cards[0].offsetWidth +
-    parseInt(getComputedStyle(cards[0]).marginRight || 0);
-  const originalCount = cards.length - cloneCount * 2; // exclude clones
-
-  // Start scroll at first original card — set inside rAF to avoid layout/timing races
-  requestAnimationFrame(() => {
-    scroller.scrollLeft = cardWidth * cloneCount;
-  });
-
-  // Continuous scroll with small tolerance to avoid jumping due to fractional pixels
-  const tolerance = 1; // pixels
-  scroller.addEventListener("scroll", () => {
+    // Position at middle segment after layout paints
     requestAnimationFrame(() => {
-      if (scroller.scrollLeft < cardWidth * cloneCount - tolerance) {
-        scroller.scrollLeft += cardWidth * originalCount;
-      } else if (
-        scroller.scrollLeft >=
-        cardWidth * (cloneCount + originalCount) - tolerance
-      ) {
-        scroller.scrollLeft -= cardWidth * originalCount;
-      }
+      const segment = scroller.scrollWidth / 3;
+      scroller.dataset.segment = String(segment);
+      scroller.scrollLeft = segment;
     });
-  });
+
+    let rafId = null;
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const segment =
+          parseFloat(scroller.dataset.segment || "0") ||
+          scroller.scrollWidth / 3;
+        const left = scroller.scrollLeft;
+        const tolerance = Math.max(2, segment * 0.02);
+        const min = segment - tolerance;
+        const max = segment * 2 + tolerance;
+
+        if (left < min) {
+          // Jump forward by one segment
+          const prev = scroller.style.scrollBehavior;
+          scroller.style.scrollBehavior = "auto";
+          scroller.scrollLeft = left + segment;
+          scroller.style.scrollBehavior = prev;
+        } else if (left > max) {
+          const prev = scroller.style.scrollBehavior;
+          scroller.style.scrollBehavior = "auto";
+          scroller.scrollLeft = left - segment;
+          scroller.style.scrollBehavior = prev;
+        }
+      });
+    };
+
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+
+    // Recompute segment on resize
+    const onResize = () => {
+      const segment = scroller.scrollWidth / 3;
+      scroller.dataset.segment = String(segment);
+      // Keep user in middle band when resizing to reduce edge jumps
+      const prev = scroller.style.scrollBehavior;
+      scroller.style.scrollBehavior = "auto";
+      scroller.scrollLeft = segment;
+      scroller.style.scrollBehavior = prev;
+    };
+    window.addEventListener("resize", onResize);
+  } catch (e) {
+    console.error("enableRowInfinite failed:", e);
+  }
 }
 
 function addScrollListeners(leftBtn, rightBtn, scroller) {
@@ -117,34 +147,110 @@ function createRow(title, movies, rowIndex) {
 
   addScrollListeners(leftBtn, rightBtn, scroller);
 
-  // Enable infinite scrolling immediately
+  // Show/hide arrows based on overflow
   if (scroller.scrollWidth > scroller.clientWidth) {
-    // Ensure layout is ready
-    Promise.all(
-      [...scroller.querySelectorAll("img")].map((img) =>
-        img.complete
-          ? Promise.resolve()
-          : new Promise((res) => (img.onload = res))
-      )
-    ).then(() => {
-      // Initialize infinite scroller after images/layout are ready.
-      makeInfiniteScroller(scroller, 3);
-    });
+    leftBtn.style.display = "";
+    rightBtn.style.display = "";
+    // Enable per-row horizontal infinite effect for overflowing rows
+    requestAnimationFrame(() => enableRowInfinite(scroller, movies));
   } else {
     leftBtn.style.display = "none";
     rightBtn.style.display = "none";
   }
 
-  // Update arrows on resize
+  // Update arrows and infinite scroll on resize
   window.addEventListener("resize", () => {
-    if (scroller.scrollWidth <= scroller.clientWidth) {
-      leftBtn.style.display = "none";
-      rightBtn.style.display = "none";
+    const wasInfinite = scroller.dataset.infinite === "1";
+
+    // Check overflow based on current state
+    let hasOverflow;
+    if (wasInfinite) {
+      // When infinite is active, check against segment width (1/3 of scrollWidth)
+      const segment = scroller.scrollWidth / 3;
+      hasOverflow = segment > scroller.clientWidth;
     } else {
+      // Normal overflow check
+      hasOverflow = scroller.scrollWidth > scroller.clientWidth;
+    }
+
+    if (hasOverflow) {
+      // Show arrows
       leftBtn.style.display = "";
       rightBtn.style.display = "";
+      // Enable infinite scroll if not already enabled
+      if (!wasInfinite) {
+        requestAnimationFrame(() => enableRowInfinite(scroller, movies));
+      }
+    } else {
+      // Hide arrows
+      leftBtn.style.display = "none";
+      rightBtn.style.display = "none";
+      // Disable infinite scroll if it was enabled
+      if (wasInfinite) {
+        disableRowInfinite(scroller, movies);
+      }
     }
   });
 
-  return section;
+  // Return the next rowIndex so callers can keep IDs unique across batches
+  return rowIndex + 1;
+}
+
+// Replace the movies inside an existing row matching the given title.
+// Returns true if the row was found and updated, false otherwise.
+function updateRowMovies(title, movies) {
+  try {
+    const titles = Array.from(document.querySelectorAll(".row-title"));
+    const match = titles.find((h3) => h3.textContent.trim() === title);
+    if (!match) return false;
+
+    const section = match.closest("section.row-section");
+    if (!section) return false;
+
+    // If there are no movies, remove the entire section so the title doesn't remain
+    if (!movies || !movies.length) {
+      section.remove();
+      return true;
+    }
+
+    const wrapper = section.querySelector(".scroll-wrapper");
+    if (!wrapper) return false;
+
+    const leftBtn = wrapper.querySelector(".scroll-btn.left");
+    const rightBtn = wrapper.querySelector(".scroll-btn.right");
+    const oldScroller = wrapper.querySelector(".scroll-container");
+    const scrollerId = oldScroller
+      ? oldScroller.id
+      : `row-updated-${Date.now()}`;
+
+    // Create fresh scroller and populate
+    const newScroller = document.createElement("div");
+    newScroller.className = "scroll-container";
+    newScroller.id = scrollerId;
+
+    movies.forEach((movie) => newScroller.appendChild(createCard(movie)));
+
+    // Replace the old scroller with the new one (preserve button positions)
+    if (oldScroller) wrapper.replaceChild(newScroller, oldScroller);
+    else if (rightBtn) wrapper.insertBefore(newScroller, rightBtn);
+    else wrapper.appendChild(newScroller);
+
+    // Reattach listeners
+    addScrollListeners(leftBtn, rightBtn, newScroller);
+
+    // Show/hide arrows based on overflow
+    if (newScroller.scrollWidth > newScroller.clientWidth) {
+      if (leftBtn) leftBtn.style.display = "";
+      if (rightBtn) rightBtn.style.display = "";
+      requestAnimationFrame(() => enableRowInfinite(newScroller, movies));
+    } else {
+      if (leftBtn) leftBtn.style.display = "none";
+      if (rightBtn) rightBtn.style.display = "none";
+    }
+
+    return true;
+  } catch (err) {
+    console.error("updateRowMovies failed:", err);
+    return false;
+  }
 }
