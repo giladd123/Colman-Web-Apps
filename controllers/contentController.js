@@ -4,18 +4,21 @@ import Content from '../models/content.js';
 import '../models/episode.js';
 import '../models/show.js';
 import '../models/movie.js';
+import Profile from '../models/profile.js'; // <-- ADD THIS
 
 // This is your NEW function to send JSON data
 export const getContentDataById = async (req, res) => {
   try {
     const contentId = req.params.id;
+    const { profileName } = req.query; // <-- Get profileName from query
+
     const selectedContent = await Content.findById(contentId);
 
     if (!selectedContent) {
       return res.status(404).json({ error: "Content not found" });
     }
 
-    // (All your existing logic for populating Shows...)
+    // (Existing show population logic)
     if (selectedContent.type === 'Show' && selectedContent.seasons) {
       const seasonKeys = Array.from(selectedContent.seasons.keys());
       if (seasonKeys.length > 0) {
@@ -27,7 +30,7 @@ export const getContentDataById = async (req, res) => {
       }
     }
 
-    // (All your existing logic for finding similar content...)
+    // (Existing similar content logic)
     let similarContent = [];
     if (selectedContent.genres && selectedContent.genres.length > 0) {
       similarContent = await Content.find({
@@ -36,11 +39,26 @@ export const getContentDataById = async (req, res) => {
       }).limit(6);
     }
 
-    // *** THIS IS THE KEY CHANGE ***
-    // Instead of rendering, send the data as JSON
+    // --- NEW LOGIC: Check profile's status ---
+    let profile = null;
+    let isLiked = false;
+    let isInWatchlist = false;
+
+    if (profileName) {
+      profile = await Profile.findOne({ name: profileName });
+    }
+
+    if (profile) {
+      isLiked = profile.likedContents?.some(id => id.equals(contentId)) || false;
+      isInWatchlist = profile.watchlist?.some(id => id.equals(contentId)) || false;
+    }
+    // --- END NEW LOGIC ---
+
     res.json({
       content: selectedContent,
-      similarContent: similarContent
+      similarContent: similarContent,
+      isLiked: isLiked,           // <-- Send this to client
+      isInWatchlist: isInWatchlist  // <-- Send this to client
     });
 
   } catch (err) {

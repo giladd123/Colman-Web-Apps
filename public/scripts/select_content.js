@@ -11,42 +11,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("No content ID in URL");
             }
 
-            // 2. Fetch data from our API endpoint
-            const response = await fetch(`/select-content/api/data/${contentId}`);
+            // 2. Get profile name
+            const profileName = localStorage.getItem('selectedProfileName');
+            if (!profileName) {
+                throw new Error("No profile selected. Please return to the profile page.");
+            }
+
+            // 3. Fetch data from our API endpoint (now with profileName)
+            const response = await fetch(`/select-content/api/data/${contentId}?profileName=${encodeURIComponent(profileName)}`);
             
-            // 3. Check for server errors (like 404 or 500)
+            // 4. Check for server errors
             if (!response.ok) {
                 const err = await response.json(); // Get error message from server
                 throw new Error(err.error || "Failed to fetch content data");
             }
 
-            // 4. Get the JSON data
-            const { content, similarContent } = await response.json();
+            // 5. Get the JSON data (including our new properties)
+            const { content, similarContent, isLiked, isInWatchlist } = await response.json();
 
             if (!content) {
                 throw new Error("No content returned from API");
             }
 
-            // 5. Call render functions
+            // 6. Call render functions
             renderHero(content);
             renderDetails(content);
             renderSimilar(similarContent);
 
-            // 6. Pass the 'content' object to your listeners
-            //    (This was the next bug we were about to hit)
-            attachPageListeners(content);
+            // 7. Pass all data to listeners
+            attachPageListeners(content, isLiked, isInWatchlist, profileName);
 
         } catch (err) {
-            // Log the error to the server (if you implemented this)
+            // Log the error
             if (typeof logErrorToServer === 'function') {
                 logErrorToServer(err, 'loadContent');
             } else {
-                // Fallback to browser console
                 console.error("Error loading content:", err);
             }
-
-            // Show a friendly error message to the user
-            const mainElement = document.querySelector('main');
+            // Show a friendly error message
+            const mainElement = $('main');
             if (mainElement) {
                 mainElement.innerHTML = `<h2 class="text-center text-danger mt-5">${err.message}</h2>`;
             }
@@ -85,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Render Episodes (if it's a Show) ---
         if (content.type === 'Show' && content.seasons) {
             const episodesSection = $('#episodes-section');
-            // Make sure seasons is not just an empty object
             const seasonNumbers = Object.keys(content.seasons).filter(k => content.seasons[k] && content.seasons[k].length > 0).sort((a, b) => a - b);
             if (seasonNumbers.length === 0) return;
 
@@ -115,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 seasonListEl.id = `season-${seasonNum}-list`;
                 seasonListEl.className = 'episode-list';
                 
-                // Hide all but the first season
                 if (seasonNum !== seasonNumbers[0]) {
                     seasonListEl.classList.add('d-none');
                 }
@@ -172,27 +173,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- 3. EVENT LISTENERS ---
-    function attachPageListeners(contentData) {
+    function attachPageListeners(contentData, initialIsLiked, initialIsInWatchlist, profileName) {
+        
         // --- HERO PLAY BUTTON ---
       const playButton = document.querySelector('.btn-play');
       if (playButton) {
         playButton.addEventListener('click', async () => {
-          // contentData is now defined because we passed it in
           const contentId = contentData._id;
-          const profileName = localStorage.getItem('selectedProfileName');
           
           if (contentData.type === 'Movie') {
-            // Pass the movie's own ID as the returnId
             window.location.href = `/player/${contentId}?returnId=${contentId}`;
-          }
+          } 
           else if (contentData.type === 'Show') {
-            const showId = contentData._id; // Get the Show's ID
-            // If it's a show, ask the server for the *next episode*
+            const showId = contentData._id; 
             try {
               const res = await fetch(`/player/api/next-episode/${showId}/${profileName}`);
               const data = await res.json();
               if (data.episodeId) {
-                // --- THIS IS THE FIX ---
                 window.location.href = `/player/${data.episodeId}?showId=${showId}`;
               } else {
                 throw new Error('Could not find an episode to play.');
@@ -205,32 +202,108 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // --- LIKE BUTTON ---
+      // --- LIKE BUTTON (Self-contained logic) ---
       const likeButton = document.getElementById('likeButton');
       if (likeButton) {
-          likeButton.addEventListener('click', function () {
-              const isLiked = this.dataset.liked === 'true';
-              this.dataset.liked = (!isLiked).toString();
-              this.innerHTML = !isLiked ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
-              // Note: This like button is not fully functional
-              // It needs to be wired up to likes_manager.js
-              console.warn("Like button on hero is cosmetic. Needs API call.");
-          });
+          if (typeof apiAddLike !== 'function' || typeof apiRemoveLike !== 'function' || typeof animateLikeIcon !== 'function') {
+              console.error("likes_manager.js is not loaded or is missing API/animation functions.");
+          } else {
+              let isLiked = initialIsLiked; // Use local state from API
+              
+              // Set initial appearance
+              likeButton.innerHTML = isLiked ? '<i class="bi bi-heart-fill"></i>' : '<i class="bi bi-heart"></i>';
+              
+              likeButton.addEventListener('click', async function () {
+                  const icon = this.querySelector('i');
+                  
+                  // 1. Optimistic UI Update
+                  isLiked = !isLiked; // Toggle state
+                  animateLikeIcon(icon, isLiked);
+                  
+                  try {
+                      // 2. Call API
+                      if (isLiked) {
+                          await apiAddLike(profileName, contentData._id);
+                      } else {
+                          await apiRemoveLike(profileName, contentData._id);
+                      }
+                      // 3. Update global data (if it exists) for other pages
+                      if (window.currentFeedData) {
+                          if (isLiked) {
+                              window.currentFeedData.likedBy.push(contentData);
+                          } else {
+                              window.currentFeedData.likedBy = window.currentFeedData.likedBy.filter(c => c._id !== contentData._id);
+                          }
+                      }
+                  } catch (err) {
+                      // 4. Revert UI on failure
+                      console.error("Like failed:", err);
+                      isLiked = !isLiked; // Revert state
+                      animateLikeIcon(icon, isLiked); // Revert icon
+                  }
+              });
+          }
       }
 
+      // --- WATCHLIST BUTTON (Self-contained logic) ---
+      const watchlistButton = document.getElementById('watchlistButton');
+      if (watchlistButton) {
+          if (typeof apiAddToWatchlist !== 'function' || typeof apiRemoveFromWatchlist !== 'function' || typeof animateWatchlistIcon !== 'function') {
+              console.error("watchlist_manager.js is not loaded or is missing API/animation functions.");
+          } else {
+              let inList = initialIsInWatchlist; // Use local state from API
+
+              // Set initial appearance
+              watchlistButton.innerHTML = inList ? '<i class="bi bi-check2"></i>' : '<i class="bi bi-plus"></i>';
+              watchlistButton.title = inList ? "Remove from My List" : "Add to My List";
+
+              watchlistButton.addEventListener('click', async function () {
+                  const icon = this.querySelector('i');
+                  
+                  // 1. Optimistic UI Update
+                  inList = !inList; // Toggle state
+                  animateWatchlistIcon(icon, inList);
+                  this.title = inList ? "Remove from My List" : "Add to My List";
+
+                  try {
+                      // 2. Call API
+                      if (inList) {
+                          await apiAddToWatchlist(profileName, contentData._id);
+                      } else {
+                          await apiRemoveFromWatchlist(profileName, contentData._id);
+                      }
+                      // 3. Update global data (if it exists)
+                      if (window.currentFeedData) {
+                          if (inList) {
+                              window.currentFeedData.myList.push(contentData);
+                          } else {
+                              window.currentFeedData.myList = window.currentFeedData.myList.filter(c => c._id !== contentData._id);
+                          }
+                      }
+                  } catch (err) {
+                      // 4. Revert UI on failure
+                      console.error("Watchlist failed:", err);
+                      inList = !inList; // Revert state
+                      animateWatchlistIcon(icon, inList);
+                      this.title = inList ? "Remove from My List" : "Add to My List";
+                  }
+              });
+          }
+      }
+
+      // --- EPISODE ITEM CLICK ---
       document.body.addEventListener('click', (ev) => {
           const item = ev.target.closest('.episode-item');
           if (item) {
               const episodeId = item.dataset.episodeId;
-              const showId = contentData._id; // Get the Show's ID
+              const showId = contentData._id; 
               if (episodeId && showId) {
-                  // Navigate to the player with BOTH IDs
                   window.location.href = `/player/${episodeId}?showId=${showId}`;
               }
           }
       });
 
-        // --- SEASON DROPDOWN CLICK ---
+      // --- SEASON DROPDOWN CLICK ---
       document.body.addEventListener('click', (ev) => {
               const el = ev.target.closest('.season-select-btn');
               if (!el) return;
@@ -243,9 +316,10 @@ document.addEventListener('DOMContentLoaded', () => {
               document.querySelectorAll('.episode-list').forEach(list => list.classList.add('d-none'));
               $(`#season-${selectedSeason}-list`).classList.remove('d-none');
           });
-      }
+    } // End of attachPageListeners
 
     // --- 4. GO! ---
-    // This line was missing, which is why nothing loaded
     loadContent();
+
+    
 });
