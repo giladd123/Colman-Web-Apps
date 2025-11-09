@@ -1,16 +1,17 @@
 import Profile from "../models/profile.js";
 import Content from "../models/content.js";
 import { error as logError } from "../utils/logger.js";
+import { notFound } from "../utils/apiResponse.js";
 
 export async function addToWatchlist(req, res, next) {
   try {
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
-    if (!profile) return res.status(404).json({ error: "Profile not found" });
+    if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists
     const content = await Content.findById(contentId);
-    if (!content) return res.status(404).json({ error: "Content not found" });
+    if (!content) return notFound(res, "Content not found");
 
     // Add if not already present
     const already = profile.watchlist?.some(
@@ -37,7 +38,7 @@ export async function removeFromWatchlist(req, res, next) {
   try {
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
-    if (!profile) return res.status(404).json({ error: "Profile not found" });
+    if (!profile) return notFound(res, "Profile not found");
 
     // Remove occurrence(s)
     profile.watchlist = (profile.watchlist || []).filter(

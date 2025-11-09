@@ -2,6 +2,7 @@ import Profile from "../models/profile.js";
 import Content from "../models/content.js";
 import Habit from "../models/habit.js";
 import { error as logError } from "../utils/logger.js";
+import { notFound, serverError } from "../utils/apiResponse.js";
 
 // Add a content to profile.likedContents and mark habit.liked = true
 export async function addLikeByProfileName(req, res, next) {
@@ -9,11 +10,11 @@ export async function addLikeByProfileName(req, res, next) {
     console.log("Adding like:", req.params);
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
-    if (!profile) return res.status(404).json({ error: "Profile not found" });
+    if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists and get initial content
     let content = await Content.findById(contentId);
-    if (!content) return res.status(404).json({ error: "Content not found" });
+    if (!content) return notFound(res, "Content not found");
 
     // Add if not already present
     const already = profile.likedContents?.some(
@@ -51,10 +52,7 @@ export async function addLikeByProfileName(req, res, next) {
       { stack: err.stack, params: req.params },
       true
     );
-    res.status(500).json({
-      success: false,
-      error: err.message || "Failed to add like",
-    });
+    return serverError(res);
   }
 }
 
@@ -63,11 +61,11 @@ export async function removeLikeByProfileName(req, res, next) {
   try {
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
-    if (!profile) return res.status(404).json({ error: "Profile not found" });
+    if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists and get initial content
     let content = await Content.findById(contentId);
-    if (!content) return res.status(404).json({ error: "Content not found" });
+    if (!content) return notFound(res, "Content not found");
 
     // Check if content was actually liked before
     const wasLiked = profile.likedContents?.some(
@@ -116,9 +114,6 @@ export async function removeLikeByProfileName(req, res, next) {
       { stack: err.stack, params: req.params },
       true
     );
-    res.status(500).json({
-      success: false,
-      error: err.message || "Failed to remove like",
-    });
+    return serverError(res);
   }
 }

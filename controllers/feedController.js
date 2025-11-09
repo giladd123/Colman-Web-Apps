@@ -2,6 +2,7 @@ import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
 import { error as logError } from "../utils/logger.js";
+import { ok, notFound, serverError } from "../utils/apiResponse.js";
 
 // Fetch all content (movies, shows, etc.) VV
 export const getAllContent = async (req, res, next) => {
@@ -9,7 +10,7 @@ export const getAllContent = async (req, res, next) => {
     const contents = await Content.find({ type: { $ne: "Episode" } })
       .sort({ popularity: -1 })
       .lean();
-    res.status(200).json(contents);
+    return ok(res, contents);
   } catch (err) {
     logError(
       `Failed to fetch all content: ${err.message}`,
@@ -30,7 +31,7 @@ export async function getContentByGenre(req, res, next) {
     })
       .sort({ releaseYear: -1 })
       .lean();
-    res.status(200).json(content);
+    return ok(res, content);
   } catch (err) {
     logError(
       `Failed to fetch content by genre: ${err.message}`,
@@ -113,7 +114,7 @@ export async function getFeedForProfile(req, res) {
       .populate("watchlist");
 
     if (!profile) {
-      return res.status(404).json({ error: "Profile not found" });
+      return notFound(res, "Profile not found");
     }
 
     const profileId = profile._id;
@@ -179,6 +180,6 @@ export async function getFeedForProfile(req, res) {
       { stack: err.stack, scope: "getFeedForProfile", params: req.params },
       true
     );
-    res.status(500).json({ error: "Failed to build feed" });
+    return serverError(res, "Failed to build feed");
   }
 }
