@@ -1,18 +1,25 @@
-
-/* Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743 */
-
-.like-btn {
+.actions-container {
     position: absolute;
     bottom: 8px;
     right: 8px;
     z-index: 2;
     background: rgba(0, 0, 0, 0.7);
     border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+  }
+
+.like-btn {
     border: none;
     color: #fff;
     font-size: 1rem;
     cursor: pointer;
     transition: transform 0.2s ease, color 0.2s ease;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    align-items: center;
   }
   .like-btn.liked {
     color: #e50914;

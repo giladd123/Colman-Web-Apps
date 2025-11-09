@@ -1,5 +1,3 @@
-// Gilad-Tidhar-325767929-Rotem-Batstein-325514917-Shani-Bashari-325953743
-
 function initializeSearch() {
   const searchIcon = document.querySelector(".bi-search");
   const searchInput = document.getElementById("searchInput");
@@ -31,7 +29,12 @@ function initializeSearch() {
         movieCards.style.flexWrap = "";
         movieCards.style.gap = "";
         movieCards.style.padding = "";
-        loadAndRender();
+        // Restore the profile feed if available, otherwise fall back to loadAll-movies view
+        if (window.currentFeedData && window.currentProfileName) {
+          renderFeed(window.currentFeedData, window.currentProfileName);
+        } else {
+          loadAndRender(); // fallback: render flat rows from all movies
+        }
       }
     }
   });
@@ -39,7 +42,7 @@ function initializeSearch() {
   // Filter content on input
   searchInput.addEventListener("input", (e) => {
     const query = e.target.value.toLowerCase().trim();
-    
+
     if (query === "") {
       // If search input is empty, check if sorting is active
       const abcIcon = document.querySelector(".bi-alphabet");
@@ -48,17 +51,21 @@ function initializeSearch() {
         renderContent(movies);
       } else {
         // Show default view
-        const movieCards = document.getElementById("content");
-        movieCards.style.display = "";
-        movieCards.style.flexWrap = "";
-        movieCards.style.gap = "";
-        movieCards.style.padding = "";
+      const movieCards = document.getElementById("content");
+      movieCards.style.display = "";
+      movieCards.style.flexWrap = "";
+      movieCards.style.gap = "";
+      movieCards.style.padding = "";
+      if (window.currentFeedData && window.currentProfileName) {
+        renderFeed(window.currentFeedData, window.currentProfileName);
+      } else {
         loadAndRender();
+      }
       }
     } else {
       // If there's an active search input, show search results
       const filtered = movies.filter((movie) =>
-        movie.Title.toLowerCase().includes(query)
+        movie.title.toLowerCase().includes(query)
       );
       renderContent(filtered);
     }
@@ -93,7 +100,11 @@ function initializeAlphabeticalSorting() {
       movieCards.style.flexWrap = "";
       movieCards.style.gap = "";
       movieCards.style.padding = "";
-      loadAndRender();
+      if (window.currentFeedData && window.currentProfileName) {
+        renderFeed(window.currentFeedData, window.currentProfileName);
+      } else {
+        loadAndRender();
+      }
     }
   });
 }

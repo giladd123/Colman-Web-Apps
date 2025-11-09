@@ -5,16 +5,21 @@ import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
 import habitsRoutes from "./routes/habitsRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
+import feedRoutes from "./routes/feedRoutes.js";
+import likesRoutes from "./routes/likesRoutes.js";
+import watchlistRoutes from "./routes/watchlistRoutes.js";
 
-const app = express();
-app.use(express.json());
 const PORT = process.env.PORT || 8000;
+const app = express();
+
+app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
 
 app.use(express.static("public"));
 app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
 
 // routes
 app.get("/", (req, res) => {
@@ -36,10 +41,16 @@ app.get("/main", (req, res) => {
 app.get("/settings", (req, res) => {
   res.render("settings_page");
 });
+app.get("/feed", (req, res) => {
+  res.render("feed");
+});
 
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
 app.use("/api/habits", habitsRoutes);
+app.use("/api/likes", likesRoutes);
+app.use("/api/watchlist", watchlistRoutes);
+app.use("/feed", feedRoutes);
 
 app.use(errorHandler);
 
