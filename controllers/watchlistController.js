@@ -1,5 +1,6 @@
 import Profile from "../models/profile.js";
 import Content from "../models/content.js";
+import { error as logError } from "../utils/logger.js";
 
 export async function addToWatchlist(req, res, next) {
   try {
@@ -21,8 +22,13 @@ export async function addToWatchlist(req, res, next) {
       await profile.save();
     }
 
-    return res.json({ success: true, inWatchlist: true, contentId });
+    return res.json({ success: true, inWatchlist: true, contentId: contentId });
   } catch (err) {
+    logError(
+      `Error adding to watchlist: ${err.message}`,
+      { stack: err.stack, params: req.params },
+      true
+    );
     next(err);
   }
 }
@@ -39,8 +45,13 @@ export async function removeFromWatchlist(req, res, next) {
     );
     await profile.save();
 
-    return res.json({ success: true, inWatchlist: false, contentId });
+    return res.json({ success: true, inWatchlist: false, contentId: contentId });
   } catch (err) {
+    logError(
+      `Error removing from watchlist: ${err.message}`,
+      { stack: err.stack, params: req.params },
+      true
+    );
     next(err);
   }
 }

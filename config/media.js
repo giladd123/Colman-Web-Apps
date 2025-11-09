@@ -6,6 +6,7 @@ import {
   ListBucketsCommand
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
+import { error as logError } from "../utils/logger.js";
 
 // S3 helper module. Uses environment variables:
 // AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, S3_BUCKET_NAME
@@ -41,7 +42,11 @@ async function checkS3Connection() {
     await s3Client.send(new ListBucketsCommand({}));
     console.log("✅ Connected to S3!");
   } catch (err) {
-    console.error("❌ Failed to connect to S3:", err.message);
+    logError(
+      `Failed to connect to S3: ${err.message}`,
+      { stack: err.stack, scope: "checkS3Connection" },
+      true
+    );
     process.exit(1);
   }
 }
@@ -63,7 +68,16 @@ async function uploadBuffer(buffer, key, contentType) {
     Body: buffer,
     ContentType: contentType,
   });
-  await s3Client.send(cmd);
+  try {
+    await s3Client.send(cmd);
+  } catch (err) {
+    logError(
+      `Failed to upload object to S3: ${err.message}`,
+      { stack: err.stack, scope: "uploadBuffer", key: finalKey },
+      true
+    );
+    throw err;
+  }
   return finalKey;
 }
 
@@ -87,13 +101,9 @@ async function uploadFromMultipart(file, key = null) {
   } catch (err) {
     console.warn("Image processing failed, uploading original buffer:", err.message);
   }
-  const finalKey = await uploadBuffer(
-    buffer,
-    chosenKey,
-    contentType
-  );
+  const finalKey = await uploadBuffer(buffer, chosenKey, contentType);
   const url = getObjectUrl(finalKey);
-  return { key: finalKey, url };
+  return { key: finalKey, url: url };
 }
 
 
@@ -105,14 +115,32 @@ function getObjectUrl(key) {
 async function deleteObject(key) {
   if (!BUCKET) throw new Error("S3 bucket not configured");
   const cmd = new DeleteObjectCommand({ Bucket: BUCKET, Key: key });
-  await s3Client.send(cmd);
+  try {
+    await s3Client.send(cmd);
+  } catch (err) {
+    logError(
+      `Failed to delete object from S3: ${err.message}`,
+      { stack: err.stack, scope: "deleteObject", key },
+      true
+    );
+    throw err;
+  }
 }
 
 async function listObjects(prefix = "") {
   if (!BUCKET) throw new Error("S3 bucket not configured");
   const cmd = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix });
-  const res = await s3Client.send(cmd);
-  return res.Contents || [];
+  try {
+    const res = await s3Client.send(cmd);
+    return res.Contents || [];
+  } catch (err) {
+    logError(
+      `Failed to list objects from S3: ${err.message}`,
+      { stack: err.stack, scope: "listObjects", prefix },
+      true
+    );
+    throw err;
+  }
 }
 
 export {

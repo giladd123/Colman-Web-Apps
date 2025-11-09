@@ -1,6 +1,7 @@
 import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
+import { error as logError } from "../utils/logger.js";
 
 // Fetch all content (movies, shows, etc.) VV
 export const getAllContent = async (req, res, next) => {
@@ -10,6 +11,11 @@ export const getAllContent = async (req, res, next) => {
       .lean();
     res.status(200).json(contents);
   } catch (err) {
+    logError(
+      `Failed to fetch all content: ${err.message}`,
+      { stack: err.stack, scope: "getAllContent" },
+      true
+    );
     next(err); // pass to centralized error handler
   }
 };
@@ -26,6 +32,11 @@ export async function getContentByGenre(req, res, next) {
       .lean();
     res.status(200).json(content);
   } catch (err) {
+    logError(
+      `Failed to fetch content by genre: ${err.message}`,
+      { stack: err.stack, scope: "getContentByGenre", params: req.params },
+      true
+    );
     next(err);
   }
 }
@@ -155,15 +166,19 @@ export async function getFeedForProfile(req, res) {
     likedBy = (likedBy || []).filter((c) => c && c.type !== "Episode");
 
     res.json({
-      likedBy,
-      myList,
-      continueWatching,
-      recommendations,
-      mostPopular,
-      newestByGenre,
+      likedBy: likedBy,
+      myList: myList,
+      continueWatching: continueWatching,
+      recommendations: recommendations,
+      mostPopular: mostPopular,
+      newestByGenre: newestByGenre,
     });
   } catch (err) {
-    console.error("Error building feed:", err);
+    logError(
+      `Error building feed: ${err.message}`,
+      { stack: err.stack, scope: "getFeedForProfile", params: req.params },
+      true
+    );
     res.status(500).json({ error: "Failed to build feed" });
   }
 }

@@ -1,6 +1,7 @@
 import Profile from "../models/profile.js";
 import Content from "../models/content.js";
 import Habit from "../models/habit.js";
+import { error as logError } from "../utils/logger.js";
 
 // Add a content to profile.likedContents and mark habit.liked = true
 export async function addLikeByProfileName(req, res, next) {
@@ -41,11 +42,15 @@ export async function addLikeByProfileName(req, res, next) {
     return res.json({
       success: true,
       liked: true,
-      contentId,
+      contentId: contentId,
       content: content.toObject(), // Include updated content
     });
   } catch (err) {
-    console.error("Error in addLikeByProfileName:", err);
+    logError(
+      `Error in addLikeByProfileName: ${err.message}`,
+      { stack: err.stack, params: req.params },
+      true
+    );
     res.status(500).json({
       success: false,
       error: err.message || "Failed to add like",
@@ -102,11 +107,15 @@ export async function removeLikeByProfileName(req, res, next) {
     return res.json({
       success: true,
       liked: false,
-      contentId,
+      contentId: contentId,
       content: content.toObject(), // Include updated content
     });
   } catch (err) {
-    console.error("Error in removeLikeByProfileName:", err);
+    logError(
+      `Error in removeLikeByProfileName: ${err.message}`,
+      { stack: err.stack, params: req.params },
+      true
+    );
     res.status(500).json({
       success: false,
       error: err.message || "Failed to remove like",
