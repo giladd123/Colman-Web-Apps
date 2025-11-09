@@ -1,21 +1,26 @@
 import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
+import { ok, notFound, serverError } from "../utils/apiResponse.js";
+import { error as logError } from "../utils/logger.js";
 
 // Fetch all content (movies, shows, etc.) VV
-export const getAllContent = async (req, res, next) => {
+export const getAllContent = async (req, res) => {
   try {
     const contents = await Content.find({ type: { $ne: "Episode" } })
       .sort({ popularity: -1 })
       .lean();
-    res.status(200).json(contents);
+    return ok(res, contents);
   } catch (err) {
-    next(err); // pass to centralized error handler
+    logError(`Failed to retrieve all content: ${err.message}`, {
+      stack: err.stack,
+    });
+    return serverError(res, "Failed to retrieve content");
   }
 };
 
 //Fetch content by genre
-export async function getContentByGenre(req, res, next) {
+export async function getContentByGenre(req, res) {
   try {
     const { genre } = req.params;
     const content = await Content.find({
@@ -24,9 +29,16 @@ export async function getContentByGenre(req, res, next) {
     })
       .sort({ releaseYear: -1 })
       .lean();
-    res.status(200).json(content);
+    return ok(res, content);
   } catch (err) {
-    next(err);
+    logError(
+      `Failed to retrieve content by genre ${req.params.genre}: ${err.message}`,
+      { stack: err.stack }
+    );
+    return serverError(
+      res,
+      "Failed to retrieve content for the requested genre"
+    );
   }
 }
 
@@ -102,7 +114,7 @@ export async function getFeedForProfile(req, res) {
       .populate("watchlist");
 
     if (!profile) {
-      return res.status(404).json({ error: "Profile not found" });
+      return notFound(res, "Profile not found");
     }
 
     const profileId = profile._id;
@@ -154,7 +166,7 @@ export async function getFeedForProfile(req, res) {
     // Ensure likedBy from profile.likedContents also excludes episodes
     likedBy = (likedBy || []).filter((c) => c && c.type !== "Episode");
 
-    res.json({
+    return ok(res, {
       likedBy,
       myList,
       continueWatching,
@@ -163,7 +175,12 @@ export async function getFeedForProfile(req, res) {
       newestByGenre,
     });
   } catch (err) {
-    console.error("Error building feed:", err);
-    res.status(500).json({ error: "Failed to build feed" });
+    logError(
+      `Failed to build feed for profile ${req.params.profileName}: ${err.message}`,
+      {
+        stack: err.stack,
+      }
+    );
+    return serverError(res, "Failed to build feed");
   }
 }
