@@ -34,6 +34,18 @@ app.get("/profiles", (req, res) => {
   res.render("profiles_page");
 });
 
+app.get("/shows", (req, res) => {
+  res.render("shows");
+});
+
+app.get("/movies", (req, res) => {
+  res.render("movies");
+});
+
+app.get("/my-list", (req, res) => {
+  res.render("my_list");
+});
+
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
 app.use("/api/likes", likesRoutes);
