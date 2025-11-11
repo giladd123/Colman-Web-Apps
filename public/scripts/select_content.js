@@ -10,8 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const profileName = localStorage.getItem('selectedProfileName');
             if (!profileName) throw new Error("No profile selected. Please return to the profile page.");
 
-            const response = await fetch(`/select-content/api/data/${contentId}?profileName=${encodeURIComponent(profileName)}`);
-            
+            const profileId = localStorage.getItem('selectedProfileId'); 
+            if (!profileId) throw new Error("No profile selected. Please return to the profile page.");
+
+
+        const response = await fetch(`/select-content/api/data/${contentId}?profileId=${encodeURIComponent(profileId)}`);
+
             if (!response.ok) {
                 const err = await response.json(); 
                 throw new Error(err.error || "Failed to fetch content data");
@@ -25,8 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderDetails(content, watchHabits); 
             renderSimilar(similarContent);
 
-            attachPageListeners(content, isLiked, isInWatchlist, profileName, isCompleted); 
-
+            attachPageListeners(content, isLiked, isInWatchlist, profileId, profileName, isCompleted);
         } catch (err) {
             console.error("Error loading content:", err);
             const mainElement = $('main');
@@ -158,8 +161,8 @@ function renderDetails(content, watchHabits = {}) {
         container.appendChild(scrollWrapper);
     }
 
-    function attachPageListeners(contentData, initialIsLiked, initialIsInWatchlist, profileName, isCompleted) {
-        
+    function attachPageListeners(contentData, initialIsLiked, initialIsInWatchlist, profileId, profileName, isCompleted) {
+
         const mainPlayButton = document.getElementById('playButton');
         const watchAgainButton = document.getElementById('watchAgainButton');
         const playFromBeginningButton = document.getElementById('playFromBeginningButton');
@@ -180,9 +183,9 @@ function renderDetails(content, watchHabits = {}) {
           else if (contentData.type === 'Show') {
             const showId = contentData._id; 
             try {
-              const res = await fetch(`/player/api/next-episode/${showId}/${profileName}`);
-              const data = await res.json();
-              if (data.episodeId) {
+                const res = await fetch(`/player/api/next-episode/${showId}/${profileId}`);
+                const data = await res.json();
+                if (data.episodeId) {
                 window.location.href = `/player/${data.episodeId}?showId=${showId}`;
               } else {
                 throw new Error('Could not find an episode to play.');

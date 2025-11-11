@@ -11,7 +11,7 @@ import { error as logError, warn } from '../utils/logger.js';
 // This function retrieves detailed content data and the users watch status
 export const getContentDataById = async (req, res) => {
   const contentId = req.params.id;
-  const { profileName } = req.query; 
+  const { profileId } = req.query;
   const selectedContent = await Content.findById(contentId);
 
   if (!selectedContent) {
@@ -52,8 +52,8 @@ export const getContentDataById = async (req, res) => {
   let isCompleted = false;
   const watchHabitsMap = {}; // store user's watched time { episodeId: seconds }
 
-  if (profileName) {
-    profile = await Profile.findOne({ name: profileName });
+  if (profileId) {
+    profile = await Profile.findById(profileId); // Find by ID
   }
 
   if (profile) {

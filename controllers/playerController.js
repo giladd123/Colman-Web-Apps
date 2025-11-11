@@ -78,10 +78,10 @@ async function findShowAndNextEpisode(episode, showId) {
 // GET /api/player/data/:contentId/:profileName
 // this function gets the video URL, watch time and show data
 export async function getPlayerData(req, res) {
-  const { contentId, profileName } = req.params;
+  const { contentId, profileId } = req.params; 
   const { showId } = req.query; 
 
-  const profile = await Profile.findOne({ name: profileName });
+  const profile = await Profile.findById(profileId); 
   if (!profile){
     return notFound(res, 'Profile not found');
   }
@@ -123,13 +123,12 @@ export async function getPlayerData(req, res) {
 // this function saves the user's watch progress
 export async function savePlayerProgress(req, res) {
 
-  const { profileName, contentId, currentTime, isComplete } = req.body;
+  const { profileId, contentId, currentTime, isComplete } = req.body;
 
-  const profile = await Profile.findOne({ name: profileName });
-
+  const profile = await Profile.findById(profileId); 
   if (!profile) {
     return notFound(res, 'Profile not found');
-  } 
+  }
 
   if (!contentId || currentTime == null) {
     return badRequest(res, 'contentId and currentTime are required');
@@ -155,9 +154,9 @@ export async function savePlayerProgress(req, res) {
 // GET /api/player/next-episode/:showId/:profileName
 // this function gets the next to resume the last episode watched by the profile
 export async function getNextEpisodeToPlay(req, res) {
-  const { showId, profileName } = req.params;
-
-  const profile = await Profile.findOne({ name: profileName });
+  const { showId, profileId } = req.params;
+  
+  const profile = await Profile.findById(profileId);
   if (!profile) {
     return notFound(res, 'Profile not found');
   }

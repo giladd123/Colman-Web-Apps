@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let contentId = null;
   let profileName = null;
+  let profileId = null;
   let saveInterval = null;
   let currentShowId = null; 
   let controlsTimeout;
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       contentId = window.location.pathname.split('/').pop();
       profileName = localStorage.getItem('selectedProfileName');
+      profileId = localStorage.getItem('selectedProfileId');
       
       const urlParams = new URLSearchParams(window.location.search);
       currentShowId = urlParams.get('showId'); 
@@ -36,11 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
         backButton.href = 'javascript:history.back()';
       }
 
-      if (!contentId || !profileName) {
+      if (!contentId || !profileId) {
         throw new Error('Could not identify content or profile.');
       }
 
-      let apiUrl = `/player/api/data/${contentId}/${profileName}`;
+      let apiUrl = `/player/api/data/${contentId}/${profileId}`;
       if (currentShowId) {
         apiUrl += `?showId=${currentShowId}`;
       }
@@ -204,13 +206,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function saveProgress(isComplete = false) {
-    if (!contentId || !profileName || (video.currentTime === 0 && !isComplete)) return;
+    // Check for profileId, not profileName
+    if (!contentId || !profileId || (video.currentTime === 0 && !isComplete)) return;
+    
     try {
       await fetch('/player/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          profileName: profileName,
+          profileId: profileId,
           contentId: contentId,
           currentTime: video.currentTime,
           isComplete: isComplete,

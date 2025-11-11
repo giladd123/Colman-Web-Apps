@@ -13,14 +13,16 @@ import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
 
-
-
 const app = express();
-app.set("view engine", "ejs");
-app.set('views', 'views');
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Connect to MongoDB
+connectDB();
+
 app.use(express.static("public"));
+app.set("view engine", "ejs");
+app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-you-should-change',
@@ -32,10 +34,6 @@ app.use(session({
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 }));
-const PORT = process.env.PORT || 8000;
-
-// Connect to MongoDB
-connectDB();
 
 // routes
 app.get("/", (req, res) => {
@@ -48,10 +46,6 @@ app.get("/login", (req, res) => {
 
 app.get("/profiles", (req, res) => {
   res.render("profiles_page");
-});
-
-app.get("/main", (req, res) => {
-  res.render("main_menu");
 });
 
 app.get("/settings", (req, res) => {
@@ -78,7 +72,6 @@ app.use("/api/profiles", profilesRoutes);
 app.use("/api/habits", habitsRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/watchlist", watchlistRoutes);
-
 app.use("/feed", feedRoutes);
 app.use("/genres", genreRoutes);
 
@@ -87,4 +80,4 @@ app.use(errorHandler);
 app.use("/select-content", contentRoutes);
 app.use("/player", playerRoutes);
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+app.listen(process.env.PORT, () => console.log(`Server is running on port`));

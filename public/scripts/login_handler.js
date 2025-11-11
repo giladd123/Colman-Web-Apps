@@ -6,11 +6,12 @@ function getProfileIfLoggedIn() {
 
   const selectedProfileName = localStorage.getItem("selectedProfileName");
   const selectedProfileImage = localStorage.getItem("selectedProfileImage");
+  const selectedProfileId = localStorage.getItem("selectedProfileId");
 
-  if (!(selectedProfileName && selectedProfileImage)) {
+  if (!(selectedProfileName && selectedProfileImage && selectedProfileId)) {
     window.location.href = "profiles";
   }
-  return [selectedProfileName, selectedProfileImage];
+  return [selectedProfileName, selectedProfileImage, selectedProfileId];
 }
 
 function logout() {
