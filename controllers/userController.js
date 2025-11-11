@@ -1,5 +1,5 @@
 import User from "../models/user.js";
-import { info, error as logError } from "../utils/logger.js";
+import { info, warn, error as logError } from "../utils/logger.js";
 import {
   ok,
   created,
@@ -17,9 +17,15 @@ async function getUserById(req, res) {
     }
     return ok(res, user);
   } catch (error) {
-    logError(`Error retrieving user ${userId}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error retrieving user ${userId}: ${error.message}`,
+      {
+        stack: error.stack,
+        userId: userId,
+        scope: "getUserById",
+      },
+      true
+    );
     return serverError(res);
   }
 }
@@ -30,20 +36,40 @@ async function loginUser(req, res) {
     // Find user by email, then compare hashed password
     const user = await User.findOne({ email });
     if (!user) {
+      warn(
+        "user login failed",
+        { email: email, reason: "user not found" },
+        true
+      );
       return errorResponse(res, 401, "Invalid email or password");
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
+      warn(
+        "user login failed",
+        { email: email, userId: user._id, reason: "password mismatch" },
+        true
+      );
       return errorResponse(res, 401, "Invalid email or password");
     }
 
-    info(`user login successful: ${user._id}`, { email });
+    info(
+      `user login successful: ${user._id}`,
+      { email: email, userId: user._id },
+      true
+    );
     return ok(res, user);
   } catch (error) {
-    logError(`Error during login for ${email}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error during login for ${email}: ${error.message}`,
+      {
+        stack: error.stack,
+        email: email,
+        scope: "loginUser",
+      },
+      true
+    );
     return serverError(res);
   }
 }
@@ -51,14 +77,24 @@ async function loginUser(req, res) {
 async function createUser(req, res) {
   const { username, email, password } = req.validatedBody || req.body;
   try {
-    const user = new User({ username, email, password });
+    const user = new User({ username: username, email: email, password: password });
     await user.save();
-    info(`user created: ${user._id}`, { username, email });
+    info(
+      `user created: ${user._id}`,
+      { username: username, email: email, userId: user._id },
+      true
+    );
     return created(res, user);
   } catch (error) {
-    logError(`Error creating user ${email}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error creating user ${email}: ${error.message}`,
+      {
+        stack: error.stack,
+        email: email,
+        scope: "createUser",
+      },
+      true
+    );
     return serverError(res);
   }
 }
@@ -72,9 +108,15 @@ async function deleteUser(req, res) {
     }
     return ok(res, { message: "User deleted successfully" });
   } catch (error) {
-    logError(`Error deleting user ${userId}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error deleting user ${userId}: ${error.message}`,
+      {
+        stack: error.stack,
+        userId: userId,
+        scope: "deleteUser",
+      },
+      true
+    );
     return serverError(res);
   }
 }
@@ -85,7 +127,7 @@ async function updateUser(req, res) {
   try {
     const user = await User.findByIdAndUpdate(
       userId,
-      { email, password },
+      { email: email, password: password },
       { new: true }
     );
     if (!user) {
@@ -93,9 +135,15 @@ async function updateUser(req, res) {
     }
     return ok(res, user);
   } catch (error) {
-    logError(`Error updating user ${userId}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error updating user ${userId}: ${error.message}`,
+      {
+        stack: error.stack,
+        userId: userId,
+        scope: "updateUser",
+      },
+      true
+    );
     return serverError(res);
   }
 }

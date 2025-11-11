@@ -7,7 +7,11 @@ export const catchAsync = (fn) => {
       await fn(req, res, next);
     } catch (err) {
       // log the error and forward to the centralized error handler
-      logError(err.message || String(err), { stack: err.stack });
+      logError(
+        err.message || String(err),
+        { stack: err.stack, scope: "catchAsync" },
+        true
+      );
       return next(err);
     }
   };

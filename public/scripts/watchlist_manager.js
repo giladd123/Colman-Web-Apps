@@ -64,6 +64,26 @@ function updateWatchlistButton(btn, inList) {
   updateTooltip(btn, newTooltip);
 }
 
+function emitWatchlistUpdated(profileName, contentId, inWatchlist) {
+  try {
+    const myListSnapshot = Array.isArray(window.currentFeedData?.myList)
+      ? window.currentFeedData.myList.slice()
+      : [];
+    document.dispatchEvent(
+      new CustomEvent("watchlist:updated", {
+        detail: {
+          profileName,
+          contentId: contentId ? String(contentId) : null,
+          inWatchlist,
+          myList: myListSnapshot,
+        },
+      })
+    );
+  } catch (eventErr) {
+    console.error("Failed to emit watchlist update event:", eventErr);
+  }
+}
+
 async function handleWatchlistClick(btn, movie) {
   const contentId = contentIdFor(movie);
   const profileName =
@@ -193,6 +213,7 @@ async function handleWatchlistClick(btn, movie) {
         animateWatchlistIcon(icon, false);
       }
       updateWatchlistButton(btn, result.inWatchlist);
+      emitWatchlistUpdated(profileName, contentId, result.inWatchlist);
     } else {
       // Revert UI on failure
       if (!currentlyInList) {
@@ -237,6 +258,7 @@ async function handleWatchlistClick(btn, movie) {
       }
       console.error("Watchlist API error:", result);
       alert("Failed to update watchlist. Try again.");
+      emitWatchlistUpdated(profileName, contentId, currentlyInList);
     }
   } catch (err) {
     // Revert UI on error
@@ -275,6 +297,7 @@ async function handleWatchlistClick(btn, movie) {
     }
     console.error("Watchlist request failed:", err);
     alert("Failed to update watchlist. Try again.");
+    emitWatchlistUpdated(profileName, contentId, currentlyInList);
   }
 }
 
