@@ -1,29 +1,44 @@
+<% const currentNav = typeof activeNav !== 'undefined' ? activeNav : 'home'; %>
 <nav class="navbar navbar-expand-lg fixed-top px-4">
   <a class="navbar-brand" href="#">NETFLIX</a>
   <div class="collapse navbar-collapse">
     <ul class="navbar-nav me-auto">
-      <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">TV Shows</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Movies</a></li>
-      <li class="nav-item"><a class="nav-link" href="#">Games</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'home' ? ' active' : '' %>"
+          href="/feed">Home</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'shows' ? ' active' : '' %>"
+          href="#">TV Shows</a></li>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'movies' ? ' active' : '' %>"
+          href="#">Movies</a></li>
       <li class="nav-item">
-        <a class="nav-link" href="#">New & Popular</a>
+        <a class="nav-link<%= currentNav === 'new' ? ' active' : '' %>"
+          href="#">New & Popular</a>
       </li>
-      <li class="nav-item"><a class="nav-link" href="#">My List</a></li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Browse by Languages</a>
+      <li class="nav-item"><a
+          class="nav-link<%= currentNav === 'list' ? ' active' : '' %>"
+          href="#">My List</a></li>
+      <li class="nav-item dropdown">
+        <a
+          class="nav-link dropdown-toggle<%= currentNav === 'genres' ? ' active' : '' %>"
+          href="#" id="genresDropdown" role="button"
+          data-bs-toggle="dropdown" aria-expanded="false">
+          Browse by Genres
+        </a>
+        <ul class="dropdown-menu bg-dark" aria-labelledby="genresDropdown"
+          id="genresDropdownMenu">
+          <li><a class="dropdown-item text-white" href="#">Loading
+              genres...</a></li>
+        </ul>
       </li>
     </ul>
     <div class="d-flex align-items-center">
       <p class="mb-0 text-white" id="helloMessage">Hello USERNAME</p>
       <span class="icon-btn"><i class="bi bi-search"></i></span>
-      <input
-        id="searchInput"
-        type="text"
+      <input id="searchInput" type="text"
         class="form-control form-control-sm bg-dark text-white ms-2"
-        placeholder="Search..."
-        style="display: none; width: 180px"
-      />
+        placeholder="Search..." style="display: none; width: 180px" />
       <span class="icon-btn"><i class="bi bi-alphabet"></i></span>
       <span class="icon-btn"><i class="bi bi-bell"></i></span>
 

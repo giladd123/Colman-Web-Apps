@@ -47,7 +47,7 @@
     localStorage.setItem("selectedProfileId", profile._id || profile.id || "");
     localStorage.setItem("selectedProfileName", profile.name || "Profile");
     localStorage.setItem("selectedProfileImage", avatar);
-    window.location.href = "/main";
+    window.location.href = "/feed";
   }
 
   function createProfileTile(profile) {

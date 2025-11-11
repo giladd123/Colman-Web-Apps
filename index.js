@@ -8,6 +8,7 @@ import errorHandler from "./middleware/errorHandler.js";
 import feedRoutes from "./routes/feedRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
+import genreRoutes from "./routes/genreRoutes.js";
 
 const PORT = process.env.PORT || 8000;
 const app = express();
@@ -34,10 +35,6 @@ app.get("/profiles", (req, res) => {
   res.render("profiles_page");
 });
 
-app.get("/main", (req, res) => {
-  res.render("main_menu");
-});
-
 app.get("/settings", (req, res) => {
   res.render("settings_page");
 });
@@ -51,6 +48,7 @@ app.use("/api/habits", habitsRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/watchlist", watchlistRoutes);
 app.use("/feed", feedRoutes);
+app.use("/genres", genreRoutes);
 
 app.use(errorHandler);
 
