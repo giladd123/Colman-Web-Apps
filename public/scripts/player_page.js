@@ -1,12 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Element References ---
   const playerContainer = document.getElementById('player-container');
-  const backButton = document.getElementById('custom-back-button'); // The back button
+  const backButton = document.getElementById('custom-back-button'); 
   const video = document.getElementById('video-player');
   const loadingSpinner = document.getElementById('player-loading');
-  const customControls = document.getElementById('custom-controls');
-  
-  // Control Buttons
   const playPauseBtn = document.getElementById('play-pause-btn');
   const skipBackwardBtn = document.getElementById('skip-backward-btn');
   const skipForwardBtn = document.getElementById('skip-forward-btn');
@@ -16,43 +12,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const episodesBtn = document.getElementById('episodes-btn');
   const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-  // --- State Variables ---
   let contentId = null;
   let profileName = null;
   let saveInterval = null;
-  let currentShowId = null; // This is the main variable we will use
+  let currentShowId = null; 
   let controlsTimeout;
 
-  // --- 1. Main Initialization ---
   async function initializePlayer() {
     try {
-      // Get state from URL and localStorage
       contentId = window.location.pathname.split('/').pop();
       profileName = localStorage.getItem('selectedProfileName');
       
-      // Get URL params ONCE
       const urlParams = new URLSearchParams(window.location.search);
-      currentShowId = urlParams.get('showId'); // Assign to our state variable
+      currentShowId = urlParams.get('showId'); 
       const returnId = urlParams.get('returnId');
+      const restart = urlParams.get('restart'); 
 
-      // --- SET UP THE DYNAMIC BACK BUTTON ---
       if (currentShowId) {
-        // If we have a showId, that's the correct return page
         backButton.href = `/select-content/${currentShowId}`;
       } else if (returnId) {
-        // Otherwise, use the returnId (for movies)
         backButton.href = `/select-content/${returnId}`;
       } else {
-        // Fallback just in case
         backButton.href = 'javascript:history.back()';
       }
-      // --- END OF BACK BUTTON SETUP ---
 
       if (!contentId || !profileName) {
         throw new Error('Could not identify content or profile.');
       }
 
-      // Build API URL (this part was correct)
       let apiUrl = `/player/api/data/${contentId}/${profileName}`;
       if (currentShowId) {
         apiUrl += `?showId=${currentShowId}`;
@@ -67,14 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       
       video.src = data.content.videoUrl;
-      video.currentTime = data.habit ? data.habit.watchedTimeInSeconds : 0;
+      video.currentTime = (restart === 'true') ? 0 : (data.habit ? data.habit.watchedTimeInSeconds : 0);
       document.title = data.content.episodeTitle || data.content.title || 'Playing';
 
       video.style.display = 'block';
       loadingSpinner.style.display = 'none';
 
       if (data.showData) {
-        // Ensure currentShowId is set, even if we didn't have it in the URL
         currentShowId = data.showData._id; 
         buildEpisodeDrawer(data.showData, data.content._id);
         episodesBtn.style.display = 'inline-block';
@@ -97,8 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- 2. Event Listeners ---
-
   function attachMediaEventListeners() {
     video.addEventListener('play', updatePlayPauseIcon);
     video.addEventListener('pause', updatePlayPauseIcon);
@@ -113,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     skipForwardBtn.addEventListener('click', () => video.currentTime += 10);
     
     progressBar.addEventListener('input', (e) => {
-      const percent = e.target.value; // This value is 0-100
+      const percent = e.target.value; 
       video.currentTime = (video.duration / 100) * percent;
       progressBar.style.setProperty('--progress-percent', `${percent}%`);
     });
@@ -124,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     playerContainer.addEventListener('mouseleave', hideControls);
   }
 
-  // --- 3. Control Functions ---
 
   function togglePlayPause() {
     if (video.paused) {
@@ -176,11 +159,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function hideControls() {
-    if (video.paused) return; // Don't hide if paused
+    if (video.paused) return; 
     playerContainer.classList.remove('controls-visible');
   }
-
-  // --- 4. Existing Logic (Unchanged) ---
 
   function buildEpisodeDrawer(showData, currentEpisodeId) {
     const container = document.getElementById('episode-drawer-content');
@@ -257,6 +238,5 @@ document.addEventListener('DOMContentLoaded', () => {
     saveProgress(false);
   });
 
-  // --- GO! ---
   initializePlayer();
 });

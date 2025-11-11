@@ -4,7 +4,7 @@ import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
-import mainRoutes from './routes/mainRoutes.js';
+import contentRoutes from './routes/contentRoutes.js';
 import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
@@ -66,7 +66,7 @@ app.get("/feed", (req, res) => {
   res.render("feed");
 });
 
-app.use("/select-content", mainRoutes);
-app.use("/player", playerRoutes); // <-- ADD THIS
+app.use("/select-content", contentRoutes);
+app.use("/player", playerRoutes);
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

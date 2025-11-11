@@ -397,7 +397,7 @@ function createLikeButton(movie) {
   updateTooltip(likeBtn, tooltipText);
 
   likeBtn.addEventListener("click", () =>
-    handleLikeClick(likeBtn, movie, entry)
+        handleLikeClick(likeBtn, movie, entry)
   );
 
   return likeBtn;

@@ -4,7 +4,6 @@ body {
   overflow: hidden;
 }
 
-/* Main container holds the video and all controls */
 .player-container {
   position: relative;
   width: 100vw;
@@ -21,7 +20,7 @@ body {
   position: absolute;
   top: 20px;
   left: 20px;
-  z-index: 20; /* Above controls */
+  z-index: 20;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.7);
   color: white;
@@ -41,20 +40,16 @@ body {
   z-index: 10;
 }
 
-/* --- NETFLIX-STYLE CUSTOM CONTROLS --- */
-
 .custom-controls-container {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  padding: 0 20px 5px; /* No top padding */
+  padding: 0 20px 5px; 
   background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent);
   z-index: 15;
   opacity: 0;
   transition: opacity 0.25s ease-in-out;
-  
-  /* This moves the progress bar to the bottom */
   display: flex;
   flex-direction: column-reverse; 
 }
@@ -68,7 +63,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0; /* Add padding here instead */
+  padding: 10px 0; 
 }
 
 .controls-left, .controls-right {
@@ -88,31 +83,28 @@ body {
   transition: transform 0.1s ease, color 0.1s ease;
 }
 .control-btn:hover {
-  color: #fff; /* Keep it white */
+  color: #fff; 
   transform: scale(1.15); 
 }
 #play-pause-btn {
-  font-size: 2rem; /* Main play button is larger */
+  font-size: 2rem; 
 }
 
-/* Time Display */
+
 .time-display {
-  color: #a0a0a0; /* Muted color */
+  color: #a0a0a0;
   font-size: 0.9rem;
   margin-left: 10px;
   user-select: none;
 }
-
-/* --- NETFLIX-STYLE PROGRESS BAR --- */
 .progress-bar-container {
   width: 100%;
-  padding: 5px 0; /* Clickable area */
+  padding: 5px 0;
 }
-
 #progress-bar {
   width: 100%;
   cursor: pointer;
-  --progress-percent: 0%; /* JS will update this */
+  --progress-percent: 0%; 
 }
 
 input[type=range] {
@@ -120,32 +112,28 @@ input[type=range] {
   appearance: none;
   background: transparent;
   cursor: pointer;
-  height: 14px; /* Full height of clickable area */
+  height: 14px; 
 }
 
-/* Webkit (Chrome, Safari) */
 input[type=range]::-webkit-slider-runnable-track {
   background: linear-gradient(to right, #e50914 var(--progress-percent), rgba(255, 255, 255, 0.3) var(--progress-percent));
-  height: 3px; /* Very thin track */
+  height: 3px; 
   border-radius: 2px;
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  margin-top: -4.5px; /* (3px track - 12px thumb) / 2 */
+  margin-top: -4.5px;
   background-color: #e50914;
   height: 12px;
   width: 12px;
   border-radius: 50%;
-  transform: scale(0); /* Hide thumb by default */
+  transform: scale(0); 
   transition: transform 0.1s ease;
 }
-/* Show and grow thumb on hover */
 .progress-bar-container:hover input[type=range]::-webkit-slider-thumb {
   transform: scale(1.25);
 }
-
-/* Firefox */
 input[type=range]::-moz-range-track {
   background: linear-gradient(to right, #e50914 var(--progress-percent), rgba(255, 255, 255, 0.3) var(--progress-percent));
   height: 3px;
@@ -158,16 +146,14 @@ input[type=range]::-moz-range-thumb {
   background-color: #e50914;
   height: 12px;
   width: 12px;
-  transform: scale(0); /* Hide thumb by default */
+  transform: scale(0); 
   transition: transform 0.1s ease;
 }
-/* Show and grow thumb on hover */
 .progress-bar-container:hover input[type=range]::-moz-range-thumb {
   transform: scale(1.25);
 }
 
 
-/* Episode Drawer Styles (Unchanged) */
 #episode-drawer-content .season-header {
   font-size: 1.2rem;
   font-weight: bold;
@@ -197,7 +183,9 @@ input[type=range]::-moz-range-thumb {
   object-fit: cover;
   border-radius: 4px;
 }
-#episode-drawer-content .episode-item-info { flex: 1; }
+#episode-drawer-content .episode-item-info {
+  flex: 1; 
+}
 #episode-drawer-content .episode-item-title {
   font-weight: bold;
   font-size: 0.9rem;
