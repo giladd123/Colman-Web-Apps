@@ -224,7 +224,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function startProgressTimer() {
     if (saveInterval) clearInterval(saveInterval);
     saveInterval = setInterval(() => {
-      const isComplete = (video.duration - video.currentTime) < 10;
+      let isComplete = false;
+      if (video.duration && !isNaN(video.duration)) {
+        isComplete = (video.duration - video.currentTime) < 10;
+      }
       saveProgress(isComplete);
     }, 5000);
   }
@@ -235,7 +238,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   window.addEventListener('beforeunload', () => {
-    saveProgress(false);
+    let isComplete = false;
+    if (video.duration && !isNaN(video.duration)) {
+      isComplete = (video.duration - video.currentTime) < 10;
+    }
+    saveProgress(isComplete);
   });
 
   initializePlayer();
