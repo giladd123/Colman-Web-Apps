@@ -1,0 +1,48 @@
+/* Multi-column dropdown for genres */
+.dropdown-menu .row {
+  margin: 0;
+}
+
+.dropdown-menu .col-4 {
+  padding: 0.5rem;
+  border-right: 1px solid #444;
+}
+
+.dropdown-menu .col-4:last-child {
+  border-right: none;
+}
+
+.dropdown-menu .col-4 a {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 0.25rem;
+}
+
+.dropdown-menu .col-4 a:hover {
+  background-color: #333;
+  color: white;
+}
+
+/* Filter and sort dropdown styling */
+#sortDropdown + .dropdown-menu,
+#filterDropdown + .dropdown-menu {
+  min-width: 100% !important;
+  width: max-content !important;
+  padding: 0.5rem 0 !important;
+}
+
+#sortDropdown + .dropdown-menu .dropdown-item,
+#filterDropdown + .dropdown-menu .dropdown-item {
+  text-align: left !important;
+  white-space: nowrap !important;
+  padding: 0.5rem 1rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Navbar active state for dropdown toggles */
+.navbar .nav-link.dropdown-toggle.active {
+  color: #fff !important;
+  opacity: 1 !important;
+}

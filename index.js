@@ -9,7 +9,8 @@ import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
-import playerRoutes from "./routes/playerRoutes.js"; // <-- ADD THIS
+import genreRoutes from "./routes/genreRoutes.js";
+import playerRoutes from "./routes/playerRoutes.js";
 
 
 
@@ -61,6 +62,7 @@ app.use("/api/watchlist", watchlistRoutes);
 app.use(errorHandler);
 
 app.use("/feed", feedRoutes);
+app.use("/genres", genreRoutes);
 
 app.get("/feed", (req, res) => {
   res.render("feed");
