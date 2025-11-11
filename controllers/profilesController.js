@@ -21,15 +21,38 @@ async function createProfileRequest(req, res) {
       );
       url = media.getObjectUrl(key) || uploadedUrl;
     } catch (err) {
-      logError(`Error uploading avatar for user ${userId}: ${err.message}`, {
-        stack: err.stack,
-      });
+      logError(
+        `Error uploading avatar for user ${userId}: ${err.message}`,
+        {
+          stack: err.stack,
+          userId: userId,
+          scope: "createProfileRequest.upload",
+        },
+        true
+      );
       return serverError(res);
     }
   }
   const profile = Profile({ name: name, user: userId, avatar: url });
-  await profile.save();
-  info(`profile created: ${profile._id}`, { userId, name });
+  try {
+    await profile.save();
+  } catch (error) {
+    logError(
+      `Error saving profile for user ${userId}: ${error.message}`,
+      {
+        stack: error.stack,
+        userId,
+        scope: "createProfileRequest.save",
+      },
+      true
+    );
+    return serverError(res);
+  }
+  info(
+    `profile created: ${profile._id}`,
+    { userId: userId, name: name, profileId: profile._id },
+    true
+  );
   return created(res, profile);
 }
 
@@ -41,7 +64,8 @@ async function getProfilesByUserId(req, res) {
   } catch (error) {
     logError(
       `Error retrieving profiles for user id ${userId}: ${error.message}`,
-      { stack: error.stack }
+      { stack: error.stack, userId: userId, scope: "getProfilesByUserId" },
+      true
     );
     return serverError(res);
   }
@@ -59,7 +83,12 @@ async function deleteProfile(req, res) {
   } catch (error) {
     logError(
       `Error deleting profile with id ${req.params.profileId}: ${error.message}`,
-      { stack: error.stack }
+      {
+        stack: error.stack,
+        profileId: req.params.profileId,
+        scope: "deleteProfile",
+      },
+      true
     );
     return serverError(res);
   }
@@ -85,9 +114,15 @@ async function updateProfile(req, res) {
     await profile.save();
     return ok(res, profile);
   } catch (error) {
-    logError(`Error updating profile id ${profileId}: ${error.message}`, {
-      stack: error.stack,
-    });
+    logError(
+      `Error updating profile id ${profileId}: ${error.message}`,
+      {
+        stack: error.stack,
+        profileId: profileId,
+        scope: "updateProfile",
+      },
+      true
+    );
     return serverError(res);
   }
 }

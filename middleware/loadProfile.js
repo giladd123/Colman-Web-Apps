@@ -13,9 +13,15 @@ export default async function loadProfile(req, res, next) {
     req.profile = profile;
     return next();
   } catch (err) {
-    logError(`loadProfile error for id ${profileId}: ${err.message}`, {
-      stack: err.stack,
-    });
+    logError(
+      `loadProfile error for id ${profileId}: ${err.message}`,
+      {
+        stack: err.stack,
+        profileId: profileId,
+        scope: "loadProfile",
+      },
+      true
+    );
     return serverError(res);
   }
 }

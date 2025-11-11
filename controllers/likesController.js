@@ -42,7 +42,7 @@ export async function addLikeByProfileName(req, res) {
     return ok(res, {
       success: true,
       liked: true,
-      contentId,
+      contentId: contentId,
       content: content.toObject(), // Include updated content
     });
   } catch (err) {
@@ -103,7 +103,7 @@ export async function removeLikeByProfileName(req, res) {
     return ok(res, {
       success: true,
       liked: false,
-      contentId,
+      contentId: contentId,
       content: content.toObject(), // Include updated content
     });
   } catch (err) {
