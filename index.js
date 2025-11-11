@@ -3,6 +3,7 @@ import { connectDB } from "./config/db.js";
 import "dotenv/config";
 import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
+import habitsRoutes from "./routes/habitsRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
 import contentRoutes from './routes/contentRoutes.js';
 import session from 'express-session';
@@ -53,20 +54,35 @@ app.get("/main", (req, res) => {
   res.render("main_menu");
 });
 
+app.get("/settings", (req, res) => {
+  res.render("settings_page");
+});
+app.get("/feed", (req, res) => {
+  res.render("feed");
+});
+
+app.get("/shows", (req, res) => {
+  res.render("shows");
+});
+
+app.get("/movies", (req, res) => {
+  res.render("movies");
+});
+
+app.get("/my-list", (req, res) => {
+  res.render("my_list");
+});
+
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
+app.use("/api/habits", habitsRoutes);
 app.use("/api/likes", likesRoutes);
 app.use("/api/watchlist", watchlistRoutes);
-
-
-app.use(errorHandler);
 
 app.use("/feed", feedRoutes);
 app.use("/genres", genreRoutes);
 
-app.get("/feed", (req, res) => {
-  res.render("feed");
-});
+app.use(errorHandler);
 
 app.use("/select-content", contentRoutes);
 app.use("/player", playerRoutes);

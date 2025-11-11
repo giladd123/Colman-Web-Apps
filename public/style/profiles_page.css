@@ -17,6 +17,14 @@ h1 {
   letter-spacing: 0.5px;
 }
 
+.subtitle {
+  margin-top: -30px;
+  margin-bottom: 60px;
+  font-size: 1rem;
+  color: #b3b3b3;
+  letter-spacing: 0.2px;
+}
+
 .profiles {
   display: flex;
   justify-content: center;
@@ -27,10 +35,29 @@ h1 {
 
 .profile {
   width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   -webkit-tap-highlight-color: transparent;
 }
 
-.profile img {
+.profile-tile {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.profile-tile:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+
+.profile img,
+.profile-avatar img {
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -38,70 +65,32 @@ h1 {
   border-radius: 8px;
 }
 
-.profile.add-profile .add-tile {
+.profile-avatar {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  border: 2px dashed #555;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #888;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile.add-profile .add-tile:hover {
-  border-color: #aaa;
-  color: #fff;
-}
-
-.profile.add-profile .add-tile i {
-  font-size: 2rem;
-}
-
-.new-profile-editor .editor-thumb {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 8px;
-  display: block;
 }
 
 .profile:hover img,
-.profile:focus-within img {
+.profile:focus-visible img,
+.profile-tile:hover img,
+.profile-tile:focus-visible img {
   box-shadow: 0 0 0 3px #fff;
   cursor: pointer;
 }
 
 .profile-name {
   margin-top: 12px;
-}
-
-.profile-name input {
-  display: block;
-  width: 100%;
-  padding: 2px 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  text-align: center;
   font-size: 16px;
   font-weight: 300;
   letter-spacing: 0.3px;
   color: #808080;
-  cursor: default;
 }
 
-.profile:hover .profile-name input,
-.profile:focus-within .profile-name input {
+.profile:hover .profile-name,
+.profile:focus-visible .profile-name,
+.profile-tile:hover .profile-name,
+.profile-tile:focus-visible .profile-name {
   color: #fff;
   cursor: pointer;
-}
-
-.profile-name input:focus {
-  padding-bottom: 4px;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.18);
-  cursor: text;
 }
 
 .btn-manage {

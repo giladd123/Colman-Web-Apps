@@ -6,15 +6,17 @@ const logSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    action: {
+    content: {
       type: String,
       required: true,
     },
     type: {
       type: String,
-      enum: ["login", "error", "action"],
+      enum: ["INFO", "WARNING", "ERROR"],
     },
-    description: String,
+    meta: {
+      type: mongoose.Schema.Types.Mixed,
+    },
   },
   { timestamps: true }
 );
