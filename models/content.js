@@ -36,10 +36,20 @@ contentSchema.pre("save", function (next) {
 });
 
 contentSchema.post("save", function (doc) {
+  const modelName = doc.constructor?.modelName || "Content";
   if (doc.$locals && doc.$locals.wasNew) {
-    const modelName = doc.constructor?.modelName || "Content";
     logInfo(
       `content created: ${doc._id}`,
+      {
+        contentId: doc._id,
+        title: doc.title,
+        type: doc.type || modelName,
+      },
+      true
+    );
+  } else {
+    logInfo(
+      `content updated: ${doc._id}`,
       {
         contentId: doc._id,
         title: doc.title,
