@@ -1,13 +1,12 @@
 import Profile from "../models/profile.js";
 import Content from "../models/content.js";
 import Habit from "../models/habit.js";
+import { ok, notFound, serverError } from "../utils/apiResponse.js";
 import { error as logError } from "../utils/logger.js";
-import { notFound, serverError } from "../utils/apiResponse.js";
 
 // Add a content to profile.likedContents and mark habit.liked = true
-export async function addLikeByProfileName(req, res, next) {
+export async function addLikeByProfileName(req, res) {
   try {
-    console.log("Adding like:", req.params);
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
     if (!profile) return notFound(res, "Profile not found");
@@ -40,7 +39,7 @@ export async function addLikeByProfileName(req, res, next) {
       { upsert: true }
     );
 
-    return res.json({
+    return ok(res, {
       success: true,
       liked: true,
       contentId: contentId,
@@ -48,16 +47,15 @@ export async function addLikeByProfileName(req, res, next) {
     });
   } catch (err) {
     logError(
-      `Error in addLikeByProfileName: ${err.message}`,
-      { stack: err.stack, params: req.params },
-      true
+      `Failed to add like for profile ${req.params.profileName} and content ${req.params.contentId}: ${err.message}`,
+      { stack: err.stack }
     );
-    return serverError(res);
+    return serverError(res, "Failed to add like");
   }
 }
 
 // Remove a content from profile.likedContents and mark habit.liked = false
-export async function removeLikeByProfileName(req, res, next) {
+export async function removeLikeByProfileName(req, res) {
   try {
     const { profileName, contentId } = req.params;
     const profile = await Profile.findOne({ name: profileName });
@@ -102,7 +100,7 @@ export async function removeLikeByProfileName(req, res, next) {
       { upsert: false }
     );
 
-    return res.json({
+    return ok(res, {
       success: true,
       liked: false,
       contentId: contentId,
@@ -110,10 +108,9 @@ export async function removeLikeByProfileName(req, res, next) {
     });
   } catch (err) {
     logError(
-      `Error in removeLikeByProfileName: ${err.message}`,
-      { stack: err.stack, params: req.params },
-      true
+      `Failed to remove like for profile ${req.params.profileName} and content ${req.params.contentId}: ${err.message}`,
+      { stack: err.stack }
     );
-    return serverError(res);
+    return serverError(res, "Failed to remove like");
   }
 }

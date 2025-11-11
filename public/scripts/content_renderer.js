@@ -10,8 +10,8 @@ function createNoResultsMessage() {
 function setGridLayout(container) {
   container.style.display = "flex";
   container.style.flexWrap = "wrap";
-  container.style.gap = "16px";
-  container.style.padding = "20px";
+  container.style.gap = "8px";
+  container.style.padding = "0";
 }
 
 function loadAndRender() {
