@@ -14,7 +14,7 @@ function showError(container, msg = "Something went wrong.") {
       <button class="btn btn-sm btn-outline-light" id="retryLoadProfiles">Retry</button>
     </div>
   `;
-  const retry = document.getElementById('retryLoadProfiles');
+  const retry = document.getElementById("retryLoadProfiles");
   if (retry) retry.onclick = () => loadProfiles();
 }
 
@@ -39,43 +39,45 @@ function createProfileElement(document, profile) {
   input.value = profile.name;
   input.disabled = true;
 
-  const controls = document.createElement('div');
-  controls.className = 'mt-2 d-flex justify-content-center gap-2';
+  const controls = document.createElement("div");
+  controls.className = "mt-2 d-flex justify-content-center gap-2";
 
-  const editBtn = document.createElement('button');
-  editBtn.type = 'button';
-  editBtn.className = 'btn btn-sm btn-outline-light';
-  editBtn.textContent = 'Edit';
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "btn btn-sm btn-outline-light";
+  editBtn.textContent = "Edit";
 
-  const saveBtn = document.createElement('button');
-  saveBtn.type = 'button';
-  saveBtn.className = 'btn btn-sm btn-danger';
-  saveBtn.textContent = 'Save';
-  saveBtn.style.display = 'none';
+  const saveBtn = document.createElement("button");
+  saveBtn.type = "button";
+  saveBtn.className = "btn btn-sm btn-danger";
+  saveBtn.textContent = "Save";
+  saveBtn.style.display = "none";
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.className = 'btn btn-sm btn-outline-danger';
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "btn btn-sm btn-outline-danger";
   deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
 
   function setEditing(editing) {
     input.disabled = !editing;
-    editBtn.style.display = editing ? 'none' : '';
-    saveBtn.style.display = editing ? '' : 'none';
+    editBtn.style.display = editing ? "none" : "";
+    saveBtn.style.display = editing ? "" : "none";
     if (editing) input.focus();
   }
 
-  editBtn.addEventListener('click', () => setEditing(true));
+  editBtn.addEventListener("click", () => setEditing(true));
 
-  saveBtn.addEventListener('click', async () => {
-    const profileId = profileDiv.getAttribute('profileid');
+  saveBtn.addEventListener("click", async () => {
+    const profileId = profileDiv.getAttribute("profileid");
     await updateProfileName(profileId, input.value, img, input);
     setEditing(false);
   });
 
-  deleteBtn.addEventListener('click', () => openDeleteConfirm(profileDiv, img, input));
+  deleteBtn.addEventListener("click", () =>
+    openDeleteConfirm(profileDiv, img, input)
+  );
 
-  img.addEventListener('click', () => {
+  img.addEventListener("click", () => {
     if (input.disabled) {
       saveProfile(input, img);
     } else {
@@ -84,8 +86,8 @@ function createProfileElement(document, profile) {
   });
 
   // allow Enter key to select when not editing
-  profileDiv.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && input.disabled) {
+  profileDiv.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && input.disabled) {
       saveProfile(input, img);
     }
   });
@@ -107,15 +109,15 @@ function createProfileElement(document, profile) {
 }
 
 function openDeleteConfirm(profileDiv, imgEl, inputEl) {
-  const id = profileDiv.getAttribute('profileid');
+  const id = profileDiv.getAttribute("profileid");
   const name = inputEl.value;
   const thumb = imgEl.src;
 
-  const modalEl = document.getElementById('deleteProfileConfirmModal');
-  document.getElementById('deleteProfileName').textContent = name;
-  document.getElementById('deleteProfileThumb').src = thumb;
+  const modalEl = document.getElementById("deleteProfileConfirmModal");
+  document.getElementById("deleteProfileName").textContent = name;
+  document.getElementById("deleteProfileThumb").src = thumb;
 
-  const confirmBtn = document.getElementById('deleteProfileConfirmBtn');
+  const confirmBtn = document.getElementById("deleteProfileConfirmBtn");
   confirmBtn.onclick = null; // ensure no duplicates from previous opens
   confirmBtn.onclick = async () => {
     await deleteProfile(id);
@@ -129,8 +131,8 @@ function openDeleteConfirm(profileDiv, imgEl, inputEl) {
 
 async function deleteProfile(profileId) {
   try {
-    const res = await fetch(`/api/profiles/${profileId}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete profile');
+    const res = await fetch(`/api/profiles/${profileId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error("Failed to delete profile");
   } catch (e) {
     console.error(e);
   }
@@ -138,46 +140,48 @@ async function deleteProfile(profileId) {
 }
 
 function createAddProfileTile(container) {
-  const tile = document.createElement('div');
-  tile.className = 'profile add-profile';
+  const tile = document.createElement("div");
+  tile.className = "profile add-profile";
 
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'add-tile image-preview--square';
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "add-tile image-preview--square";
   button.innerHTML = '<i class="bi bi-plus-lg"></i>';
-  button.addEventListener('click', () => openAvatarPickerForCreate(tile));
+  button.addEventListener("click", () => openAvatarPickerForCreate(tile));
 
   tile.appendChild(button);
   container.appendChild(tile);
 }
 
 function showNewProfileEditor(tile, selectedUrl, file) {
-  tile.innerHTML = '';
-  const wrapper = document.createElement('div');
-  wrapper.className = 'new-profile-editor';
+  tile.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "new-profile-editor";
 
-  const img = document.createElement('img');
-  img.className = 'editor-thumb';
-  img.src = selectedUrl || (file ? URL.createObjectURL(file) : '/images/profiles/white.png');
-  img.alt = 'New profile avatar';
+  const img = document.createElement("img");
+  img.className = "editor-thumb";
+  img.src =
+    selectedUrl ||
+    (file ? URL.createObjectURL(file) : "/images/profiles/white.png");
+  img.alt = "New profile avatar";
 
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'Enter profile name';
-  input.className = 'form-control form-control-sm text-center mt-2';
+  const input = document.createElement("input");
+  input.type = "text";
+  input.placeholder = "Enter profile name";
+  input.className = "form-control form-control-sm text-center mt-2";
 
-  const actions = document.createElement('div');
-  actions.className = 'd-flex justify-content-center gap-2 mt-2';
+  const actions = document.createElement("div");
+  actions.className = "d-flex justify-content-center gap-2 mt-2";
 
-  const createBtn = document.createElement('button');
-  createBtn.type = 'button';
-  createBtn.className = 'btn btn-sm btn-danger';
-  createBtn.textContent = 'Create';
+  const createBtn = document.createElement("button");
+  createBtn.type = "button";
+  createBtn.className = "btn btn-sm btn-danger";
+  createBtn.textContent = "Create";
 
-  const cancelBtn = document.createElement('button');
-  cancelBtn.type = 'button';
-  cancelBtn.className = 'btn btn-sm btn-outline-light';
-  cancelBtn.textContent = 'Cancel';
+  const cancelBtn = document.createElement("button");
+  cancelBtn.type = "button";
+  cancelBtn.className = "btn btn-sm btn-outline-light";
+  cancelBtn.textContent = "Cancel";
 
   actions.appendChild(createBtn);
   actions.appendChild(cancelBtn);
@@ -189,19 +193,19 @@ function showNewProfileEditor(tile, selectedUrl, file) {
 
   setTimeout(() => input.focus(), 0);
 
-  cancelBtn.addEventListener('click', () => {
+  cancelBtn.addEventListener("click", () => {
     // revert to plus tile
-    tile.innerHTML = '';
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'add-tile image-preview--square';
+    tile.innerHTML = "";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "add-tile image-preview--square";
     button.innerHTML = '<i class="bi bi-plus-lg"></i>';
-    button.addEventListener('click', () => openAvatarPickerForCreate(tile));
+    button.addEventListener("click", () => openAvatarPickerForCreate(tile));
     tile.appendChild(button);
   });
 
-  createBtn.addEventListener('click', async () => {
-    const name = (input.value || '').trim();
+  createBtn.addEventListener("click", async () => {
+    const name = (input.value || "").trim();
     if (!name) {
       input.focus();
       return;
@@ -212,18 +216,21 @@ function showNewProfileEditor(tile, selectedUrl, file) {
 
 async function createNewProfile(name, file, selectedUrl) {
   try {
-    const userId = localStorage.getItem('userId');
+    const userId = localStorage.getItem("userId");
     const fd = new FormData();
-    fd.append('name', name);
-    fd.append('userId', userId);
+    fd.append("name", name);
+    fd.append("userId", userId);
     if (!file && selectedUrl) {
       const res = await fetch(selectedUrl);
       const blob = await res.blob();
-      file = new File([blob], 'avatar.png', { type: blob.type || 'image/png' });
+      file = new File([blob], "avatar.png", { type: blob.type || "image/png" });
     }
-    if (file) fd.append('avatar', file);
-    const res = await fetch('/api/profiles/create', { method: 'POST', body: fd });
-    if (!res.ok) throw new Error('Failed to create profile');
+    if (file) fd.append("avatar", file);
+    const res = await fetch("/api/profiles/create", {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) throw new Error("Failed to create profile");
   } catch (e) {
     console.error(e);
   }
@@ -233,9 +240,12 @@ async function createNewProfile(name, file, selectedUrl) {
 async function updateProfileName(profileId, newName, imgEl, inputEl) {
   try {
     const fd = new FormData();
-    fd.append('name', newName);
-    const res = await fetch(`/api/profiles/${profileId}`, { method: 'PUT', body: fd });
-    if (!res.ok) throw new Error('Failed to update name');
+    fd.append("name", newName);
+    const res = await fetch(`/api/profiles/${profileId}`, {
+      method: "PUT",
+      body: fd,
+    });
+    if (!res.ok) throw new Error("Failed to update name");
     const updated = await res.json();
     inputEl.value = updated.name || newName;
   } catch (e) {
@@ -243,34 +253,48 @@ async function updateProfileName(profileId, newName, imgEl, inputEl) {
   }
 }
 
-let avatarPickerState = { mode: 'update', selectedUrl: null, file: null, targetImg: null, targetProfileId: null, createTile: null };
+let avatarPickerState = {
+  mode: "update",
+  selectedUrl: null,
+  file: null,
+  targetImg: null,
+  targetProfileId: null,
+  createTile: null,
+};
 
 function openAvatarPicker(targetImg, profileDiv) {
-  avatarPickerState = { mode: 'update', selectedUrl: null, file: null, targetImg, targetProfileId: profileDiv.getAttribute('profileid'), createTile: null };
-  const modalEl = document.getElementById('avatarPickerModal');
-  const grid = document.getElementById('avatarPickerGrid');
-  const upload = document.getElementById('avatarPickerUpload');
-  const previewWrap = document.getElementById('avatarPickerPreview');
-  const applyBtn = document.getElementById('avatarPickerApply');
+  avatarPickerState = {
+    mode: "update",
+    selectedUrl: null,
+    file: null,
+    targetImg,
+    targetProfileId: profileDiv.getAttribute("profileid"),
+    createTile: null,
+  };
+  const modalEl = document.getElementById("avatarPickerModal");
+  const grid = document.getElementById("avatarPickerGrid");
+  const upload = document.getElementById("avatarPickerUpload");
+  const previewWrap = document.getElementById("avatarPickerPreview");
+  const applyBtn = document.getElementById("avatarPickerApply");
 
   // render defaults
-  grid.innerHTML = '';
+  grid.innerHTML = "";
   const defaults = [
-    '/images/profiles/white.png',
-    '/images/profiles/green.png',
-    '/images/profiles/pink.png',
-    '/images/profiles/purple.png',
-    '/images/profiles/yellow.png',
+    "/images/profiles/white.png",
+    "/images/profiles/green.png",
+    "/images/profiles/pink.png",
+    "/images/profiles/purple.png",
+    "/images/profiles/yellow.png",
   ];
   defaults.forEach((src) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'default-avatar p-0';
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "default-avatar p-0";
     btn.innerHTML = `<img src="${src}" alt="avatar" />`;
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       avatarPickerState.selectedUrl = src;
       avatarPickerState.file = null;
-      upload.value = '';
+      upload.value = "";
       previewWrap.innerHTML = `<img src="${src}" class="w-100 h-100 object-fit-cover" />`;
     });
     grid.appendChild(btn);
@@ -297,30 +321,37 @@ function openAvatarPicker(targetImg, profileDiv) {
 }
 
 function openAvatarPickerForCreate(createTile) {
-  avatarPickerState = { mode: 'create', selectedUrl: null, file: null, targetImg: null, targetProfileId: null, createTile };
-  const modalEl = document.getElementById('avatarPickerModal');
-  const grid = document.getElementById('avatarPickerGrid');
-  const upload = document.getElementById('avatarPickerUpload');
-  const previewWrap = document.getElementById('avatarPickerPreview');
-  const applyBtn = document.getElementById('avatarPickerApply');
+  avatarPickerState = {
+    mode: "create",
+    selectedUrl: null,
+    file: null,
+    targetImg: null,
+    targetProfileId: null,
+    createTile,
+  };
+  const modalEl = document.getElementById("avatarPickerModal");
+  const grid = document.getElementById("avatarPickerGrid");
+  const upload = document.getElementById("avatarPickerUpload");
+  const previewWrap = document.getElementById("avatarPickerPreview");
+  const applyBtn = document.getElementById("avatarPickerApply");
 
-  grid.innerHTML = '';
+  grid.innerHTML = "";
   const defaults = [
-    '/images/profiles/white.png',
-    '/images/profiles/green.png',
-    '/images/profiles/pink.png',
-    '/images/profiles/purple.png',
-    '/images/profiles/yellow.png',
+    "/images/profiles/white.png",
+    "/images/profiles/green.png",
+    "/images/profiles/pink.png",
+    "/images/profiles/purple.png",
+    "/images/profiles/yellow.png",
   ];
   defaults.forEach((src) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'default-avatar p-0';
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "default-avatar p-0";
     btn.innerHTML = `<img src="${src}" alt="avatar" />`;
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       avatarPickerState.selectedUrl = src;
       avatarPickerState.file = null;
-      upload.value = '';
+      upload.value = "";
       previewWrap.innerHTML = `<img src="${src}" class="w-100 h-100 object-fit-cover" />`;
     });
     grid.appendChild(btn);
@@ -347,8 +378,9 @@ function openAvatarPickerForCreate(createTile) {
 }
 
 async function applyAvatarSelection() {
-  const { mode, selectedUrl, file, targetImg, targetProfileId, createTile } = avatarPickerState;
-  if (mode === 'create') {
+  const { mode, selectedUrl, file, targetImg, targetProfileId, createTile } =
+    avatarPickerState;
+  if (mode === "create") {
     if (!selectedUrl && !file) return;
     showNewProfileEditor(createTile, selectedUrl, file);
     return;
@@ -357,17 +389,22 @@ async function applyAvatarSelection() {
   try {
     const fd = new FormData();
     if (file) {
-      fd.append('avatar', file);
+      fd.append("avatar", file);
     } else if (selectedUrl) {
       const fetched = await fetch(selectedUrl);
       const blob = await fetched.blob();
-      const fauxFile = new File([blob], 'avatar.png', { type: blob.type || 'image/png' });
-      fd.append('avatar', fauxFile);
+      const fauxFile = new File([blob], "avatar.png", {
+        type: blob.type || "image/png",
+      });
+      fd.append("avatar", fauxFile);
     } else {
       return; // nothing selected
     }
-    const res = await fetch(`/api/profiles/${targetProfileId}`, { method: 'PUT', body: fd });
-    if (!res.ok) throw new Error('Failed to update avatar');
+    const res = await fetch(`/api/profiles/${targetProfileId}`, {
+      method: "PUT",
+      body: fd,
+    });
+    if (!res.ok) throw new Error("Failed to update avatar");
     const updated = await res.json();
     const newSrc = updated.avatar || updated.image_url || targetImg.src;
     targetImg.src = newSrc;
@@ -388,7 +425,8 @@ async function loadProfiles() {
   showLoading(profilesContainer, "Loading profiles...");
   const userId = localStorage.getItem("userId");
   if (!userId) {
-    profilesContainer.innerHTML = '<div class="text-secondary py-4">No user selected.</div>';
+    profilesContainer.innerHTML =
+      '<div class="text-secondary py-4">No user selected.</div>';
     return;
   }
 

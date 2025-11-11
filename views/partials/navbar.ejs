@@ -39,23 +39,42 @@
       <span class="icon-btn"><i class="bi bi-bell"></i></span>
 
       <div class="nav-item dropdown ms-2">
-        <a id="profileDropdown" class="nav-link dropdown-toggle p-0"
-          role="button" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          <img id="currentProfileImg" src="/images/profiles/yellow.png"
-            alt="Profile" class="profile-img" />
+        <a
+          id="profileDropdown"
+          class="nav-link dropdown-toggle p-0"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <img
+            id="currentProfileImg"
+            src="/images/profiles/yellow.png"
+            alt="Profile"
+            class="profile-img"
+          />
         </a>
 
-        <ul class="dropdown-menu dropdown-menu-end bg-dark"
-          aria-labelledby="profileDropdown" style="min-width: 180px">
+        <ul
+          class="dropdown-menu dropdown-menu-end bg-dark"
+          aria-labelledby="profileDropdown"
+          style="min-width: 180px"
+        >
           <li>
             <a class="dropdown-item text-white text-start" href="profiles">
               <i class="bi bi-person-circle ms-2 me-2"></i> Select Profile
             </a>
           </li>
           <li>
-            <a class="dropdown-item text-white text-start" onclick="logout()"
-              style="cursor: pointer">
+            <a class="dropdown-item text-white text-start" href="/settings">
+              <i class="bi bi-gear ms-2 me-2"></i> Manage Profiles
+            </a>
+          </li>
+          <li>
+            <a
+              class="dropdown-item text-white text-start"
+              onclick="logout()"
+              style="cursor: pointer"
+            >
               <i class="bi bi-box-arrow-right ms-2 me-2"></i> Log Out
             </a>
           </li>
