@@ -90,6 +90,11 @@
       initializeSearch();
       initializeAlphabeticalSorting();
 
+      // Initialize admin UI if applicable
+      if (typeof initializeAdminUI === "function") {
+        await initializeAdminUI();
+      }
+
       if (loadingIndicator) loadingIndicator.style.display = "none";
 
       if (typeof initializeGenresDropdown === "function") {

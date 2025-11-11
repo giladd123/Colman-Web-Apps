@@ -16,4 +16,7 @@
   <% if (Array.isArray(extraCss)) { %> <% for (let css of extraCss) { %>
   <link rel="stylesheet" href="<%= css %>" />
   <% } %> <% } %>
+  
+  <!-- Universal admin UI initialization -->
+  <script src="/scripts/admin_menu.js"></script>
 </head>

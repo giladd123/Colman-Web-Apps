@@ -28,6 +28,31 @@
               genres...</a></li>
         </ul>
       </li>
+      <!-- Admin-only navigation (dropdown) -->
+      <li class="nav-item dropdown" id="adminNavItem" style="display: none;">
+        <a
+          id="adminDropdown"
+          class="nav-link dropdown-toggle<%= currentNav === 'admin' ? ' active' : '' %>"
+          href="#"
+          role="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Admin <i class="bi bi-gear-fill ms-2"></i>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end bg-dark" aria-labelledby="adminDropdown" style="min-width: 180px">
+          <li>
+            <a class="dropdown-item text-white text-start" href="/admin/add-content">
+              <i class="bi bi-plus-circle ms-2 me-2"></i> Add Content
+            </a>
+          </li> 
+          <li>
+            <a class="dropdown-item text-white text-start" href="/admin/edit">
+              <i class="bi bi-pencil-square ms-2 me-2"></i> Edit Content
+            </a>
+          </li>
+        </ul>
+      </li>
     </ul>
     <div class="d-flex align-items-center">
       <p class="mb-0 text-white" id="helloMessage">Hello USERNAME</p>
@@ -44,21 +69,18 @@
           class="nav-link dropdown-toggle p-0"
           role="button"
           data-bs-toggle="dropdown"
-          aria-expanded="false"
-        >
+          aria-expanded="false">
           <img
             id="currentProfileImg"
             src="/images/profiles/yellow.png"
             alt="Profile"
-            class="profile-img"
-          />
+            class="profile-img" />
         </a>
 
         <ul
           class="dropdown-menu dropdown-menu-end bg-dark"
           aria-labelledby="profileDropdown"
-          style="min-width: 180px"
-        >
+          style="min-width: 180px">
           <li>
             <a class="dropdown-item text-white text-start" href="profiles">
               <i class="bi bi-person-circle ms-2 me-2"></i> Select Profile
@@ -73,8 +95,7 @@
             <a
               class="dropdown-item text-white text-start"
               onclick="logout()"
-              style="cursor: pointer"
-            >
+              style="cursor: pointer">
               <i class="bi bi-box-arrow-right ms-2 me-2"></i> Log Out
             </a>
           </li>
