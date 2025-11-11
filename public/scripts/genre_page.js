@@ -31,7 +31,8 @@ function initializeGenrePage(genre) {
 // Initialize basic navbar functionality for genre page
 async function initializeNavbarForGenrePage() {
   // Initialize profile display
-  const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
+  const [selectedProfileId, selectedProfileName, selectedProfileImage] =
+    getProfileIfLoggedIn();
   const helloMessage = document.getElementById("helloMessage");
   if (helloMessage)
     helloMessage.innerText = `Hello, ${selectedProfileName || ""}`;
@@ -39,7 +40,11 @@ async function initializeNavbarForGenrePage() {
   if (profileImg && selectedProfileImage) profileImg.src = selectedProfileImage;
 
   // Set up global variables for likes and watchlist functionality
-  window.currentProfileName = selectedProfileName;
+  window.currentProfile = {
+    id: selectedProfileId,
+    name: selectedProfileName,
+    avatar: selectedProfileImage,
+  };
   window.currentFeedData = window.currentFeedData || {
     likedBy: [],
     myList: [],
@@ -170,8 +175,7 @@ async function loadGenreContent(reset = false) {
     }
 
     const noMoreContent = document.getElementById("noMoreContent");
-    if (noMoreContent)
-      noMoreContent.style.display = hasMore ? "none" : "block";
+    if (noMoreContent) noMoreContent.style.display = hasMore ? "none" : "block";
   } catch (error) {
     console.error("Error loading genre content:", error);
     if (reset) {

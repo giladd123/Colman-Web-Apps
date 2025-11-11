@@ -65,12 +65,12 @@
     if (loadingIndicator) loadingIndicator.style.display = "block";
 
     try {
-      const [selectedProfileName, selectedProfileImage] =
+      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
         getProfileIfLoggedIn();
-      const profileName = selectedProfileName || "";
 
       const helloMessage = document.getElementById("helloMessage");
-      if (helloMessage) helloMessage.innerText = `Hello, ${profileName}`;
+      if (helloMessage)
+        helloMessage.innerText = `Hello, ${selectedProfileName}`;
 
       const profileImg = document.getElementById("currentProfileImg");
       if (profileImg && selectedProfileImage)
@@ -79,13 +79,13 @@
       const allContent = await fetchMoviesFromDB();
       window.movies = filterMovieCatalogByType(allContent, FILTER_TYPE);
 
-      const feedData = await fetchFeedForProfile(profileName);
-      const filteredFeed = applyTypeFilter(feedData, FILTER_TYPE);
+      const feedResponse = await fetchFeedForProfile(selectedProfileId);
+      const filteredFeed = applyTypeFilter(feedResponse, FILTER_TYPE);
 
       window.currentFeedData = filteredFeed;
-      window.currentProfileName = profileName;
+      window.currentProfile = feedResponse.profile;
 
-      renderFeed(window.currentFeedData, window.currentProfileName);
+      renderFeed(window.currentFeedData, window.currentProfile);
 
       initializeSearch();
       initializeAlphabeticalSorting();

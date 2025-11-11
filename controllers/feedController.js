@@ -206,17 +206,15 @@ async function recommendationsForProfile(profileId) {
 
 export async function getFeedForProfile(req, res) {
   try {
-    const profileName = req.params.profileName;
+    const profileId = req.params.profileId;
     // populate likedContents and watchlist
-    const profile = await Profile.findOne({ name: profileName })
+    const profile = await Profile.findById(profileId)
       .populate("likedContents")
       .populate("watchlist");
 
     if (!profile) {
       return notFound(res, "Profile not found");
     }
-
-    const profileId = profile._id;
 
     // Liked by profile - prefer explicit likedContents on the profile document,
     // otherwise fall back to habits where 'liked' was recorded.
@@ -267,6 +265,11 @@ export async function getFeedForProfile(req, res) {
     likedBy = (likedBy || []).filter((c) => c && c.type !== "Episode");
 
     return ok(res, {
+      profile: {
+        id: profile._id,
+        name: profile.name,
+        avatar: profile.avatar,
+      },
       likedBy,
       myList,
       watchAgain,
@@ -277,7 +280,7 @@ export async function getFeedForProfile(req, res) {
     });
   } catch (err) {
     logError(
-      `Failed to build feed for profile ${req.params.profileName}: ${err.message}`,
+      `Failed to build feed for profile ${req.params.profileId}: ${err.message}`,
       {
         stack: err.stack,
       }

@@ -1,4 +1,4 @@
-function renderFeed(feedData, profileName) {
+function renderFeed(feedData, profile) {
   const content = document.getElementById("content");
   content.innerHTML = "";
 
@@ -7,12 +7,12 @@ function renderFeed(feedData, profileName) {
   window.__feedBatches = [];
 
   // Render the first batch and then enable infinite append
-  appendFeedRows(feedData, profileName);
-  enableVerticalInfinite(feedData, profileName);
+  appendFeedRows(feedData, profile);
+  enableVerticalInfinite(feedData, profile);
 }
 
 // Append one full batch of rows to the bottom, using the same ordering as initial feed
-function appendFeedRows(feedData, profileName) {
+function appendFeedRows(feedData, profile) {
   const content = document.getElementById("content");
   const batch = document.createElement("div");
   batch.className = "feed-batch";
@@ -22,7 +22,7 @@ function appendFeedRows(feedData, profileName) {
   // Continue Watching
   if (feedData.continueWatching?.length)
     rowIndex = createRow(
-      "Continue Watching for " + profileName,
+      "Continue Watching for " + profile.name,
       feedData.continueWatching,
       rowIndex
     );
@@ -43,7 +43,11 @@ function appendFeedRows(feedData, profileName) {
     rowIndex = createRow("My List", feedData.myList, rowIndex);
 
   if (feedData.likedBy?.length)
-    rowIndex = createRow(`Liked by ${profileName}`, feedData.likedBy, rowIndex);
+    rowIndex = createRow(
+      `Liked by ${profile.name}`,
+      feedData.likedBy,
+      rowIndex
+    );
 
   // Dynamic rows for each genre
   for (const [genre, genreMovies] of Object.entries(
@@ -78,7 +82,7 @@ function appendFeedRows(feedData, profileName) {
   }
 }
 
-function enableVerticalInfinite(feedData, profileName) {
+function enableVerticalInfinite(feedData, profile) {
   const content = document.getElementById("content");
   let sentinel = document.getElementById("feed-sentinel");
   if (!sentinel) {
@@ -97,7 +101,7 @@ function enableVerticalInfinite(feedData, profileName) {
       if (entry.isIntersecting && !loading) {
         loading = true;
         // Append the same rows as a new batch
-        appendFeedRows(feedData, profileName);
+        appendFeedRows(feedData, profile);
         // Move sentinel to bottom again
         content.appendChild(sentinel);
         loading = false;
@@ -123,15 +127,18 @@ async function fetchMoviesFromDB() {
 }
 
 // Fetch feed data for a specific profile
-async function fetchFeedForProfile(profileName) {
+async function fetchFeedForProfile(profileId) {
   try {
-    const response = await fetch(`/feed/${encodeURIComponent(profileName)}`);
+    const response = await fetch(
+      `/feed/profile/${encodeURIComponent(profileId)}`
+    );
     if (!response.ok) throw new Error("Failed to fetch feed");
     const data = await response.json();
     return data;
   } catch (err) {
     console.error("Error fetching feed:", err);
     return {
+      profile: { id: "", name: "", avatar: "" },
       continueWatching: [],
       recommendations: [],
       mostPopular: [],

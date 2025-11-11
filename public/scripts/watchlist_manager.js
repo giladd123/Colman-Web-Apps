@@ -87,7 +87,7 @@ function emitWatchlistUpdated(profileName, contentId, inWatchlist) {
 async function handleWatchlistClick(btn, movie) {
   const contentId = contentIdFor(movie);
   const profileName =
-    window.currentProfileName || localStorage.getItem("selectedProfileName");
+    window.currentProfile?.name || localStorage.getItem("selectedProfileName");
   if (!profileName) {
     alert("No profile selected.");
     return;
