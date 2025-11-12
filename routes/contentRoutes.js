@@ -4,8 +4,10 @@ import {
   showAddForm,
   addContent,
   showEditForm,
+  showDeleteSuccess,
   updateContent,
   deleteContent,
+  checkContentExists,
 } from "../controllers/contentController.js";
 import { fetchIMDB } from "../controllers/imdbController.js";
 import { validateAdminUser } from "../middleware/validateAdmin.js";
@@ -23,6 +25,7 @@ router.post(
   addContent
 );
 router.get("/edit/:id", validateAdminUser, showEditForm);
+router.get("/delete-success", validateAdminUser, showDeleteSuccess);
 router.post(
   "/edit/:id",
   upload.single("videoFile"),
@@ -31,5 +34,6 @@ router.post(
 );
 router.delete("/delete/:id", validateAdminUser, deleteContent);
 router.get("/fetch-imdb", validateAdminUser, fetchIMDB);
+router.get("/check-content", validateAdminUser, checkContentExists);
 
 export default router;
