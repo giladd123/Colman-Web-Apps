@@ -1,5 +1,5 @@
 import express from 'express';
-import { getContentById, getContentDataById } from '../controllers/contentController.js';
+import { getContentById, getContentDataById } from '../controllers/selectcontentController.js';
 import catchAsync from '../controllers/utils.js'; 
 
 const router = express.Router();

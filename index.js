@@ -8,7 +8,7 @@ import errorHandler from "./middleware/errorHandler.js";
 import contentRoutes from './routes/contentRoutes.js';
 import session from 'express-session';
 import feedRoutes from "./routes/feedRoutes.js";
-import contentRoutes from "./routes/contentRoutes.js";
+import selectContentRoutes from "./routes/selectContentRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
