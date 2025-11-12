@@ -33,11 +33,12 @@ async function initializeNavbarForGenrePage() {
   // Initialize profile display
   const [selectedProfileId, selectedProfileName, selectedProfileImage] =
     getProfileIfLoggedIn();
-  const helloMessage = document.getElementById("helloMessage");
-  if (helloMessage)
-    helloMessage.innerText = `Hello, ${selectedProfileName || ""}`;
+  updateGenreHelloMessages(selectedProfileName);
   const profileImg = document.getElementById("currentProfileImg");
   if (profileImg && selectedProfileImage) profileImg.src = selectedProfileImage;
+
+  const profileImgMobile = document.getElementById("currentProfileImgMobile");
+  if (profileImgMobile && selectedProfileImage) profileImgMobile.src = selectedProfileImage;
 
   // Set up global variables for likes and watchlist functionality
   window.currentProfile = {
@@ -79,33 +80,31 @@ async function initializeNavbarForGenrePage() {
 
 // Initialize search functionality specifically for genre page
 function initializeGenrePageSearch() {
-  const searchIcon = document.querySelector(".bi-search");
-  const searchInput = document.getElementById("searchInput");
+  const searchPairs = getNavbarSearchPairs();
+  if (!searchPairs.length) return;
 
-  if (!searchIcon || !searchInput) return;
+  searchPairs.forEach(({ icon, input }) => {
+    icon.addEventListener("click", () => {
+      toggleSearchInputVisibility(searchPairs, input);
+    });
 
-  // Open search input on icon click
-  searchIcon.addEventListener("click", () => {
-    searchInput.style.display = "block";
-    searchInput.focus();
+    input.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      filterGenreContent(query);
+    });
   });
 
-  // Close search input if it's empty and page is clicked
   document.addEventListener("click", (event) => {
-    if (
-      event.target !== searchIcon &&
-      event.target !== searchInput &&
-      searchInput.style.display === "block" &&
-      searchInput.value.trim() === ""
-    ) {
-      searchInput.style.display = "none";
-    }
-  });
-
-  // Filter content on input
-  searchInput.addEventListener("input", (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    filterGenreContent(query);
+    searchPairs.forEach(({ icon, input }) => {
+      if (
+        !icon.contains(event.target) &&
+        event.target !== input &&
+        input.style.display === "block" &&
+        input.value.trim() === ""
+      ) {
+        input.style.display = "none";
+      }
+    });
   });
 }
 
@@ -125,6 +124,39 @@ function filterGenreContent(query) {
       } else {
         card.style.display = "none";
       }
+    }
+  });
+}
+
+function updateGenreHelloMessages(profileName) {
+  const safeName = profileName || "";
+  const messages = document.querySelectorAll(
+    "#helloMessage, #helloMessageMobile"
+  );
+  messages.forEach((el) => {
+    el.innerText = `Hello, ${safeName}`;
+  });
+}
+
+function getNavbarSearchPairs() {
+  return Array.from(document.querySelectorAll("[data-search-target]"))
+    .map((icon) => {
+      const targetId = icon.getAttribute("data-search-target");
+      if (!targetId) return null;
+      const input = document.getElementById(targetId);
+      if (!input) return null;
+      return { icon, input };
+    })
+    .filter(Boolean);
+}
+
+function toggleSearchInputVisibility(pairs, activeInput) {
+  pairs.forEach(({ input }) => {
+    if (input === activeInput) {
+      input.style.display = "block";
+      input.focus();
+    } else if (input.style.display === "block" && input.value.trim() === "") {
+      input.style.display = "none";
     }
   });
 }

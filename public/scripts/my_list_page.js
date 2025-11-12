@@ -16,12 +16,15 @@ async function initializeMyListPage() {
     const [selectedProfileId, selectedProfileName, selectedProfileImage] =
       profileData;
 
-    const helloMessage = document.getElementById("helloMessage");
-    if (helloMessage) helloMessage.innerText = `Hello, ${selectedProfileName}`;
+    updateMyListHelloMessages(selectedProfileName);
 
     const profileImg = document.getElementById("currentProfileImg");
     if (profileImg && selectedProfileImage)
       profileImg.src = selectedProfileImage;
+
+    const profileImgMobile = document.getElementById("currentProfileImgMobile");
+    if (profileImgMobile && selectedProfileImage)
+      profileImgMobile.src = selectedProfileImage;
 
     if (!selectedProfileId)
       throw new Error("Missing profile ID for watchlist fetch");
@@ -107,30 +110,31 @@ function compareContentTitles(a, b) {
 }
 
 function initializeMyListSearch() {
-  const searchIcon = document.querySelector(".bi-search");
-  const searchInput = document.getElementById("searchInput");
+  const searchPairs = getNavbarSearchPairs();
+  if (!searchPairs.length) return;
 
-  if (!searchIcon || !searchInput) return;
+  searchPairs.forEach(({ icon, input }) => {
+    icon.addEventListener("click", () => {
+      toggleSearchInputVisibility(searchPairs, input);
+    });
 
-  searchIcon.addEventListener("click", () => {
-    searchInput.style.display = "block";
-    searchInput.focus();
+    input.addEventListener("input", (event) => {
+      currentSearchQuery = event.target.value.toLowerCase().trim();
+      renderCurrentMyListView();
+    });
   });
 
   document.addEventListener("click", (event) => {
-    if (
-      event.target !== searchIcon &&
-      event.target !== searchInput &&
-      searchInput.style.display === "block" &&
-      searchInput.value.trim() === ""
-    ) {
-      searchInput.style.display = "none";
-    }
-  });
-
-  searchInput.addEventListener("input", (event) => {
-    currentSearchQuery = event.target.value.toLowerCase().trim();
-    renderCurrentMyListView();
+    searchPairs.forEach(({ icon, input }) => {
+      if (
+        !icon.contains(event.target) &&
+        event.target !== input &&
+        input.style.display === "block" &&
+        input.value.trim() === ""
+      ) {
+        input.style.display = "none";
+      }
+    });
   });
 }
 
@@ -172,3 +176,36 @@ document.addEventListener("watchlist:updated", (event) => {
   window.movies = [...baseMyListItems];
   renderCurrentMyListView();
 });
+
+function updateMyListHelloMessages(profileName) {
+  const safeName = profileName || "";
+  const messages = document.querySelectorAll(
+    "#helloMessage, #helloMessageMobile"
+  );
+  messages.forEach((el) => {
+    el.innerText = `Hello, ${safeName}`;
+  });
+}
+
+function getNavbarSearchPairs() {
+  return Array.from(document.querySelectorAll("[data-search-target]"))
+    .map((icon) => {
+      const targetId = icon.getAttribute("data-search-target");
+      if (!targetId) return null;
+      const input = document.getElementById(targetId);
+      if (!input) return null;
+      return { icon, input };
+    })
+    .filter(Boolean);
+}
+
+function toggleSearchInputVisibility(pairs, activeInput) {
+  pairs.forEach(({ input }) => {
+    if (input === activeInput) {
+      input.style.display = "block";
+      input.focus();
+    } else if (input.style.display === "block" && input.value.trim() === "") {
+      input.style.display = "none";
+    }
+  });
+}
