@@ -1,7 +1,7 @@
 (function () {
   const FILTER_TYPE =
     typeof window.FEED_FILTER_TYPE === "string" &&
-    window.FEED_FILTER_TYPE.trim()
+      window.FEED_FILTER_TYPE.trim()
       ? window.FEED_FILTER_TYPE.trim()
       : null;
   const NORMALIZED_FILTER = FILTER_TYPE ? FILTER_TYPE.toLowerCase() : null;
@@ -65,27 +65,29 @@
     if (loadingIndicator) loadingIndicator.style.display = "block";
 
     try {
-      const [selectedProfileName, selectedProfileImage] =
+      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
         getProfileIfLoggedIn();
-      const profileName = selectedProfileName || "";
 
-      const helloMessage = document.getElementById("helloMessage");
-      if (helloMessage) helloMessage.innerText = `Hello, ${profileName}`;
+      updateNavbarHelloMessages(selectedProfileName);
 
       const profileImg = document.getElementById("currentProfileImg");
       if (profileImg && selectedProfileImage)
         profileImg.src = selectedProfileImage;
 
+      const profileImgMobile = document.getElementById("currentProfileImgMobile");
+      if (profileImgMobile && selectedProfileImage)
+        profileImgMobile.src = selectedProfileImage;
+
       const allContent = await fetchMoviesFromDB();
       window.movies = filterMovieCatalogByType(allContent, FILTER_TYPE);
 
-      const feedData = await fetchFeedForProfile(profileName);
-      const filteredFeed = applyTypeFilter(feedData, FILTER_TYPE);
+      const feedResponse = await fetchFeedForProfile(selectedProfileId);
+      const filteredFeed = applyTypeFilter(feedResponse, FILTER_TYPE);
 
       window.currentFeedData = filteredFeed;
-      window.currentProfileName = profileName;
+      window.currentProfile = feedResponse.profile;
 
-      renderFeed(window.currentFeedData, window.currentProfileName);
+      renderFeed(window.currentFeedData, window.currentProfile);
 
       initializeSearch();
       initializeAlphabeticalSorting();
@@ -112,3 +114,13 @@
 
   window.initializeApp = initializeFilteredFeed;
 })();
+
+function updateNavbarHelloMessages(profileName) {
+  const safeName = profileName || "";
+  const messages = document.querySelectorAll(
+    "#helloMessage, #helloMessageMobile"
+  );
+  messages.forEach((el) => {
+    el.innerText = `Hello, ${safeName}`;
+  });
+}

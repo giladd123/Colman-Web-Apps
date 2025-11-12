@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get("/allContent", getAllContent);
 
-router.get("/:profileName", getFeedForProfile);
+router.get("/profile/:profileId", getFeedForProfile);
 router.get("/genre/:genre", getContentByGenre);
 
 export default router;

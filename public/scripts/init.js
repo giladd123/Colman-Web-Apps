@@ -3,24 +3,27 @@ async function initializeApp() {
   if (loadingIndicator) loadingIndicator.style.display = "block";
 
   try {
-    const [selectedProfileName, selectedProfileImage] = getProfileIfLoggedIn();
-    const profileName = selectedProfileName || "";
+    const [selectedProfileId, selectedProfileName, selectedProfileImage] =
+      getProfileIfLoggedIn();
 
-    const helloMessage = document.getElementById("helloMessage");
-    if (helloMessage) helloMessage.innerText = `Hello, ${profileName}`;
+    updateHelloMessages(selectedProfileName);
 
     const profileImg = document.getElementById("currentProfileImg");
     if (profileImg && selectedProfileImage)
       profileImg.src = selectedProfileImage;
 
+    const profileImgMobile = document.getElementById("currentProfileImgMobile");
+    if (profileImgMobile && selectedProfileImage)
+      profileImgMobile.src = selectedProfileImage;
+
     window.movies = await fetchMoviesFromDB();
 
-    const feedData = await fetchFeedForProfile(profileName);
+    const feedResponse = await fetchFeedForProfile(selectedProfileId);
 
-    window.currentFeedData = feedData;
-    window.currentProfileName = profileName;
+    window.currentFeedData = feedResponse;
+    window.currentProfile = feedResponse.profile;
 
-    renderFeed(window.currentFeedData, window.currentProfileName);
+    renderFeed(window.currentFeedData, window.currentProfile);
 
     initializeSearch();
     initializeAlphabeticalSorting();
@@ -29,7 +32,6 @@ async function initializeApp() {
     await initializeAdminUI();
 
     if (loadingIndicator) loadingIndicator.style.display = "none";
-
     await initializeGenresDropdown();
   } catch (error) {
     console.error("Error initializing feed:", error);
@@ -166,4 +168,5 @@ async function initializeAdminUI() {
     console.error("Error checking admin status:", error);
     return false;
   }
+  return a;
 }
