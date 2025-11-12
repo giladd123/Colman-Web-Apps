@@ -278,6 +278,35 @@ select {
   color: white !important;
 }
 
+/* Style file input button */
+input[type="file"].form-control::-webkit-file-upload-button {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+input[type="file"].form-control::-webkit-file-upload-button:hover {
+  background-color: #666;
+}
+
+input[type="file"].form-control::file-selector-button {
+  background-color: #555;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+  background-color: #666;
+}
+
 /* Fix form input colors across all states */
 .form-control,
 .form-control:focus,

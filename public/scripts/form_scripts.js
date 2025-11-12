@@ -546,6 +546,7 @@ form.addEventListener("submit", async (e) => {
   [...form.querySelectorAll("input, textarea, select")].forEach(clearError);
 
   const type = typeSelect.value;
+  const isEditForm = form.action.includes("/edit/");
 
   // Validate type selection and show anchored error below the entire form-row
   const allowedTypes = ["movie", "show", "episode"];
@@ -567,8 +568,8 @@ form.addEventListener("submit", async (e) => {
   }
 
   if (type === "episode") {
-    // First check if the show exists before any other episode validations
-    if (titleField.value.trim()) {
+    // First check if the show exists before any other episode validations (only for add form)
+    if (!isEditForm && titleField.value.trim()) {
       const exists = await checkShowExists(titleField.value);
       if (!exists) {
         showError(
@@ -628,7 +629,6 @@ form.addEventListener("submit", async (e) => {
 
   // Video validation (required for movie and episode, but not for updates if no new file)
   const videoFileField = form.querySelector('input[name="videoFile"]');
-  const isEditForm = form.action.includes("/edit/");
   if (type === "movie" || type === "episode") {
     if (!isEditForm && (!videoFileField || !videoFileField.value)) {
       showError(videoFileField, "MP4 video file is required for this type");
@@ -684,49 +684,140 @@ form.addEventListener("submit", async (e) => {
 const deleteBtn = document.getElementById("deleteBtn");
 if (deleteBtn) {
   deleteBtn.addEventListener("click", async () => {
-    const contentTitle = titleField.value || "this content";
-    const contentType = typeSelect.value || "content";
+    // Validate required fields before opening delete modal
+    let valid = true;
 
-    if (
-      !confirm(
-        `Are you sure you want to delete this ${contentType}?\n\n"${contentTitle}"\n\nThis action cannot be undone.`
-      )
-    ) {
+    // Clear previous errors
+    clearError(typeSelect);
+    clearError(titleField);
+
+    const type = typeSelect.value;
+    const allowedTypes = ["movie", "show", "episode"];
+
+    // Validate type
+    if (!type || !allowedTypes.includes(type)) {
+      const typeRow = typeSelect.closest(".form-row");
+      showError(typeSelect, "Type is required", typeRow);
+      valid = false;
+    }
+
+    // Validate title
+    if (!titleField.value.trim()) {
+      showError(titleField, "Title is required");
+      valid = false;
+    }
+
+    // If validation fails, stop here
+    if (!valid) {
       return;
     }
 
-    // Get content ID from the form action URL
-    const contentId = form.action.split("/").pop();
+    const contentTitle = titleField.value || "this content";
+    const contentType = typeSelect.value || "content";
 
-    try {
-      deleteBtn.disabled = true;
-      deleteBtn.textContent = "Deleting...";
+    // Create custom modal
+    const modalHtml = `
+      <div id="deleteModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+        <div style="background: #1a1a1a; border: 2px solid #e50914; border-radius: 8px; padding: 2rem; max-width: 500px; width: 90%; color: white;">
+          <h3 style="color: #e50914; margin-top: 0; margin-bottom: 1rem;"><span style="color: #e50914;">⚠️</span> Confirm Deletion</h3>
+          <p style="margin-bottom: 1rem;">You are about to permanently delete:</p>
+          <p style="background: #333; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;"><strong>${contentType}</strong>: "${contentTitle}"</p>
+          <p style="margin-bottom: 0.5rem;">To confirm, please type the title exactly as shown above:</p>
+          <input type="text" id="deleteConfirmInput" style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 2px solid #555; border-radius: 4px; background: #2a2a2a; color: white; font-size: 1rem;" placeholder="Type title here..." />
+          <p id="deleteError" style="color: #e50914; font-size: 0.875rem; margin: 0.5rem 0; min-height: 1.2rem;"></p>
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button id="confirmDeleteBtn" style="flex: 1; padding: 0.75rem; background: #e50914; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">Delete</button>
+            <button id="cancelDeleteBtn" style="flex: 1; padding: 0.75rem; background: #555; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 1rem;">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
 
-      const userId = localStorage.getItem("userId");
-      const response = await fetch(`/admin/delete/${contentId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: userId }),
-      });
+    // Add modal to page
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
 
-      const result = await response.json();
+    const modal = document.getElementById("deleteModal");
+    const confirmInput = document.getElementById("deleteConfirmInput");
+    const confirmBtn = document.getElementById("confirmDeleteBtn");
+    const cancelBtn = document.getElementById("cancelDeleteBtn");
+    const errorMsg = document.getElementById("deleteError");
 
-      if (result.success) {
-        alert(result.data.message || "Content deleted successfully!");
-        // Redirect to feed page
-        window.location.href = "/feed";
-      } else {
-        alert(result.error || "Failed to delete content");
-        deleteBtn.disabled = false;
-        deleteBtn.textContent = "Delete Content";
+    // Focus input
+    confirmInput.focus();
+
+    // Clear error on input
+    confirmInput.addEventListener("input", () => {
+      errorMsg.textContent = "";
+      confirmInput.style.borderColor = "#555";
+    });
+
+    // Cancel button
+    cancelBtn.addEventListener("click", () => {
+      modal.remove();
+    });
+
+    // Click outside modal to close
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
       }
-    } catch (error) {
-      console.error("Delete error:", error);
-      alert("Error deleting content. Please try again.");
-      deleteBtn.disabled = false;
-      deleteBtn.textContent = "Delete Content";
-    }
+    });
+
+    // Confirm delete
+    confirmBtn.addEventListener("click", async () => {
+      const inputValue = confirmInput.value.trim();
+
+      if (inputValue !== contentTitle) {
+        errorMsg.textContent = "Title does not match. Please type it exactly.";
+        confirmInput.style.borderColor = "#e50914";
+        confirmInput.focus();
+        return;
+      }
+
+      // Get content ID from the form action URL
+      const contentId = form.action.split("/").pop();
+
+      try {
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        confirmBtn.textContent = "Deleting...";
+
+        const userId = localStorage.getItem("userId");
+        const response = await fetch(`/admin/delete/${contentId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: userId }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          modal.remove();
+          alert(result.data.message || "Content deleted successfully!");
+          // Redirect to feed page
+          window.location.href = "/feed";
+        } else {
+          errorMsg.textContent = result.error || "Failed to delete content";
+          confirmBtn.disabled = false;
+          cancelBtn.disabled = false;
+          confirmBtn.textContent = "Delete";
+        }
+      } catch (error) {
+        console.error("Delete error:", error);
+        errorMsg.textContent = "Error deleting content. Please try again.";
+        confirmBtn.disabled = false;
+        cancelBtn.disabled = false;
+        confirmBtn.textContent = "Delete";
+      }
+    });
+
+    // Allow Enter key to confirm
+    confirmInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        confirmBtn.click();
+      }
+    });
   });
 }
