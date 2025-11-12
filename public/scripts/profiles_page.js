@@ -418,6 +418,12 @@ function saveProfile(input, img, profileDiv) {
   localStorage.setItem("selectedProfileId", profileId);
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
+  if (profileDiv) {
+    const profileId = profileDiv.getAttribute("profileid");
+    if (profileId) {
+      localStorage.setItem("selectedProfileId", profileId);
+    }
+  }
   window.location.href = "feed";
 }
 
