@@ -17,3 +17,14 @@ function chunkArray(items, chunkSize) {
   }
   return chunks;
 }
+
+function updateHelloMessages(profileName) {
+  const safeName = (profileName || "").trim();
+  const greeting = safeName ? `Hello, ${safeName}` : "Hello";
+
+  document
+    .querySelectorAll("#helloMessage, #helloMessageMobile")
+    .forEach((element) => {
+      element.textContent = greeting;
+    });
+}
