@@ -19,7 +19,7 @@ function initializeSearch() {
       searchInput.style.display = "none";
       // Check if sorting is active and maintain that state
       const abcIcon = document.querySelector(".bi-alphabet");
-      if (abcIcon.getAttribute("data-active") === "true") {
+      if (abcIcon && abcIcon.getAttribute("data-active") === "true") {
         // Sorting is active, render with grid layout
         renderContent(movies);
       } else {
@@ -30,8 +30,8 @@ function initializeSearch() {
         movieCards.style.gap = "";
         movieCards.style.padding = "";
         // Restore the profile feed if available, otherwise fall back to loadAll-movies view
-        if (window.currentFeedData && window.currentProfileName) {
-          renderFeed(window.currentFeedData, window.currentProfileName);
+        if (window.currentFeedData && window.currentProfile) {
+          renderFeed(window.currentFeedData, window.currentProfile);
         } else {
           loadAndRender(); // fallback: render flat rows from all movies
         }
@@ -46,21 +46,21 @@ function initializeSearch() {
     if (query === "") {
       // If search input is empty, check if sorting is active
       const abcIcon = document.querySelector(".bi-alphabet");
-      if (abcIcon.getAttribute("data-active") === "true") {
+      if (abcIcon && abcIcon.getAttribute("data-active") === "true") {
         // Sorting is active, render with grid layout
         renderContent(movies);
       } else {
         // Show default view
-      const movieCards = document.getElementById("content");
-      movieCards.style.display = "";
-      movieCards.style.flexWrap = "";
-      movieCards.style.gap = "";
-      movieCards.style.padding = "";
-      if (window.currentFeedData && window.currentProfileName) {
-        renderFeed(window.currentFeedData, window.currentProfileName);
-      } else {
-        loadAndRender();
-      }
+        const movieCards = document.getElementById("content");
+        movieCards.style.display = "";
+        movieCards.style.flexWrap = "";
+        movieCards.style.gap = "";
+        movieCards.style.padding = "";
+        if (window.currentFeedData && window.currentProfile) {
+          renderFeed(window.currentFeedData, window.currentProfile);
+        } else {
+          loadAndRender();
+        }
       }
     } else {
       // If there's an active search input, show search results
@@ -75,6 +75,8 @@ function initializeSearch() {
 // Alphabetical sorting functionality
 function initializeAlphabeticalSorting() {
   const abcIcon = document.querySelector(".bi-alphabet");
+  if (!abcIcon) return; // Icon was removed from navbar
+
   let abcActive = false;
   let originalMoviesOrder = [...movies]; // Preserve original order
 
@@ -100,8 +102,8 @@ function initializeAlphabeticalSorting() {
       movieCards.style.flexWrap = "";
       movieCards.style.gap = "";
       movieCards.style.padding = "";
-      if (window.currentFeedData && window.currentProfileName) {
-        renderFeed(window.currentFeedData, window.currentProfileName);
+      if (window.currentFeedData && window.currentProfile) {
+        renderFeed(window.currentFeedData, window.currentProfile);
       } else {
         loadAndRender();
       }

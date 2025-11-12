@@ -79,7 +79,7 @@ function createProfileElement(document, profile) {
 
   img.addEventListener("click", () => {
     if (input.disabled) {
-      saveProfile(input, img);
+      saveProfile(input, img, profileDiv);
     } else {
       openAvatarPicker(img, profileDiv);
     }
@@ -88,7 +88,7 @@ function createProfileElement(document, profile) {
   // allow Enter key to select when not editing
   profileDiv.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && input.disabled) {
-      saveProfile(input, img);
+      saveProfile(input, img, profileDiv);
     }
   });
 
@@ -413,7 +413,9 @@ async function applyAvatarSelection() {
   }
 }
 
-function saveProfile(input, img) {
+function saveProfile(input, img, profileDiv) {
+  const profileId = profileDiv.getAttribute("profileid");
+  localStorage.setItem("selectedProfileId", profileId);
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
   window.location.href = "feed";

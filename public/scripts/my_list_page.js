@@ -10,32 +10,33 @@ async function initializeMyListPage() {
 
   try {
     const profileData = getProfileIfLoggedIn();
-    if (!profileData || profileData.length < 2) {
+    if (!profileData || profileData.length < 3) {
       throw new Error("Profile information missing from local storage");
     }
-    const [selectedProfileName, selectedProfileImage] = profileData;
-    const profileName = selectedProfileName || "";
+    const [selectedProfileId, selectedProfileName, selectedProfileImage] =
+      profileData;
 
     const helloMessage = document.getElementById("helloMessage");
-    if (helloMessage) helloMessage.innerText = `Hello, ${profileName}`;
+    if (helloMessage) helloMessage.innerText = `Hello, ${selectedProfileName}`;
 
     const profileImg = document.getElementById("currentProfileImg");
     if (profileImg && selectedProfileImage)
       profileImg.src = selectedProfileImage;
 
-    const profileKey = profileName ? encodeURIComponent(profileName) : "";
-    if (!profileKey)
-      throw new Error("Missing profile name for watchlist fetch");
+    if (!selectedProfileId)
+      throw new Error("Missing profile ID for watchlist fetch");
 
-    const response = await fetch(`/feed/${profileKey}`);
+    const response = await fetch(
+      `/feed/profile/${encodeURIComponent(selectedProfileId)}`
+    );
     if (!response.ok) throw new Error("Failed to fetch watchlist");
-    const feedData = await response.json();
+    const feedResponse = await response.json();
 
-    window.currentFeedData = feedData || {};
-    window.currentProfileName = profileName;
+    window.currentFeedData = feedResponse || {};
+    window.currentProfile = feedResponse.profile;
 
-    baseMyListItems = Array.isArray(feedData?.myList)
-      ? feedData.myList.filter((item) => item && item.type !== "Episode")
+    baseMyListItems = Array.isArray(feedResponse?.myList)
+      ? feedResponse.myList.filter((item) => item && item.type !== "Episode")
       : [];
     window.movies = [...baseMyListItems];
 

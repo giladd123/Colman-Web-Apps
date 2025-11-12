@@ -33,25 +33,27 @@ function disableRowInfinite(scroller, movies) {
   }
 }
 
-// Enable per-row horizontal infinite effect by tripling content and looping scrollLeft
+// Enable per-row horizontal infinite scrolling by creating multiple content segments
 function enableRowInfinite(scroller, movies) {
   try {
     if (!scroller || scroller.dataset.infinite === "1") return;
     if (!movies || !movies.length) return;
 
-    // Rebuild content as [segment][segment][segment]
+    // Create 5 identical segments to provide smooth infinite scrolling
     scroller.innerHTML = "";
-    renderCardsFor(scroller, movies);
-    renderCardsFor(scroller, movies);
-    renderCardsFor(scroller, movies);
+    renderCardsFor(scroller, movies); // segment 1
+    renderCardsFor(scroller, movies); // segment 2
+    renderCardsFor(scroller, movies); // segment 3 (center)
+    renderCardsFor(scroller, movies); // segment 4
+    renderCardsFor(scroller, movies); // segment 5
 
     scroller.dataset.infinite = "1";
 
-    // Position at middle segment after layout paints
+    // Start viewing from the center segment to allow scrolling in both directions
     requestAnimationFrame(() => {
-      const segment = scroller.scrollWidth / 3;
+      const segment = scroller.scrollWidth / 5;
       scroller.dataset.segment = String(segment);
-      scroller.scrollLeft = segment;
+      scroller.scrollLeft = segment * 2; // Position at center segment
     });
 
     let rafId = null;
@@ -61,22 +63,23 @@ function enableRowInfinite(scroller, movies) {
         rafId = null;
         const segment =
           parseFloat(scroller.dataset.segment || "0") ||
-          scroller.scrollWidth / 3;
+          scroller.scrollWidth / 5;
         const left = scroller.scrollLeft;
         const tolerance = Math.max(2, segment * 0.02);
-        const min = segment - tolerance;
-        const max = segment * 2 + tolerance;
+        const min = segment - tolerance; // Boundary near first segment
+        const max = segment * 4 + tolerance; // Boundary near last segment
 
         if (left < min) {
-          // Jump forward by one segment
+          // User scrolled too far left, jump to equivalent position further right
           const prev = scroller.style.scrollBehavior;
           scroller.style.scrollBehavior = "auto";
-          scroller.scrollLeft = left + segment;
+          scroller.scrollLeft = left + segment * 2;
           scroller.style.scrollBehavior = prev;
         } else if (left > max) {
+          // User scrolled too far right, jump to equivalent position further left
           const prev = scroller.style.scrollBehavior;
           scroller.style.scrollBehavior = "auto";
-          scroller.scrollLeft = left - segment;
+          scroller.scrollLeft = left - segment * 2;
           scroller.style.scrollBehavior = prev;
         }
       });
@@ -84,14 +87,14 @@ function enableRowInfinite(scroller, movies) {
 
     scroller.addEventListener("scroll", onScroll, { passive: true });
 
-    // Recompute segment on resize
+    // Recalculate segment size when window is resized
     const onResize = () => {
-      const segment = scroller.scrollWidth / 3;
+      const segment = scroller.scrollWidth / 5;
       scroller.dataset.segment = String(segment);
-      // Keep user in middle band when resizing to reduce edge jumps
+      // Maintain center position after resize
       const prev = scroller.style.scrollBehavior;
       scroller.style.scrollBehavior = "auto";
-      scroller.scrollLeft = segment;
+      scroller.scrollLeft = segment * 2; // Keep at center segment
       scroller.style.scrollBehavior = prev;
     };
     window.addEventListener("resize", onResize);
@@ -147,45 +150,44 @@ function createRow(title, movies, rowIndex) {
 
   addScrollListeners(leftBtn, rightBtn, scroller);
 
-  // Show/hide arrows based on overflow
+  // Show/hide scroll arrows based on content overflow
   if (scroller.scrollWidth > scroller.clientWidth) {
     leftBtn.style.display = "";
     rightBtn.style.display = "";
-    // Enable per-row horizontal infinite effect for overflowing rows
+    // Enable infinite scroll for rows that have more content than fits
     requestAnimationFrame(() => enableRowInfinite(scroller, movies));
   } else {
     leftBtn.style.display = "none";
     rightBtn.style.display = "none";
   }
 
-  // Update arrows and infinite scroll on resize
+  // Handle arrow visibility and infinite scroll when window is resized
   window.addEventListener("resize", () => {
     const wasInfinite = scroller.dataset.infinite === "1";
 
-    // Check overflow based on current state
+    // Determine if content overflows based on current scroll state
     let hasOverflow;
     if (wasInfinite) {
-      // When infinite is active, check against segment width (1/3 of scrollWidth)
-      const segment = scroller.scrollWidth / 3;
+      // When infinite scroll is active, check against individual segment width
+      const segment = scroller.scrollWidth / 5;
       hasOverflow = segment > scroller.clientWidth;
     } else {
-      // Normal overflow check
+      // Normal overflow check against total content width
       hasOverflow = scroller.scrollWidth > scroller.clientWidth;
     }
-
     if (hasOverflow) {
-      // Show arrows
+      // Show scroll arrows when content exceeds container width
       leftBtn.style.display = "";
       rightBtn.style.display = "";
-      // Enable infinite scroll if not already enabled
+      // Enable infinite scrolling if not already active
       if (!wasInfinite) {
         requestAnimationFrame(() => enableRowInfinite(scroller, movies));
       }
     } else {
-      // Hide arrows
+      // Hide scroll arrows when all content fits within container
       leftBtn.style.display = "none";
       rightBtn.style.display = "none";
-      // Disable infinite scroll if it was enabled
+      // Disable infinite scrolling if it was active
       if (wasInfinite) {
         disableRowInfinite(scroller, movies);
       }
@@ -235,10 +237,10 @@ function updateRowMovies(title, movies) {
     else if (rightBtn) wrapper.insertBefore(newScroller, rightBtn);
     else wrapper.appendChild(newScroller);
 
-    // Reattach listeners
+    // Attach scroll button event listeners
     addScrollListeners(leftBtn, rightBtn, newScroller);
 
-    // Show/hide arrows based on overflow
+    // Configure arrow visibility and infinite scroll based on content overflow
     if (newScroller.scrollWidth > newScroller.clientWidth) {
       if (leftBtn) leftBtn.style.display = "";
       if (rightBtn) rightBtn.style.display = "";
