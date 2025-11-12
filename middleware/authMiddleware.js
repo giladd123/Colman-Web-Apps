@@ -1,5 +1,5 @@
 import asyncHandler from 'express-async-handler';
-import { ApiError } from '../utils/apiError.js';
+import { errorResponse as ApiError } from '../utils/apiResponse.js';
 
 const isAuthenticated = asyncHandler(async (req, res, next) => {
   if (req.session.user) {
@@ -29,7 +29,7 @@ const isAdmin = asyncHandler(async (req, res, next) => {
   if (req.session.user && req.session.user.role === 'admin') {
     next();
   } else {
-    if (req.originalUrl.startsWith('/api')) {
+    if (req.originalUrl.startsWith('/add')) {
       throw new ApiError(403, "Forbidden: Admin access required");
     } else {
       res.redirect('/main');

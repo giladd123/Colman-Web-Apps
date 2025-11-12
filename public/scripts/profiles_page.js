@@ -413,7 +413,9 @@ async function applyAvatarSelection() {
   }
 }
 
-function saveProfile(input, img) {
+function saveProfile(input, img, profileDiv) {
+  const profileId = profileDiv.getAttribute("profileid");
+  localStorage.setItem("selectedProfileId", profileId);
   localStorage.setItem("selectedProfileName", input.value);
   localStorage.setItem("selectedProfileImage", img.src);
   if (profileDiv) {

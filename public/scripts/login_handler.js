@@ -4,14 +4,14 @@ function getProfileIfLoggedIn() {
     return;
   }
 
+  const selectedProfileId = localStorage.getItem("selectedProfileId");
   const selectedProfileName = localStorage.getItem("selectedProfileName");
   const selectedProfileImage = localStorage.getItem("selectedProfileImage");
-  const selectedProfileId = localStorage.getItem("selectedProfileId");
 
-  if (!(selectedProfileName && selectedProfileImage && selectedProfileId)) {
+  if (!(selectedProfileId && selectedProfileName && selectedProfileImage)) {
     window.location.href = "profiles";
   }
-  return [selectedProfileName, selectedProfileImage, selectedProfileId];
+  return [selectedProfileId, selectedProfileName, selectedProfileImage];
 }
 
 function logout() {

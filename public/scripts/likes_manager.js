@@ -1,7 +1,7 @@
 // Helper: get content id (prefer Mongo _id) used for server calls
 function contentIdFor(movie) {
   if (!movie) {
-    console.error('No movie object provided to contentIdFor');
+    console.error("No movie object provided to contentIdFor");
     return null;
   }
   // Always use Mongo _id for API calls
@@ -50,15 +50,15 @@ async function apiAddLike(profileName, contentId) {
         headers: { "Content-Type": "application/json" },
       }
     );
-    
+
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(error.error || 'Failed to add like');
+      throw new Error(error.error || "Failed to add like");
     }
-    
+
     return res.json();
   } catch (err) {
-    console.error('Error in apiAddLike:', err);
+    console.error("Error in apiAddLike:", err);
     throw err;
   }
 }
@@ -74,15 +74,15 @@ async function apiRemoveLike(profileName, contentId) {
         headers: { "Content-Type": "application/json" },
       }
     );
-    
+
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(error.error || 'Failed to remove like');
+      throw new Error(error.error || "Failed to remove like");
     }
-    
+
     return res.json();
   } catch (err) {
-    console.error('Error in apiRemoveLike:', err);
+    console.error("Error in apiRemoveLike:", err);
     throw err;
   }
 }
@@ -106,13 +106,13 @@ async function handleLikeClick(likeBtn, movie, entry) {
   // Determine content id used by server
   const contentId = contentIdFor(movie);
   if (!contentId) {
-    console.error('Invalid content ID for movie:', movie);
-    alert('Could not determine content ID. Please try again.');
+    console.error("Invalid content ID for movie:", movie);
+    alert("Could not determine content ID. Please try again.");
     return;
   }
 
   const profileName =
-    window.currentProfileName || localStorage.getItem("selectedProfileName");
+    window.currentProfile?.name || localStorage.getItem("selectedProfileName");
   if (!profileName) {
     // not logged in or profile not set
     alert("No profile selected.");
@@ -127,8 +127,10 @@ async function handleLikeClick(likeBtn, movie, entry) {
   const currentCount = parseInt(countEl.textContent) || 0;
 
   // Optimistic UI: toggle immediately and update count for all like buttons of this content
-  const allLikeBtns = document.querySelectorAll(`.like-btn[data-id='${contentId}']`);
-  allLikeBtns.forEach(btn => {
+  const allLikeBtns = document.querySelectorAll(
+    `.like-btn[data-id='${contentId}']`
+  );
+  allLikeBtns.forEach((btn) => {
     const btnIcon = btn.querySelector("i");
     const btnCountEl = btn.querySelector(".like-count");
     const btnCurrentCount = parseInt(btnCountEl.textContent) || 0;
@@ -223,8 +225,10 @@ async function handleLikeClick(likeBtn, movie, entry) {
 
       // Update the like count and heart for all like buttons of this content
       if (result.content) {
-        const allLikeBtns = document.querySelectorAll(`.like-btn[data-id='${contentId}']`);
-        allLikeBtns.forEach(btn => {
+        const allLikeBtns = document.querySelectorAll(
+          `.like-btn[data-id='${contentId}']`
+        );
+        allLikeBtns.forEach((btn) => {
           const btnIcon = btn.querySelector("i");
           const btnCountEl = btn.querySelector(".like-count");
           btnCountEl.textContent = result.content.popularity || 0;
