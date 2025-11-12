@@ -152,6 +152,24 @@ async function loadGenreContent(reset = false) {
       filterWatched: currentFilter,
     });
 
+    // Add profile ID if available and filtering is needed
+    if (currentFilter !== "all") {
+      const [selectedProfileId] = getProfileIfLoggedIn();
+      if (selectedProfileId) {
+        params.append("profileId", selectedProfileId);
+      } else {
+        // If no profile ID is available but user is trying to filter,
+        // reset to "all" to avoid confusion
+        console.warn(
+          "No profile ID available for filtering, showing all content"
+        );
+        currentFilter = "all";
+        params.set("filterWatched", "all");
+        // Update UI to reflect the change
+        document.getElementById("currentFilter").textContent = "All Content";
+      }
+    }
+
     const response = await fetch(
       `/genres/api/genres/${encodeURIComponent(currentGenre)}?${params}`
     );

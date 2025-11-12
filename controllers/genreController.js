@@ -2,7 +2,8 @@ import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
 import { ok, serverError } from "../utils/apiResponse.js";
-import { error as logError } from "../utils/logger.js";
+import { info, error as logError } from "../utils/logger.js";
+import mongoose from "mongoose";
 
 // Get all available genres
 export const getAllGenres = async (req, res) => {
@@ -26,6 +27,7 @@ export const getContentByGenre = async (req, res) => {
       sortBy = "popularity",
       sortOrder = "desc",
       filterWatched = "all", // 'all', 'watched', 'unwatched'
+      profileId = null, // Profile ID for filtering
     } = req.query;
 
     const limit = parseInt(process.env.GENRE_CONTENT_LIMIT || 10);
@@ -41,30 +43,53 @@ export const getContentByGenre = async (req, res) => {
       type: { $ne: "Episode" },
     };
 
-    // Get profile from session/auth if available for watch filtering
-    let profileId = null;
-    if (req.session && req.session.currentProfile) {
-      const profile = await Profile.findOne({
-        name: req.session.currentProfile,
-      });
-      if (profile) {
-        profileId = profile._id;
+    // Get profile ID for watch filtering
+    // Profile ID should be provided as a query parameter when filtering is needed
+    let validProfileId = null;
+    if (profileId && filterWatched !== "all") {
+      // Validate that profileId is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(profileId)) {
+        logError(`Invalid profileId provided for genre filter: ${profileId}`);
+        return serverError(res, "Invalid profile ID");
+      }
+
+      // Verify that the profile exists
+      try {
+        const profile = await Profile.findById(profileId);
+        if (profile) {
+          validProfileId = profile._id;
+        } else {
+          logError(`Profile not found for genre filter: ${profileId}`);
+        }
+      } catch (err) {
+        logError(`Error finding profile for genre filter: ${err.message}`);
       }
     }
 
     let content;
     let totalCount;
 
-    if (filterWatched !== "all" && profileId) {
+    if (filterWatched !== "all" && validProfileId) {
       // Get watched/completed content IDs for this profile
       const watchedHabits = await watchingHabit
         .find({
-          profileId: profileId,
+          profileId: validProfileId,
           completed: true,
         })
         .select("contentId");
 
       const watchedIds = watchedHabits.map((h) => h.contentId);
+
+      // Log for debugging
+      info(
+        `Genre filter applied: ${filterWatched} for profile ${validProfileId}, found ${watchedIds.length} watched items`,
+        {
+          genre: req.params.genre,
+          filterWatched,
+          profileId: validProfileId,
+          watchedItemsCount: watchedIds.length,
+        }
+      );
 
       if (filterWatched === "watched") {
         query._id = { $in: watchedIds };
