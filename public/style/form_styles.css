@@ -269,7 +269,7 @@ label[for="imdbAutoFill"] {
 
 /* Ensure all form inputs have white text */
 input[type="text"],
-input[type="number"], 
+input[type="number"],
 input[type="url"],
 input[type="date"],
 input[type="file"],

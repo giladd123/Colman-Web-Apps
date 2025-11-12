@@ -28,8 +28,10 @@ async function initializeApp() {
     initializeSearch();
     initializeAlphabeticalSorting();
 
-    if (loadingIndicator) loadingIndicator.style.display = "none";
+    // Check admin status and show admin menu if applicable
+    await initializeAdminUI();
 
+    if (loadingIndicator) loadingIndicator.style.display = "none";
     await initializeGenresDropdown();
   } catch (error) {
     console.error("Error initializing feed:", error);
@@ -48,108 +50,123 @@ async function initializeGenresDropdown() {
     if (!response.ok) throw new Error("Failed to fetch genres");
 
     const genres = await response.json();
-    const dropdownMenus = [
-      document.getElementById("genresDropdownMenu"),
-      document.getElementById("genresDropdownMenuMobile"),
-    ].filter(Boolean);
+    const dropdownMenu = document.getElementById("genresDropdownMenu");
 
-    dropdownMenus.forEach((menu) => {
-      if (genres.length > 0) {
-        populateGenresDropdown(menu, genres);
+    if (dropdownMenu && genres.length > 0) {
+      dropdownMenu.innerHTML = "";
+
+      // If there are many genres, organize them in columns
+      if (genres.length > 12) {
+        // Create a multi-column layout
+        const columnsContainer = document.createElement("div");
+        columnsContainer.className = "row g-0";
+        columnsContainer.style.minWidth = "400px";
+        columnsContainer.style.maxWidth = "600px";
+
+        const itemsPerColumn = Math.ceil(genres.length / 3);
+        const columns = [[], [], []];
+
+        // Distribute genres across columns
+        genres.forEach((genre, index) => {
+          columns[Math.floor(index / itemsPerColumn)].push(genre);
+        });
+
+        columns.forEach((columnGenres, columnIndex) => {
+          if (columnGenres.length > 0) {
+            const col = document.createElement("div");
+            col.className = "col-4";
+
+            columnGenres.forEach((genre) => {
+              const a = document.createElement("a");
+              a.className = "dropdown-item text-white";
+              a.href = `/genres/${encodeURIComponent(genre)}`;
+              a.textContent = genre;
+              a.style.padding = "0.25rem 0.75rem";
+              a.style.fontSize = "0.9rem";
+              col.appendChild(a);
+            });
+
+            columnsContainer.appendChild(col);
+          }
+        });
+
+        const li = document.createElement("li");
+        li.appendChild(columnsContainer);
+        dropdownMenu.appendChild(li);
       } else {
-        renderEmptyGenresMenu(menu, "No genres available");
+        // Regular single column layout for fewer genres
+        genres.forEach((genre) => {
+          const li = document.createElement("li");
+          const a = document.createElement("a");
+          a.className = "dropdown-item text-white";
+          a.href = `/genres/${encodeURIComponent(genre)}`;
+          a.textContent = genre;
+          li.appendChild(a);
+          dropdownMenu.appendChild(li);
+        });
       }
-    });
+    } else if (dropdownMenu) {
+      dropdownMenu.innerHTML =
+        '<li><a class="dropdown-item text-white" href="#">No genres available</a></li>';
+    }
   } catch (error) {
     console.error("Error fetching genres:", error);
-    const dropdownMenus = [
-      document.getElementById("genresDropdownMenu"),
-      document.getElementById("genresDropdownMenuMobile"),
-    ].filter(Boolean);
-    dropdownMenus.forEach((menu) => {
-      renderEmptyGenresMenu(menu, "Error loading genres");
-    });
+    const dropdownMenu = document.getElementById("genresDropdownMenu");
+    if (dropdownMenu) {
+      dropdownMenu.innerHTML =
+        '<li><a class="dropdown-item text-white" href="#">Error loading genres</a></li>';
+    }
   }
 }
 
-function updateHelloMessages(profileName) {
-  const safeName = profileName || "";
-  const messages = document.querySelectorAll(
-    "#helloMessage, #helloMessageMobile"
-  );
-  messages.forEach((el) => {
-    el.innerText = `Hello, ${safeName}`;
-  });
-}
+// Check if current user is admin and show admin menu
+async function checkAndShowAdminMenu() {
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
 
-function populateGenresDropdown(menu, genres) {
-  if (!menu) return;
-  menu.innerHTML = "";
+    const response = await fetch(`/api/user/${userId}`);
+    if (!response.ok) return;
 
-  if (genres.length > 12) {
-    const columnsContainer = document.createElement("div");
-    columnsContainer.className = "row g-0";
-    columnsContainer.style.minWidth = "400px";
-    columnsContainer.style.maxWidth = "600px";
+    const user = await response.json();
 
-    const itemsPerColumn = Math.ceil(genres.length / 3);
-    const columns = [[], [], []];
-
-    genres.forEach((genre, index) => {
-      columns[Math.floor(index / itemsPerColumn)].push(genre);
-    });
-
-    const useCondensedLayout = true;
-
-    columns.forEach((columnGenres) => {
-      if (columnGenres.length === 0) return;
-      const col = document.createElement("div");
-      col.className = "col-4";
-
-      columnGenres.forEach((genre) => {
-        const link = createGenreLink(genre, menu.id === "genresDropdownMenuMobile", {
-          condensed: useCondensedLayout,
-        });
-        col.appendChild(link);
-      });
-
-      columnsContainer.appendChild(col);
-    });
-
-    const li = document.createElement("li");
-    li.appendChild(columnsContainer);
-    menu.appendChild(li);
-    return;
+    // Show admin menu if user is admin by username or isAdmin flag
+    if (user.username === "bashari" || user.isAdmin) {
+      const adminNavItem = document.getElementById("adminNavItem");
+      if (adminNavItem) {
+        adminNavItem.style.display = "block";
+      }
+    }
+  } catch (error) {
+    console.error("Error checking admin status:", error);
   }
-
-  const useCondensedLayout = genres.length > 12;
-
-  genres.forEach((genre) => {
-    const li = document.createElement("li");
-    const link = createGenreLink(genre, menu.id === "genresDropdownMenuMobile", {
-      condensed: useCondensedLayout,
-    });
-    li.appendChild(link);
-    menu.appendChild(li);
-  });
 }
 
-function renderEmptyGenresMenu(menu, message) {
-  if (!menu) return;
-  menu.innerHTML = `<li><a class="dropdown-item text-white" href="#">${message}</a></li>`;
-}
+// Standalone function to check admin status and show admin dropdown - can be called from any page
+async function initializeAdminUI() {
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return false;
 
-function createGenreLink(genre, shouldDismissOffcanvas, options = {}) {
-  const a = document.createElement("a");
-  a.className = "dropdown-item text-white";
-  a.href = `/genres/${encodeURIComponent(genre)}`;
-  a.textContent = genre;
-  if (options.condensed) {
-    a.style.padding = "0.25rem 0.75rem";
-    a.style.fontSize = "0.9rem";
-  }
-  if (shouldDismissOffcanvas) {
-    a.setAttribute("data-offcanvas-close", "");
+    const response = await fetch(`/api/user/${userId}`);
+    if (!response.ok) return false;
+
+    const user = await response.json();
+
+    // Check if user is admin
+    const isAdmin = user.username === "bashari" || user.isAdmin;
+
+    if (isAdmin) {
+      const adminNavItem = document.getElementById("adminNavItem");
+      if (adminNavItem) {
+        adminNavItem.style.display = "block";
+      }
+    }
+
+    return isAdmin;
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    return false;
   }
   return a;
 }

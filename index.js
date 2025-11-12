@@ -55,6 +55,12 @@ app.get("/my-list", (req, res) => {
   res.render("my_list");
 });
 
+// Admin edit page (renders the edit_content view for UI/testing)
+// Passing an empty content object and genres array so the template can render safely
+app.get("/admin/edit", (req, res) => {
+  res.render("edit_content", { content: {}, genres: [] });
+});
+
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
 app.use("/api/habits", habitsRoutes);

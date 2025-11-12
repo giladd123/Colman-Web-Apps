@@ -1,5 +1,6 @@
 import Content from "../models/content.js";
 import Show from "../models/show.js";
+import Episode from "../models/episode.js";
 import { uploadFromMultipart } from "../config/media.js";
 import {
   normalizeFormData,
@@ -343,5 +344,95 @@ export async function updateContent(req, res) {
       ? err.message
       : "Server error while updating content.";
     res.render("upload_fail", { message, isDuplicate: false });
+  }
+}
+
+// Delete content
+export async function deleteContent(req, res) {
+  try {
+    const { id } = req.params;
+    const existingContent = await Content.findById(id);
+
+    if (!existingContent) {
+      return res.status(404).render("upload_fail", {
+        message: "Content not found",
+        isDuplicate: false,
+      });
+    }
+
+    // Check if this is an episode and handle show seasons cleanup
+    if (existingContent.type === "Episode") {
+      // Find the parent show and remove this episode from its seasons
+      const show = await Show.findOne({
+        title: new RegExp(`^${existingContent.title}$`, "i"),
+      });
+
+      if (show) {
+        const seasonsMap =
+          show.seasons instanceof Map
+            ? show.seasons
+            : new Map(Object.entries(show.seasons || {}));
+
+        const seasonKey = String(existingContent.seasonNumber);
+        if (seasonsMap.has(seasonKey)) {
+          const episodes = seasonsMap.get(seasonKey);
+          const filteredEpisodes = episodes.filter(
+            (epId) => epId.toString() !== id
+          );
+
+          if (filteredEpisodes.length > 0) {
+            seasonsMap.set(seasonKey, filteredEpisodes);
+          } else {
+            seasonsMap.delete(seasonKey);
+          }
+
+          show.seasons = seasonsMap;
+          await show.save();
+        }
+      }
+    }
+
+    // Check if this is a show and delete all associated episodes
+    if (existingContent.type === "Show") {
+      await Episode.deleteMany({
+        title: new RegExp(`^${existingContent.title}$`, "i"),
+      });
+    }
+
+    // Delete the content
+    await Content.findByIdAndDelete(id);
+
+    // Log successful content deletion
+    logInfo(
+      `${existingContent.type || "Content"} "${
+        existingContent.title
+      }" deleted successfully`,
+      {
+        contentId: id,
+        type: existingContent.type,
+        title: existingContent.title,
+      },
+      true
+    );
+
+    return res.json(
+      apiResponse.success({
+        message: `${existingContent.type || "Content"} deleted successfully!`,
+      })
+    );
+  } catch (err) {
+    // Log failed content deletion
+    logError(
+      `Failed to delete content: ${err.message}`,
+      {
+        stack: err.stack,
+        contentId: req.params.id,
+      },
+      true
+    );
+
+    return res
+      .status(500)
+      .json(apiResponse.error("Server error while deleting content"));
   }
 }

@@ -1,3 +1,44 @@
+// --- Admin Verification ---
+async function checkAdminAccess() {
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    alert("Please log in to access admin functions.");
+    window.location.href = "/login";
+    return false;
+  }
+
+  try {
+    const response = await fetch(`/api/user/${userId}`);
+    if (!response.ok) {
+      throw new Error("User not found");
+    }
+
+    const user = await response.json();
+
+    // Check if user is admin (using 'bashari' as admin username)
+    if (user.username !== "bashari" && !user.isAdmin) {
+      alert("Admin access required. You will be redirected to the main page.");
+      window.location.href = "/feed";
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error checking admin access:", error);
+    alert("Error verifying admin access. Please log in again.");
+    window.location.href = "/login";
+    return false;
+  }
+}
+
+// Check admin access when page loads
+document.addEventListener("DOMContentLoaded", async () => {
+  const hasAccess = await checkAdminAccess();
+  if (hasAccess) {
+    restoreFormData();
+  }
+});
+
 // --- Cached DOM Elements ---
 const form = document.querySelector("form");
 const typeSelect = form.querySelector('select[name="type"]');
@@ -168,8 +209,11 @@ function isValidUrl(url) {
 async function checkShowExists(showTitle) {
   if (!showTitle.trim()) return false;
   try {
+    const userId = localStorage.getItem("userId");
     const res = await fetch(
-      `/admin/fetch-imdb?title=${encodeURIComponent(showTitle)}&type=series`
+      `/admin/fetch-imdb?title=${encodeURIComponent(
+        showTitle
+      )}&type=series&userId=${userId}`
     );
     const data = await res.json();
     return !data.error;
@@ -339,6 +383,10 @@ imdbCheckbox.addEventListener("change", async () => {
       seasonField.value
     )}&episode=${encodeURIComponent(episodeField.value)}`;
 
+  // Add userId to query
+  const userId = localStorage.getItem("userId");
+  query += `&userId=${userId}`;
+
   try {
     const res = await fetch(`/admin/fetch-imdb${query}`);
     const data = await res.json();
@@ -488,9 +536,6 @@ function restoreFormData() {
   sessionStorage.removeItem("addContentFormData");
 }
 
-// Load saved data when page loads
-document.addEventListener("DOMContentLoaded", restoreFormData);
-
 // --- Form Submission ---
 form.addEventListener("submit", async (e) => {
   e.preventDefault(); // immediately stop default submission
@@ -597,6 +642,37 @@ form.addEventListener("submit", async (e) => {
   // Copy genres to hidden fields
   copyGenresToHidden();
 
+  // Add userId to form for admin validation - ensure this happens right before submission
+  const userId = localStorage.getItem("userId");
+  if (userId) {
+    // Remove any existing userId input first
+    const existingUserIdInputs = form.querySelectorAll('input[name="userId"]');
+    existingUserIdInputs.forEach((input) => input.remove());
+
+    // Create new hidden input for userId
+    const userIdInput = document.createElement("input");
+    userIdInput.type = "hidden";
+    userIdInput.name = "userId";
+    userIdInput.value = userId;
+
+    // Insert at the very beginning of the form
+    form.insertBefore(userIdInput, form.firstChild);
+
+    console.log("Added userId to form just before submission:", userId);
+
+    // Verify it was added by checking form data
+    const formData = new FormData(form);
+    if (formData.has("userId")) {
+      console.log("Verified: userId is in form data:", formData.get("userId"));
+    } else {
+      console.error("ERROR: userId was not properly added to form data");
+    }
+  } else {
+    console.error("No userId found in localStorage for admin validation");
+    alert("Admin session expired. Please refresh the page and log in again.");
+    return;
+  }
+
   // Save form data before submission
   saveFormData();
 
@@ -626,11 +702,13 @@ if (deleteBtn) {
       deleteBtn.disabled = true;
       deleteBtn.textContent = "Deleting...";
 
+      const userId = localStorage.getItem("userId");
       const response = await fetch(`/admin/delete/${contentId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ userId: userId }),
       });
 
       const result = await response.json();
