@@ -32,21 +32,49 @@ document.addEventListener("DOMContentLoaded", async function () {
   try {
     const profileData = getProfileIfLoggedIn();
     if (profileData) {
-      const [selectedProfileName, selectedProfileImage] = profileData;
-      const profileName = selectedProfileName || "";
+      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
+        profileData;
 
-      const helloMessage = document.getElementById("helloMessage");
-      if (helloMessage) {
-        helloMessage.innerText = `Hello, ${profileName}`;
+      // Update hello messages using the utility function
+      if (typeof updateHelloMessages === "function") {
+        updateHelloMessages(selectedProfileName);
+      } else {
+        // Fallback if utils.js is not loaded
+        const helloMessage = document.getElementById("helloMessage");
+        const helloMessageMobile =
+          document.getElementById("helloMessageMobile");
+        const greeting = selectedProfileName
+          ? `Hello, ${selectedProfileName}`
+          : "Hello";
+
+        if (helloMessage) {
+          helloMessage.textContent = greeting;
+        }
+        if (helloMessageMobile) {
+          helloMessageMobile.textContent = greeting;
+        }
       }
 
+      // Update profile images
       const profileImg = document.getElementById("currentProfileImg");
       if (profileImg && selectedProfileImage) {
         profileImg.src = selectedProfileImage;
       }
+
+      const profileImgMobile = document.getElementById(
+        "currentProfileImgMobile"
+      );
+      if (profileImgMobile && selectedProfileImage) {
+        profileImgMobile.src = selectedProfileImage;
+      }
     }
   } catch (error) {
     console.error("Error setting up profile information:", error);
+  }
+
+  // Initialize admin UI and show admin dropdown
+  if (typeof initializeAdminUI === "function") {
+    await initializeAdminUI();
   }
 
   // Initialize genres dropdown if the function exists
