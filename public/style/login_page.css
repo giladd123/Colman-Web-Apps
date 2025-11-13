@@ -338,3 +338,65 @@ textarea[readonly]:hover {
 .btn-secondary:hover {
   background-color: #444;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 576px) {
+  .netflix-logo {
+    font-size: 1.8rem;
+  }
+
+  .login-container {
+    padding: 1.5rem;
+    max-width: 100%;
+    margin: 0 1rem;
+  }
+
+  .login-container h1 {
+    font-size: 1.75rem;
+  }
+
+  .form-control {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-netflix {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .remember-me,
+  .help-links,
+  .signup-link {
+    font-size: 0.85rem;
+  }
+
+  .row.justify-content-center {
+    margin: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .login-container {
+    padding: 1rem;
+    margin: 0 0.5rem;
+  }
+
+  .netflix-logo {
+    font-size: 1.5rem;
+  }
+
+  .login-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-control {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .btn-netflix {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}
