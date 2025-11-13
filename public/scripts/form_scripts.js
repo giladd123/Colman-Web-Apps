@@ -15,8 +15,8 @@ async function checkAdminAccess() {
 
     const user = await response.json();
 
-    // Check if user is admin (using 'bashari' as admin username)
-    if (user.username !== "bashari" && !user.isAdmin) {
+    // Check if user is admin
+    if (user.username !== "admin" && !user.isAdmin) {
       alert("Admin access required. You will be redirected to the main page.");
       window.location.href = "/feed";
       return false;

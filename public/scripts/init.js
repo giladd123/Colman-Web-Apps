@@ -162,8 +162,8 @@ async function checkAndShowAdminMenu() {
 
     const user = await response.json();
 
-    // Show admin menu if user is admin by username or isAdmin flag
-    if (user.username === "bashari" || user.isAdmin) {
+    // Show admin menu if user is admin
+    if (user.username === "admin" || user.isAdmin) {
       const adminNavItem = document.getElementById("adminNavItem");
       if (adminNavItem) {
         adminNavItem.style.display = "block";
@@ -190,7 +190,7 @@ async function initializeAdminUI() {
     const user = await response.json();
 
     // Check if user is admin
-    const isAdmin = user.username === "bashari" || user.isAdmin;
+    const isAdmin = user.username === "admin" || user.isAdmin;
 
     if (isAdmin) {
       const adminNavItem = document.getElementById("adminNavItem");
