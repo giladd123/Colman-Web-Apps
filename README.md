@@ -1,21 +1,21 @@
-# Streaming Web Application
+# About This Web Application
 
 A full-stack Netflix-like streaming platform built with Node.js, Express, MongoDB, and EJS. It implements user management, content discovery, personalized recommendations, and viewing habits tracking.
 
-*This project was developed as part of the Colman Web Applications course.*
+*This project was developed as part of a Web Applications course.*
 
 **Authors**: Gilad Tidhar, Rotem Batstein and Shani Bashari
 
 ## Features
 
 - **User Authentication & Profile Management**: Multi-user support with individual profiles per account
-- **Content Management**: Movies and TV shows with detailed metadata, genres, and ratings
-- **Personalized Feed**: Dynamic content recommendations based on user preferences and viewing history, including dedicated movie/show views.
+- **Content Management**: Movies and TV shows with detailed information like metadata, genres, and ratings
+- **Personalized Feed**: Dynamic content recommendations based on user preferences and watching history, including dedicated movie/show views.
 - **Viewing Habits**: Track what users watch, like, and add to their watchlist
-- **Genre-Based Discovery**: Browse content by genres with advanced filtering (watched/unwatched) and sorting by popularity, rating and relese date.
+- **Genre-Based Filtering**: Browse content by genres with advanced filtering (watched/unwatched) and sorting by popularity, rating and relese date.
 - **Search Functionality**: Find content across the entire database
 - **Admin Panel**: Content upload and management capabilities
-- **Responsive Design**: Mobile-friendly interface with Netflix-like UI/UX
+- **Responsive Design**: Mobile-friendly interface with Netflix-like design
 - **Cloud Storage**: AWS S3 integration for media assets
 - **External API Integration**: OMDB API for movie/TV show metadata
 
@@ -26,7 +26,7 @@ A full-stack Netflix-like streaming platform built with Node.js, Express, MongoD
 - **Frontend**: EJS templating, Bootstrap 5, Vanilla JavaScript
 - **Cloud Storage**: AWS S3
 - **External APIs**: OMDB API for content metadata
-- **Authentication**: bcrypt for password hashing
+- **Authentication**: bcrypt for password hashing, exspress-session for session management
 - **File Processing**: Multer, Sharp for image handling
 
 ## Installation & Setup
@@ -85,18 +85,18 @@ The application will be available at `http://localhost:8000`
 ├── config/                     # Configuration files
 │   ├── db.js                   # MongoDB connection
 │   └── media.js                # AWS S3 setup
-├── controllers/                # Business logic and API handlers
+├── controllers/                # API handlers and DB information handeling 
 │   ├── contentController.js    # Admin CRUD and validation helpers
 │   ├── feedController.js       # Personalized recommendations & catalog feed
 │   ├── genreController.js      # Genre filtering & browsing
 │   ├── imdbController.js       # IMDb/OMDb integration helpers
 │   └── ...                     # Habits, likes, profiles, users, etc.
 ├── middleware/                 # Express middleware
-│   ├── auth.js                 # Session redirect helpers
+│   ├── auth.js                 # Session redirect checks
 │   ├── authMiddleware.js       # Session/auth checks
 │   ├── errorHandler.js         # Global error handling
 │   ├── imdbErrorHandler.js     # OMDb-specific error handling
-│   ├── loadProfile.js          # Inject active profile into requests
+│   ├── loadProfile.js          # Include active profile in requests
 │   ├── validateAdmin.js        # Admin gatekeeping
 │   ├── validateUser.js         # User payload validation
 │   └── ...                     # Additional profile/habit validators
@@ -114,10 +114,11 @@ The application will be available at `http://localhost:8000`
 ├── views/                      # EJS templates
 │   ├── feed.ejs                # Main dashboard
 │   ├── genre.ejs               # Genre browsing page
+|   |__ ...                     # Other reqires pages like adding content page, selecting content page etc.
 │   └── partials/               # Reusable template components
 ├── utils/                      # Helper utilities
 │   ├── apiResponse.js          # Standardized responses
-│   └── logger.js               # Application logging
+│   └── logger.js               # Standardized Application logging
 └── index.js                    # Application entry point
 ```
 
@@ -127,6 +128,7 @@ The application will be available at `http://localhost:8000`
 - User registration and authentication
 - Multiple profiles per user account
 - Profile avatar management with S3 storage
+- Statistics page with habits statics for each profile
 
 ### Content Discovery
 - **Main Feed**: Personalized recommendations based on viewing history
@@ -149,7 +151,7 @@ The application will be available at `http://localhost:8000`
 - **Responsive Design**: Works on desktop and mobile devices
 - **Error Handling**: Comprehensive error logging and user feedback
 - **Performance**: Pagination and lazy loading for large datasets
-- **Security**: Input validation and secure password handling
+- **Security**: Input validation, secure password, authentication and authorization handling 
 
 ## API Endpoints
 
