@@ -15,8 +15,8 @@ async function checkAdminAccess() {
 
     const user = await response.json();
 
-    // Check if user is admin (using 'bashari' as admin username)
-    if (user.username !== "bashari" && !user.isAdmin) {
+    // Check if user is admin
+    if (user.username !== "admin" && !user.isAdmin) {
       alert("Admin access required. You will be redirected to the main page.");
       window.location.href = "/feed";
       return false;
@@ -220,6 +220,55 @@ async function checkShowExists(showTitle) {
   } catch (err) {
     console.error(err);
     return false;
+  }
+}
+
+function extractContentIdFromAction() {
+  const actionAttr = form.getAttribute("action") || "";
+  const match = actionAttr.match(/\/edit\/(.+)$/);
+  return match ? match[1] : "";
+}
+
+function ensureFormContentId(contentId) {
+  if (!contentId) return;
+  form.dataset.contentId = contentId;
+  form.setAttribute("action", `/admin/edit/${contentId}`);
+}
+
+const initialContentId = extractContentIdFromAction();
+if (initialContentId) ensureFormContentId(initialContentId);
+
+function getCurrentContentId() {
+  return form.dataset.contentId || extractContentIdFromAction();
+}
+
+// Check if content exists in the database (for edit form validation)
+async function checkContentExists(type, title, seasonNumber, episodeNumber) {
+  if (!type || !title.trim()) return { exists: false, contentId: null };
+  try {
+    const userId = localStorage.getItem("userId");
+    let url = `/admin/check-content?type=${encodeURIComponent(
+      type
+    )}&title=${encodeURIComponent(title)}&userId=${userId}`;
+
+    // Add season and episode number for episodes
+    if (type === "episode" && seasonNumber && episodeNumber) {
+      url += `&seasonNumber=${seasonNumber}&episodeNumber=${episodeNumber}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.success && data.data) {
+      return {
+        exists: Boolean(data.data.exists),
+        contentId: data.data.contentId || null,
+      };
+    }
+    return { exists: false, contentId: null };
+  } catch (err) {
+    console.error("Error checking content existence:", err);
+    return { exists: false, contentId: null };
   }
 }
 
@@ -562,7 +611,11 @@ form.addEventListener("submit", async (e) => {
     valid = false;
   }
 
-  if ((type === "movie" || type === "show") && !descriptionField.value.trim()) {
+  if (
+    !isEditForm &&
+    (type === "movie" || type === "show") &&
+    !descriptionField.value.trim()
+  ) {
     showError(descriptionField, "Description is required");
     valid = false;
   }
@@ -581,7 +634,8 @@ form.addEventListener("submit", async (e) => {
       }
     }
 
-    if (!episodeTitleField.value.trim()) {
+    // Episode title is only required for new episodes (add form)
+    if (!isEditForm && !episodeTitleField.value.trim()) {
       showError(episodeTitleField, "Episode title is required");
       valid = false;
     }
@@ -638,6 +692,33 @@ form.addEventListener("submit", async (e) => {
 
   // Stop submission if invalid
   if (!valid) return;
+
+  // For edit forms, check if the content exists in the database
+  if (isEditForm && type && titleField.value.trim()) {
+    const seasonField = form.querySelector('input[name="seasonNumber"]');
+    const episodeField = form.querySelector('input[name="episodeNumber"]');
+
+    const contentInfo = await checkContentExists(
+      type,
+      titleField.value,
+      seasonField?.value,
+      episodeField?.value
+    );
+
+    if (!contentInfo.exists) {
+      let errorMessage = `No ${type} found with title "${titleField.value}"`;
+
+      if (type === "episode" && seasonField?.value && episodeField?.value) {
+        errorMessage = `No episode found with title "${titleField.value}", season ${seasonField.value}, episode ${episodeField.value}`;
+      }
+
+      // Show error on title field
+      showError(titleField, errorMessage);
+      return; // Stop submission
+    }
+
+    ensureFormContentId(contentInfo.contentId);
+  }
 
   // Copy genres to hidden fields
   copyGenresToHidden();
@@ -712,6 +793,31 @@ if (deleteBtn) {
       return;
     }
 
+    // Check if the content exists in the database
+    const seasonField = form.querySelector('input[name="seasonNumber"]');
+    const episodeField = form.querySelector('input[name="episodeNumber"]');
+
+    const contentInfo = await checkContentExists(
+      type,
+      titleField.value,
+      seasonField?.value,
+      episodeField?.value
+    );
+
+    if (!contentInfo.exists) {
+      let errorMessage = `No ${type} found with title "${titleField.value}"`;
+
+      if (type === "episode" && seasonField?.value && episodeField?.value) {
+        errorMessage = `No episode found with title "${titleField.value}", season ${seasonField.value}, episode ${episodeField.value}`;
+      }
+
+      // Show error on title field
+      showError(titleField, errorMessage);
+      return; // Stop deletion
+    }
+
+    ensureFormContentId(contentInfo.contentId);
+
     const contentTitle = titleField.value || "this content";
     const contentType = typeSelect.value || "content";
 
@@ -775,7 +881,20 @@ if (deleteBtn) {
       }
 
       // Get content ID from the form action URL
-      const contentId = form.action.split("/").pop();
+      let contentId = getCurrentContentId();
+
+      if (!contentId && contentInfo.contentId) {
+        ensureFormContentId(contentInfo.contentId);
+        contentId = contentInfo.contentId;
+      }
+
+      if (!contentId) {
+        errorMsg.textContent = "Unable to determine content id for deletion.";
+        confirmBtn.disabled = false;
+        cancelBtn.disabled = false;
+        confirmBtn.textContent = "Delete";
+        return;
+      }
 
       try {
         confirmBtn.disabled = true;
@@ -795,9 +914,9 @@ if (deleteBtn) {
 
         if (result.success) {
           modal.remove();
-          alert(result.data.message || "Content deleted successfully!");
-          // Redirect to feed page
-          window.location.href = "/feed";
+          const redirectUrl =
+            result.redirect || result.data?.redirect || "/admin/delete-success";
+          window.location.href = redirectUrl;
         } else {
           errorMsg.textContent = result.error || "Failed to delete content";
           confirmBtn.disabled = false;

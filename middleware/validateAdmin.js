@@ -47,7 +47,7 @@ export async function validateAdminUser(req, res, next) {
     }
 
     // Check if user is admin by username or isAdmin flag
-    if (user.username !== "bashari" && !user.isAdmin) {
+    if (user.username !== "admin" && !user.isAdmin) {
       warn("validateAdminUser - access denied", {
         userId: user._id,
         username: user.username,
@@ -81,7 +81,7 @@ export async function checkAdminStatus(req, res, next) {
     }
 
     const user = await User.findById(userId);
-    req.isAdmin = user && (user.username === "bashari" || user.isAdmin);
+    req.isAdmin = user && (user.username === "admin" || user.isAdmin);
     req.currentUser = user;
 
     return next();

@@ -24,7 +24,7 @@
                     style="background-color: #1a3d47; border: 2px solid #17a2b8; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
                     <h4
                         style="color: #17a2b8; margin: 0 0 0.5rem 0; text-align: center;">
-                        <i style="color: #28a745;">✅</i> Content Found!
+                        <i style="color: #28a745;"></i> Content Found!
                     </h4>
                     <p style="color: #ccc; margin: 0; text-align: center;">
                         <%= message %>
@@ -44,8 +44,7 @@
                 <% if (locals.isDuplicate) { %>
                 <p
                     style="text-align: center; color: #ffa500; margin-top: 1rem; font-size: 0.9rem;">
-                    <strong>Good news!</strong> This content is already in your
-                    database.<br>
+                    This content already exists.<br>
                     Click "Edit Existing Content" below to modify it directly.
                 </p>
                 <% } %>
@@ -56,7 +55,7 @@
                     <a href="/admin/edit/<%= locals.existingContentId %>"
                         class="btn-primary"
                         style="background: linear-gradient(45deg, #e50914, #ff6b35); padding: 1.2rem; text-align: center; font-weight: bold; font-size: 1.2rem; border-radius: 8px; text-decoration: none; display: block; color: white; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3); transition: all 0.3s ease;">
-                        🎬 Edit This Content Now ➡️</a>
+                        Edit This Content Now </a>
                     <a href="/admin/add-content" class="btn-secondary">Add
                         Different Content</a>
                     <a href="/feed" class="btn-secondary">Back to Feed</a>

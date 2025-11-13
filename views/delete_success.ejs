@@ -8,19 +8,24 @@
     ] }) %>
 
     <body>
-        <%- include('partials/navbar') %>
+        <%- include('partials/navbar', { activeNav: 'admin' }) %>
         <div class="login-container">
             <div class="login-form">
-                <h2 class="text-white mb-4">Content Uploaded Successfully!</h2>
+                <h2 class="text-white mb-4"><%= message ||
+                    'Content deleted successfully!' %></h2>
                 <p style="text-align: center; color: #ccc; margin-top: 1rem;">
-                    Your new movie or show has been added.
+                    <% if (title && title.trim()) { %>
+                    <%= type || 'Content' %> "<%= title %>" has been removed.
+                    <% } else { %>
+                    The selected content has been removed.
+                    <% } %>
                 </p>
 
                 <div
                     style="display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem;">
-                    <a href="/feed" class="btn-primary">Go to Feed</a>
-                    <a href="/admin/add-content" class="btn-secondary">Upload
-                        Another</a>
+                    <a href="/feed" class="btn-primary">Return to Feed</a>
+                    <a href="/admin/edit" class="btn-secondary">Manage More
+                        Content</a>
                 </div>
             </div>
         </div>

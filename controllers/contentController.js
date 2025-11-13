@@ -11,7 +11,11 @@ import {
 import { checkForDuplicates } from "./contentValidation.js";
 import { createMovie, createShow, createEpisode } from "./contentCreators.js";
 import apiResponse from "../utils/apiResponse.js";
-import { info as logInfo, error as logError } from "../utils/logger.js";
+import {
+  info as logInfo,
+  error as logError,
+  warn as logWarn,
+} from "../utils/logger.js";
 
 // Render the "Add Content" page
 export const showAddForm = async (req, res) => {
@@ -54,6 +58,67 @@ export const showEditForm = async (req, res) => {
       message: "Error loading edit form",
       isDuplicate: false,
     });
+  }
+};
+
+// Render delete success screen
+export const showDeleteSuccess = (req, res) => {
+  const { title = "", type = "Content" } = req.query;
+  const displayType = type || "Content";
+
+  res.render("delete_success", {
+    message: `${displayType} deleted successfully!`,
+    title,
+    type: displayType,
+  });
+};
+
+// Check if content exists based on type, title, and for episodes - season and episode number
+export const checkContentExists = async (req, res) => {
+  try {
+    const { type, title, seasonNumber, episodeNumber } = req.query;
+
+    if (!type || !title) {
+      return apiResponse.badRequest(res, "Type and title are required");
+    }
+
+    let query = {
+      title: { $regex: new RegExp(`^${title}$`, "i") }, // Case-insensitive exact match
+    };
+
+    // For episodes, also check season and episode number
+    if (type === "episode") {
+      if (!seasonNumber || !episodeNumber) {
+        return apiResponse.badRequest(
+          res,
+          "Season and episode number are required for episodes"
+        );
+      }
+      query.seasonNumber = Number(seasonNumber);
+      query.episodeNumber = Number(episodeNumber);
+    } else {
+      // For movies and shows, filter by type
+      query.type = type.charAt(0).toUpperCase() + type.slice(1);
+    }
+
+    const content = await Content.findOne(query);
+
+    if (content) {
+      return apiResponse.ok(res, {
+        success: true,
+        data: { exists: true, contentId: content._id },
+      });
+    } else {
+      return apiResponse.ok(res, {
+        success: true,
+        data: { exists: false },
+      });
+    }
+  } catch (err) {
+    logError(`Error checking content existence: ${err.message}`, {
+      stack: err.stack,
+    });
+    return apiResponse.serverError(res, "Error checking content existence");
   }
 };
 
@@ -170,6 +235,15 @@ export async function updateContent(req, res) {
 
     // Normalize form data
     const data = normalizeFormData(req);
+    const { userId } = req.body || {};
+
+    logInfo(`Update requested for "${existingContent.title}"`, {
+      contentId: id,
+      existingType: existingContent.type,
+      requestedType: data.type,
+      title: data.title,
+      userId: userId || req.adminUser?._id?.toString(),
+    });
 
     // Check if title/identifying info changed and would create a duplicate
     if (
@@ -188,6 +262,13 @@ export async function updateContent(req, res) {
       );
 
       if (duplicateContent && duplicateContent._id.toString() !== id) {
+        logWarn("Update blocked due to duplicate content", {
+          attemptedTitle: data.title,
+          attemptedSeason: data.seasonNumber,
+          attemptedEpisode: data.episodeNumber,
+          duplicateId: duplicateContent._id,
+          requestId: id,
+        });
         const contentTypeDisplay =
           data.type.charAt(0).toUpperCase() + data.type.slice(1);
         let duplicateMessage;
@@ -235,42 +316,77 @@ export async function updateContent(req, res) {
       runtimeMinutes = imdbData.runtimeMinutes || runtimeMinutes;
     }
 
-    // Update content based on type
-    const updateData = {
-      title: data.title,
-      description:
-        data.type === "episode"
-          ? data.episodeDescription || existingContent.description
-          : data.description,
-      posterUrl: data.posterUrl || existingContent.posterUrl,
-      releaseYear: data.parsedYear || existingContent.releaseYear,
-      director: data.director || existingContent.director,
-      actors:
-        data.normalizedActors.length > 0
-          ? data.normalizedActors
-          : existingContent.actors,
-      genres:
-        data.normalizedGenres.length > 0
-          ? data.normalizedGenres
-          : existingContent.genres,
-      imdbRating: imdbRating,
-    };
+    // Update content based on type - only update fields that have values
+    const updateData = {};
 
+    // Update title if provided
+    if (data.title && data.title.trim()) {
+      updateData.title = data.title;
+    }
+
+    // Update description if provided
     if (data.type === "episode") {
-      updateData.episodeTitle =
-        data.episodeTitle || existingContent.episodeTitle;
-      updateData.seasonNumber =
-        Number(data.seasonNumber) || existingContent.seasonNumber;
-      updateData.episodeNumber =
-        Number(data.episodeNumber) || existingContent.episodeNumber;
-      updateData.releaseDate = data.releaseDate
-        ? new Date(data.releaseDate)
-        : existingContent.releaseDate;
-      if (data.videoPath) updateData.videoUrl = data.videoPath;
-      updateData.lengthMinutes = runtimeMinutes;
+      if (data.episodeDescription && data.episodeDescription.trim()) {
+        updateData.description = data.episodeDescription;
+      }
+    } else {
+      if (data.description && data.description.trim()) {
+        updateData.description = data.description;
+      }
+    }
+
+    // Update other fields only if provided
+    if (data.posterUrl && data.posterUrl.trim()) {
+      updateData.posterUrl = data.posterUrl;
+    }
+
+    if (data.parsedYear) {
+      updateData.releaseYear = data.parsedYear;
+    }
+
+    if (data.director && data.director.trim()) {
+      updateData.director = data.director;
+    }
+
+    if (data.normalizedActors && data.normalizedActors.length > 0) {
+      updateData.actors = data.normalizedActors;
+    }
+
+    if (data.normalizedGenres && data.normalizedGenres.length > 0) {
+      updateData.genres = data.normalizedGenres;
+    }
+
+    if (imdbRating !== undefined && imdbRating !== null) {
+      updateData.imdbRating = imdbRating;
+    }
+
+    // Type-specific updates
+    if (data.type === "episode") {
+      if (data.episodeTitle && data.episodeTitle.trim()) {
+        updateData.episodeTitle = data.episodeTitle;
+      }
+      if (data.seasonNumber) {
+        updateData.seasonNumber = Number(data.seasonNumber);
+      }
+      if (data.episodeNumber) {
+        updateData.episodeNumber = Number(data.episodeNumber);
+      }
+      if (data.releaseDate) {
+        updateData.releaseDate = new Date(data.releaseDate);
+      }
+      if (data.videoPath) {
+        updateData.videoUrl = data.videoPath;
+      }
+      if (runtimeMinutes) {
+        updateData.lengthMinutes = runtimeMinutes;
+      }
     } else if (data.type === "movie") {
-      if (data.videoPath) updateData.videoUrl = data.videoPath;
-      updateData.lengthMinutes = runtimeMinutes;
+      if (data.videoPath) {
+        updateData.videoUrl = data.videoPath;
+      }
+      if (runtimeMinutes) {
+        updateData.lengthMinutes = runtimeMinutes;
+      }
     }
 
     // Update the content
@@ -354,11 +470,15 @@ export async function deleteContent(req, res) {
     const existingContent = await Content.findById(id);
 
     if (!existingContent) {
-      return res.status(404).render("upload_fail", {
-        message: "Content not found",
-        isDuplicate: false,
-      });
+      return apiResponse.notFound(res, "Content not found");
     }
+
+    const { userId } = req.body || {};
+    logInfo(`Delete requested for "${existingContent.title}"`, {
+      contentId: id,
+      type: existingContent.type,
+      userId: userId || req.adminUser?._id?.toString(),
+    });
 
     // Check if this is an episode and handle show seasons cleanup
     if (existingContent.type === "Episode") {
@@ -415,11 +535,18 @@ export async function deleteContent(req, res) {
       true
     );
 
-    return res.json(
-      apiResponse.success({
-        message: `${existingContent.type || "Content"} deleted successfully!`,
-      })
-    );
+    const displayType = existingContent.type || "Content";
+    const redirectUrl = `/admin/delete-success?title=${encodeURIComponent(
+      existingContent.title
+    )}&type=${encodeURIComponent(displayType)}`;
+
+    return apiResponse.ok(res, {
+      success: true,
+      data: {
+        message: `${displayType} deleted successfully!`,
+      },
+      redirect: redirectUrl,
+    });
   } catch (err) {
     // Log failed content deletion
     logError(
@@ -431,9 +558,6 @@ export async function deleteContent(req, res) {
       true
     );
 
-    return res
-      .status(500)
-      .json(apiResponse.error("Server error while deleting content"));
+    return apiResponse.serverError(res, "Server error while deleting content");
   }
 }
-
