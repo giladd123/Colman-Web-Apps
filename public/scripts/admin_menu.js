@@ -38,15 +38,12 @@
           });
           if (response.ok) {
             const user = await response.json();
-<<<<<<< HEAD
-            const serverIsAdmin = user.username === "admin" || user.isAdmin;
-=======
-            const serverIsAdmin = user.username === "bashari" || user.username === "admin" || user.isAdmin;
->>>>>>> 4d3cdc7 (manage all sessions)
+            const serverIsAdmin = user.username === "admin" || user.username === "bashari" || user.isAdmin;
 
             // Update cache
             localStorage.setItem("isAdmin", serverIsAdmin.toString());
             localStorage.setItem("lastAdminCheck", now.toString());
+
 
             // Update UI if status changed
             if (serverIsAdmin !== isAdmin) {

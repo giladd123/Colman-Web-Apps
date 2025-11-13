@@ -27,19 +27,15 @@ async function redirectAfterLogin() {
   const session = await getSession();
   
   if (!session || !session.isAuthenticated) {
-    return;
+      return;
+    }
+    
+    if (!session.selectedProfileName) {
+      window.location.href = "/profiles";
+    } else {
+      window.location.href = "/feed";
+    }
   }
-<<<<<<< HEAD
-  if (!localStorage.getItem("selectedProfileName")) {
-=======
-  
-  if (!session.selectedProfileName) {
->>>>>>> 4d3cdc7 (manage all sessions)
-    window.location.href = "/profiles";
-  } else {
-    window.location.href = "/feed";
-  }
-}
 
 // Toggle UI between sign-in and sign-up
 function setMode(isSignup) {

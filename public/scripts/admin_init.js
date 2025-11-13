@@ -1,13 +1,11 @@
 /**
  * EXPLANATION: Updated admin_init.js for session-based authentication
- * 
- * KEY CHANGES:
+ * * KEY CHANGES:
  * 1. Removed localStorage.getItem("userId") - now uses getSession()
  * 2. Removed getProfileIfLoggedIn() - now uses getSession()
  * 3. Added credentials: 'same-origin' to fetch requests
  * 4. Made initialization async to await session data
- * 
- * Benefits:
+ * * Benefits:
  * - Admin check based on server session
  * - Cannot be bypassed by manipulating localStorage
  * - More secure
@@ -24,32 +22,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   /**
    * EXPLANATION: Admin authentication check
-   * 
-   * CRITICAL CHANGE: Now uses getSession() instead of localStorage
-   * 
-   * Old approach:
+   * * CRITICAL CHANGE: Now uses getSession() instead of localStorage
+   * * Old approach:
    * - const userId = localStorage.getItem("userId")
    * - Could be manipulated by client
-   * 
-   * New approach:
+   * * New approach:
    * - Fetch session from server
    * - Server validates authentication
    * - Cannot be bypassed
-   * 
-   * Security:
+   * * Security:
    * - Admin status verified server-side
    * - UserId comes from server session
    * - Protection against unauthorized access
    */
   try {
-<<<<<<< HEAD
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      const response = await fetch(`/api/user/${userId}`);
-      if (response.ok) {
-        const user = await response.json();
-        const isAdmin = user.username === "admin" || user.isAdmin;
-=======
     const session = await getSession();
     
     if (!session || !session.isAuthenticated || !session.userId) {
@@ -66,7 +52,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (response.ok) {
       const user = await response.json();
       const isAdmin = user.username === "bashari" || user.isAdmin;
->>>>>>> 4d3cdc7 (manage all sessions)
 
       // If user is not admin, redirect to feed
       if (!isAdmin) {
@@ -87,37 +72,28 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   /**
    * EXPLANATION: Profile information display
-   * 
-   * CHANGE: Now uses getSession() instead of getProfileIfLoggedIn()
-   * 
-   * Benefits:
+   * * CHANGE: Now uses getSession() instead of getProfileIfLoggedIn()
+   * * Benefits:
    * - Profile data from server session
    * - Consistent with rest of application
    * - Cannot be tampered with
    */
   try {
-<<<<<<< HEAD
-    const profileData = getProfileIfLoggedIn();
-    if (profileData) {
-      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-        profileData;
-=======
     const session = await getSession();
     
     if (session && session.isAuthenticated) {
       const profileName = session.selectedProfileName || "Admin";
->>>>>>> 4d3cdc7 (manage all sessions)
 
       // Update hello messages using the utility function
       if (typeof updateHelloMessages === "function") {
-        updateHelloMessages(selectedProfileName);
+        updateHelloMessages(profileName);
       } else {
         // Fallback if utils.js is not loaded
         const helloMessage = document.getElementById("helloMessage");
         const helloMessageMobile =
           document.getElementById("helloMessageMobile");
-        const greeting = selectedProfileName
-          ? `Hello, ${selectedProfileName}`
+        const greeting = profileName
+          ? `Hello, ${profileName}`
           : "Hello";
 
         if (helloMessage) {
@@ -137,8 +113,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       const profileImgMobile = document.getElementById(
         "currentProfileImgMobile"
       );
-      if (profileImgMobile && selectedProfileImage) {
-        profileImgMobile.src = selectedProfileImage;
+      if (profileImgMobile && session.selectedProfileImage) {
+        profileImgMobile.src = session.selectedProfileImage;
       }
     }
   } catch (error) {
