@@ -3,6 +3,7 @@ import multer from "multer";
 import {
   showAddForm,
   addContent,
+  showEditLanding,
   showEditForm,
   showDeleteSuccess,
   updateContent,
@@ -18,6 +19,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Routes - apply admin validation selectively to avoid middleware order issues
 router.get("/add-content", validateAdminUser, showAddForm);
+router.get("/edit", validateAdminUser, showEditLanding);
 router.post(
   "/add-content",
   upload.single("videoFile"),

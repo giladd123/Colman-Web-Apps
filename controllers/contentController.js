@@ -31,6 +31,33 @@ export const showAddForm = async (req, res) => {
   }
 };
 
+// Render edit landing page (no specific content selected yet)
+export const showEditLanding = async (req, res) => {
+  try {
+    const existingGenres = await getExistingGenres();
+    const placeholderContent = {
+      _id: "",
+      type: "",
+      title: "",
+      description: "",
+      genres: [],
+      actors: [],
+    };
+
+    res.render("edit_content", {
+      content: placeholderContent,
+      genres: existingGenres,
+      isEdit: true,
+    });
+  } catch (err) {
+    logError(`Error loading edit form: ${err.message}`, { stack: err.stack });
+    res.status(500).render("upload_fail", {
+      message: "Error loading edit form",
+      isDuplicate: false,
+    });
+  }
+};
+
 // Render the "Edit Content" page
 export const showEditForm = async (req, res) => {
   try {

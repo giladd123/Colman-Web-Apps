@@ -1,7 +1,7 @@
 (function () {
   const FILTER_TYPE =
     typeof window.FEED_FILTER_TYPE === "string" &&
-      window.FEED_FILTER_TYPE.trim()
+    window.FEED_FILTER_TYPE.trim()
       ? window.FEED_FILTER_TYPE.trim()
       : null;
   const NORMALIZED_FILTER = FILTER_TYPE ? FILTER_TYPE.toLowerCase() : null;
@@ -89,14 +89,18 @@
       if (profileImg && selectedProfileImage)
         profileImg.src = selectedProfileImage;
 
-      const profileImgMobile = document.getElementById("currentProfileImgMobile");
+      const profileImgMobile = document.getElementById(
+        "currentProfileImgMobile"
+      );
       if (profileImgMobile && selectedProfileImage)
         profileImgMobile.src = selectedProfileImage;
 
       const allContent = await fetchMoviesFromDB();
       window.movies = filterMovieCatalogByType(allContent, FILTER_TYPE);
 
-      const feedResponse = await fetchFeedForProfile(selectedProfileId);
+      const feedResponse = await fetchFeedForProfile(selectedProfileId, {
+        filterType: FILTER_TYPE,
+      });
       const filteredFeed = applyTypeFilter(feedResponse, FILTER_TYPE);
 
       window.currentFeedData = filteredFeed;

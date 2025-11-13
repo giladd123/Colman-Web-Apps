@@ -5,15 +5,19 @@ import userRoutes from "./routes/userRoutes.js";
 import profilesRoutes from "./routes/profilesRoutes.js";
 import habitsRoutes from "./routes/habitsRoutes.js";
 import errorHandler from "./middleware/errorHandler.js";
-import contentRoutes from './routes/contentRoutes.js';
-import session from 'express-session';
+import contentRoutes from "./routes/contentRoutes.js";
+import session from "express-session";
 import feedRoutes from "./routes/feedRoutes.js";
 import selectContentRoutes from "./routes/selectContentRoutes.js";
 import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
-import { redirectIfAuth, requireAuthRedirect, requireProfileRedirect } from "./middleware/auth.js";
+import {
+  redirectIfAuth,
+  requireAuthRedirect,
+  requireProfileRedirect,
+} from "./middleware/auth.js";
 
 const app = express();
 
@@ -71,11 +75,6 @@ app.get("/my-list", requireProfileRedirect, (req, res) => {
   res.render("my_list");
 });
 
-
-app.get("/admin/edit", requireProfileRedirect, (req, res) => {
-  res.render("edit_content", { content: {}, genres: [] });
-});
-
 app.use("/api/user", userRoutes);
 app.use("/api/profiles", profilesRoutes);
 app.use("/api/habits", habitsRoutes);
@@ -90,4 +89,6 @@ app.use("/genres", genreRoutes);
 app.use("/select-content", selectContentRoutes);
 app.use("/player", playerRoutes);
 
-app.listen(process.env.PORT, () => console.log(`Server is running on port ${process.env.PORT}`));
+app.listen(process.env.PORT, () =>
+  console.log(`Server is running on port ${process.env.PORT}`)
+);
