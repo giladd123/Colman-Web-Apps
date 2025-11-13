@@ -6,7 +6,7 @@ import { error as logError } from "../utils/logger.js";
 export async function addToWatchlist(req, res) {
   try {
     const { profileName, contentId } = req.params;
-    const profile = await Profile.findOne({ name: profileName });
+    const profile = await Profile.findById(req.session.selectedProfileId);
     if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists
@@ -36,7 +36,7 @@ export async function addToWatchlist(req, res) {
 export async function removeFromWatchlist(req, res) {
   try {
     const { profileName, contentId } = req.params;
-    const profile = await Profile.findOne({ name: profileName });
+    const profile = await Profile.findById(req.session.selectedProfileId);
     if (!profile) return notFound(res, "Profile not found");
 
     // Remove occurrence(s)

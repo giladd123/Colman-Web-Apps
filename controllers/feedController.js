@@ -206,7 +206,7 @@ async function recommendationsForProfile(profileId) {
 
 export async function getFeedForProfile(req, res) {
   try {
-    const profileId = req.params.profileId;
+    const profileId = req.session.selectedProfileId;
     // populate likedContents and watchlist
     const profile = await Profile.findById(profileId)
       .populate("likedContents")

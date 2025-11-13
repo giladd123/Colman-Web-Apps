@@ -105,7 +105,7 @@ async function deleteProfile(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const profileId = req.params.profileId;
+  const profileId = req.session.selectedProfileId;
   const validated = req.validatedProfile || {};
   const name = validated.name;
   const avatar = req.file;

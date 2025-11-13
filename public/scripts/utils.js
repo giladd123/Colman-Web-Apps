@@ -41,12 +41,10 @@ async function logout() {
       window.location.href = '/login';
     } else {
       console.error('Logout failed');
-      // Force redirect anyway
       window.location.href = '/login';
     }
   } catch (error) {
     console.error('Error during logout:', error);
-    // Force redirect anyway
     window.location.href = '/login';
   }
 }
