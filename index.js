@@ -13,6 +13,7 @@ import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
+import { redirectIfAuth, requireAuthRedirect, requireProfileRedirect } from "./middleware/auth.js";
 
 const app = express();
 
@@ -25,30 +26,13 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
-/**
- * EXPLANATION: Express-session configuration
- * 
- * This replaces localStorage-based session management with server-side sessions.
- * Benefits:
- * - More secure: session data stored on server, not exposed to client
- * - Prevents tampering: users can't modify their userId or profileId
- * - Supports server-side session expiration
- * - Works across different tabs/windows
- * 
- * Configuration options:
- * - secret: Used to sign the session ID cookie (prevent tampering)
- * - resave: false = don't save session if unmodified (better performance)
- * - saveUninitialized: false = don't create session until something is stored
- * - cookie.secure: false for development (http), true for production (https)
- * - cookie.httpOnly: true = prevents JavaScript access (XSS protection)
- * - cookie.maxAge: Session expires after 24 hours of inactivity
- */
+// Session middleware setup
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // true only in production with HTTPS
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24 // 24 hours
   }
@@ -59,90 +43,36 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-app.get("/login", (req, res) => {
-  // If already logged in, redirect to appropriate page
-  if (req.session.userId) {
-    if (req.session.selectedProfileId) {
-      return res.redirect("/feed");
-    }
-    return res.redirect("/profiles");
-  }
+app.get("/login", redirectIfAuth, (req, res) => {
   res.render("login_page");
 });
 
-app.get("/profiles", (req, res) => {
-  // Require authentication to access profiles page
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
+app.get("/profiles", requireAuthRedirect, (req, res) => {
   res.render("profiles_page");
 });
 
-app.get("/settings", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+app.get("/settings", requireAuthRedirect, (req, res) => {
   res.render("settings_page");
 });
 
-app.get("/feed", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+app.get("/feed", requireProfileRedirect, (req, res) => {
   res.render("feed");
 });
 
-app.get("/shows", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+app.get("/shows", requireProfileRedirect, (req, res) => {
   res.render("shows");
 });
 
-app.get("/movies", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+app.get("/movies", requireProfileRedirect, (req, res) => {
   res.render("movies");
 });
 
-app.get("/my-list", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+app.get("/my-list", requireProfileRedirect, (req, res) => {
   res.render("my_list");
 });
 
-// Admin edit page (renders the edit_content view for UI/testing)
-// Passing an empty content object and genres array so the template can render safely
-app.get("/admin/edit", (req, res) => {
-  // Require authentication and profile selection
-  if (!req.session.userId) {
-    return res.redirect("/login");
-  }
-  if (!req.session.selectedProfileId) {
-    return res.redirect("/profiles");
-  }
+
+app.get("/admin/edit", requireProfileRedirect, (req, res) => {
   res.render("edit_content", { content: {}, genres: [] });
 });
 
