@@ -4,14 +4,15 @@ import {
   getContentByGenre,
   renderGenrePage,
 } from "../controllers/genreController.js";
+import { requireProfile } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // API routes
-router.get("/api/genres", getAllGenres);
-router.get("/api/genres/:genre", getContentByGenre);
+router.get("/api/genres", requireProfile, getAllGenres);
+router.get("/api/genres/:genre", requireProfile, getContentByGenre);
 
 // Page rendering route
-router.get("/:genre", renderGenrePage);
+router.get("/:genre", requireProfile, renderGenrePage);
 
 export default router;

@@ -5,29 +5,33 @@ import {
   validateCreateHabit,
   validateUpdateHabit,
 } from "../middleware/validateHabit.js";
+import { requireProfile, requireAuth } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
 router.get(
   "/user/:userId/summary",
+  requireAuth,
   catchAsync(HabitsController.getUserSummary)
 );
 
-router.get("/user/:userId", catchAsync(HabitsController.getHabitsByUser));
+router.get("/user/:userId", requireAuth, catchAsync(HabitsController.getHabitsByUser));
 
 router.get(
   "/profile/:profileId",
+  requireProfile,
   catchAsync(HabitsController.getHabitsByProfile)
 );
 
-router.post("/", validateCreateHabit, catchAsync(HabitsController.createHabit));
+router.post("/", requireProfile, validateCreateHabit, catchAsync(HabitsController.createHabit));
 
 router.put(
   "/:habitId",
+  requireProfile,
   validateUpdateHabit,
   catchAsync(HabitsController.updateHabit)
 );
 
-router.delete("/:habitId", catchAsync(HabitsController.deleteHabit));
+router.delete("/:habitId", requireProfile, catchAsync(HabitsController.deleteHabit));
 
 export default router;
