@@ -1,11 +1,15 @@
 // --- Admin Verification ---
 async function checkAdminAccess() {
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
+  // Get session from server instead of localStorage
+  const session = await getSession();
+  
+  if (!session || !session.isAuthenticated || !session.userId) {
     alert("Please log in to access admin functions.");
     window.location.href = "/login";
     return false;
   }
+  
+  const userId = session.userId;
 
   try {
     const response = await fetch(`/api/user/${userId}`);
@@ -209,7 +213,8 @@ function isValidUrl(url) {
 async function checkShowExists(showTitle) {
   if (!showTitle.trim()) return false;
   try {
-    const userId = localStorage.getItem("userId");
+    const session = await getSession();
+    const userId = session?.userId || '';
     const res = await fetch(
       `/admin/fetch-imdb?title=${encodeURIComponent(
         showTitle
@@ -246,7 +251,8 @@ function getCurrentContentId() {
 async function checkContentExists(type, title, seasonNumber, episodeNumber) {
   if (!type || !title.trim()) return { exists: false, contentId: null };
   try {
-    const userId = localStorage.getItem("userId");
+    const sessionData = await getSession();
+    const userId = sessionData?.userId;
     let url = `/admin/check-content?type=${encodeURIComponent(
       type
     )}&title=${encodeURIComponent(title)}&userId=${userId}`;
@@ -432,8 +438,9 @@ imdbCheckbox.addEventListener("change", async () => {
       seasonField.value
     )}&episode=${encodeURIComponent(episodeField.value)}`;
 
-  // Add userId to query
-  const userId = localStorage.getItem("userId");
+  // Add userId to query from session
+  const sessionData = await getSession();
+  const userId = sessionData?.userId || '';
   query += `&userId=${userId}`;
 
   try {
@@ -723,36 +730,6 @@ form.addEventListener("submit", async (e) => {
   // Copy genres to hidden fields
   copyGenresToHidden();
 
-  // Add userId to form for admin validation - ensure this happens right before submission
-  const userId = localStorage.getItem("userId");
-  if (userId) {
-    // Remove any existing userId input first
-    const existingUserIdInputs = form.querySelectorAll('input[name="userId"]');
-    existingUserIdInputs.forEach((input) => input.remove());
-
-    // Create new hidden input for userId
-    const userIdInput = document.createElement("input");
-    userIdInput.type = "hidden";
-    userIdInput.name = "userId";
-    userIdInput.value = userId;
-
-    // Insert at the very beginning of the form
-    form.insertBefore(userIdInput, form.firstChild);
-
-    console.log("Added userId to form just before submission:", userId);
-
-    // Verify it was added by checking form data
-    const formData = new FormData(form);
-    if (formData.has("userId")) {
-      console.log("Verified: userId is in form data:", formData.get("userId"));
-    } else {
-      console.error("ERROR: userId was not properly added to form data");
-    }
-  } else {
-    console.error("No userId found in localStorage for admin validation");
-    alert("Admin session expired. Please refresh the page and log in again.");
-    return;
-  }
 
   // Save form data before submission
   saveFormData();
@@ -901,14 +878,15 @@ if (deleteBtn) {
         cancelBtn.disabled = true;
         confirmBtn.textContent = "Deleting...";
 
-        const userId = localStorage.getItem("userId");
-        const response = await fetch(`/admin/delete/${contentId}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userId: userId }),
-        });
+      const sessionData = await getSession();
+      const userId = sessionData?.userId;
+      const response = await fetch(`/admin/delete/${contentId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: userId }),
+      });
 
         const result = await response.json();
 

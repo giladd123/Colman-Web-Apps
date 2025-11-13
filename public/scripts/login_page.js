@@ -1,13 +1,16 @@
-function redirectAfterLogin() {
-  if (localStorage.getItem("isLoggedIn") != "true") {
-    return;
+async function redirectAfterLogin() {
+  const session = await getSession();
+  
+  if (!session || !session.isAuthenticated) {
+      return;
+    }
+    
+    if (!session.selectedProfileName) {
+      window.location.href = "/profiles";
+    } else {
+      window.location.href = "/feed";
+    }
   }
-  if (!localStorage.getItem("selectedProfileName")) {
-    window.location.href = "/profiles";
-  } else {
-    window.location.href = "/feed";
-  }
-}
 
 // Toggle UI between sign-in and sign-up
 function setMode(isSignup) {
@@ -115,7 +118,6 @@ function validatePassword(passwordInput, passwordError) {
   }
 }
 
-// Form submission handler
 document
   .getElementById("loginForm")
   .addEventListener("submit", async function (event) {
@@ -164,6 +166,7 @@ document
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'same-origin', // IMPORTANT: Include session cookie
         body: JSON.stringify(
           isSignup
             ? {
@@ -186,14 +189,13 @@ document
         }
         return;
       }
-
-      // Login successful
       const userData = await response.json();
-      // Store only _id returned from server. If missing, show error and don't set login state.
+      
+      // Verify we got user data back
       if (userData && userData._id) {
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userId", userData._id);
-        redirectAfterLogin();
+        // Session is now active on server
+        // Redirect to appropriate page
+        await redirectAfterLogin();
       } else {
         if (generalError) {
           generalError.textContent = "Failed to log in";
@@ -210,7 +212,10 @@ document
   });
 
 // Initial wiring: signup button and secondary link
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  // Check if already logged in and redirect
+  await redirectAfterLogin();
+  
   // secondary link (sign up / sign in) handler
   const secondaryAction = document.getElementById("secondaryAction");
   if (secondaryAction) {

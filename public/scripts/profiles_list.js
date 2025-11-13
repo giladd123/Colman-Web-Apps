@@ -1,8 +1,6 @@
-// Static profiles listing page logic
-// Fetches profiles for the logged-in user and renders selectable tiles
-
 (function () {
   const PROFILES_ENDPOINT_BASE = "/api/profiles/user/";
+  const SELECT_PROFILE_ENDPOINT = "/api/user/select-profile";
   const DEFAULT_AVATAR = "/images/profiles/green.png";
 
   const selectors = {
@@ -41,13 +39,35 @@
     `;
   }
 
-  function selectProfile(profile) {
+  async function selectProfile(profile) {
     if (!profile) return;
+    
     const avatar = profile.avatar || profile.image || DEFAULT_AVATAR;
-    localStorage.setItem("selectedProfileId", profile._id || profile.id || "");
-    localStorage.setItem("selectedProfileName", profile.name || "Profile");
-    localStorage.setItem("selectedProfileImage", avatar);
-    window.location.href = "/feed";
+    
+    try {
+      const response = await fetch(SELECT_PROFILE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin', // Include session cookie
+        body: JSON.stringify({
+          profileId: profile._id || profile.id || "",
+          profileName: profile.name || "Profile",
+          profileImage: avatar
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to select profile');
+      }
+      
+      // Profile selection successful, redirect to feed
+      window.location.href = "/feed";
+    } catch (error) {
+      console.error('Error selecting profile:', error);
+      alert('Failed to select profile. Please try again.');
+    }
   }
 
   function createProfileTile(profile) {
@@ -95,12 +115,14 @@
     }
   }
 
+  
   async function loadProfiles() {
     const grid = document.querySelector(selectors.grid);
     if (!grid) return;
 
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
+    // Check session instead of localStorage
+    const session = await getSession();
+    if (!session || !session.userId) {
       grid.innerHTML = `
         <div class="w-100 d-flex flex-column align-items-center py-5 text-center gap-3">
           <div class="fw-semibold fs-5">You're not logged in</div>
@@ -114,7 +136,10 @@
     showLoading(grid);
 
     try {
-      const response = await fetch(`${PROFILES_ENDPOINT_BASE}${userId}`);
+      const response = await fetch(`${PROFILES_ENDPOINT_BASE}${session.userId}`, {
+        credentials: 'same-origin' // Include session cookie
+      });
+      
       if (!response.ok) {
         throw new Error(`Failed to load profiles: ${response.status}`);
       }

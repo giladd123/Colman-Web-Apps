@@ -65,8 +65,23 @@
     if (loadingIndicator) loadingIndicator.style.display = "block";
 
     try {
-      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-        getProfileIfLoggedIn();
+      // Get session from server instead of localStorage
+      const session = await getSession();
+      
+      if (!session || !session.isAuthenticated) {
+        window.location.href = "/login";
+        return;
+      }
+      
+      if (!session.selectedProfileId || !session.selectedProfileName) {
+        window.location.href = "/profiles";
+        return;
+      }
+
+      // Extract profile data from session
+      const selectedProfileId = session.selectedProfileId;
+      const selectedProfileName = session.selectedProfileName;
+      const selectedProfileImage = session.selectedProfileImage;
 
       updateNavbarHelloMessages(selectedProfileName);
 

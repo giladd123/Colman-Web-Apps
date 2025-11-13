@@ -111,11 +111,12 @@ async function handleLikeClick(likeBtn, movie, entry) {
     return;
   }
 
-  const profileName =
-    window.currentProfile?.name || localStorage.getItem("selectedProfileName");
+  // Get profile name from window.currentProfile (set during page init)
+  const profileName = window.currentProfile?.name;
   if (!profileName) {
-    // not logged in or profile not set
-    alert("No profile selected.");
+    console.error('No profile name available');
+    alert('Session expired. Please log in again.');
+    window.location.href = '/login';
     return;
   }
 

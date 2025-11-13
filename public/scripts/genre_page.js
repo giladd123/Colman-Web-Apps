@@ -31,9 +31,23 @@ function initializeGenrePage(genre) {
 
 // Initialize basic navbar functionality for genre page
 async function initializeNavbarForGenrePage() {
-  // Initialize profile display
-  const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-    getProfileIfLoggedIn();
+  // Get session from server instead of localStorage
+  const session = await getSession();
+  
+  if (!session || !session.isAuthenticated) {
+    window.location.href = "/login";
+    return;
+  }
+  
+  if (!session.selectedProfileId || !session.selectedProfileName) {
+    window.location.href = "/profiles";
+    return;
+  }
+
+  // Extract profile data from session
+  const selectedProfileId = session.selectedProfileId;
+  const selectedProfileName = session.selectedProfileName;
+  const selectedProfileImage = session.selectedProfileImage;
   updateGenreHelloMessages(selectedProfileName);
   const profileImg = document.getElementById("currentProfileImg");
   if (profileImg && selectedProfileImage) profileImg.src = selectedProfileImage;
@@ -207,9 +221,9 @@ async function loadGenreContent(reset = false) {
 
     // Add profile ID if available and filtering is needed
     if (currentFilter !== "all") {
-      const [selectedProfileId] = getProfileIfLoggedIn();
-      if (selectedProfileId) {
-        params.append("profileId", selectedProfileId);
+      const session = await getSession();
+      if (session && session.selectedProfileId) {
+        params.append("profileId", session.selectedProfileId);
       } else {
         // If no profile ID is available but user is trying to filter,
         // reset to "all" to avoid confusion

@@ -13,6 +13,7 @@ import likesRoutes from "./routes/likesRoutes.js";
 import watchlistRoutes from "./routes/watchlistRoutes.js";
 import genreRoutes from "./routes/genreRoutes.js";
 import playerRoutes from "./routes/playerRoutes.js";
+import { redirectIfAuth, requireAuthRedirect, requireProfileRedirect } from "./middleware/auth.js";
 
 const app = express();
 
@@ -25,14 +26,15 @@ app.use(express.static("public"));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
+// Session middleware setup
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'a-very-strong-secret-key-you-should-change',
+  secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
   resave: false,
-  saveUninitialized: false, // Don't create sessions for unauthenticated users
+  saveUninitialized: false,
   cookie: { 
-    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    httpOnly: true, // Prevents client-side JS from accessing the cookie
-    maxAge: 1000 * 60 * 60 * 24 // 1 day
+    secure: false,
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60 * 24 // 24 hours
   }
 }));
 
@@ -41,36 +43,36 @@ app.get("/", (req, res) => {
   res.redirect("/login");
 });
 
-app.get("/login", (req, res) => {
+app.get("/login", redirectIfAuth, (req, res) => {
   res.render("login_page");
 });
 
-app.get("/profiles", (req, res) => {
+app.get("/profiles", requireAuthRedirect, (req, res) => {
   res.render("profiles_page");
 });
 
-app.get("/settings", (req, res) => {
+app.get("/settings", requireAuthRedirect, (req, res) => {
   res.render("settings_page");
 });
-app.get("/feed", (req, res) => {
+
+app.get("/feed", requireProfileRedirect, (req, res) => {
   res.render("feed");
 });
 
-app.get("/shows", (req, res) => {
+app.get("/shows", requireProfileRedirect, (req, res) => {
   res.render("shows");
 });
 
-app.get("/movies", (req, res) => {
+app.get("/movies", requireProfileRedirect, (req, res) => {
   res.render("movies");
 });
 
-app.get("/my-list", (req, res) => {
+app.get("/my-list", requireProfileRedirect, (req, res) => {
   res.render("my_list");
 });
 
-// Admin edit page (renders the edit_content view for UI/testing)
-// Passing an empty content object and genres array so the template can render safely
-app.get("/admin/edit", (req, res) => {
+
+app.get("/admin/edit", requireProfileRedirect, (req, res) => {
   res.render("edit_content", { content: {}, genres: [] });
 });
 
@@ -85,10 +87,7 @@ app.use(errorHandler);
 app.use("/admin", contentRoutes);
 app.use("/feed", feedRoutes);
 app.use("/genres", genreRoutes);
-
-app.use(errorHandler);
-
 app.use("/select-content", selectContentRoutes);
 app.use("/player", playerRoutes);
 
-app.listen(process.env.PORT, () => console.log(`Server is running on port`));
+app.listen(process.env.PORT, () => console.log(`Server is running on port ${process.env.PORT}`));

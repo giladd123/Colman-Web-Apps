@@ -6,17 +6,18 @@ import {
   validateCreateUser,
   validateLoginUser,
 } from "../middleware/validateUser.js";
+import { requireAuth } from "../middleware/authMiddleware.js";
 
-router.get("/:userId", catchAsync(userController.getUserById));
+// Public routes (no authentication required)
 router.post("/login", validateLoginUser, catchAsync(userController.loginUser));
-router.post(
-  "/create",
-  validateCreateUser,
-  catchAsync(userController.createUser)
-);
+router.post("/create", validateCreateUser, catchAsync(userController.createUser));
+router.get("/session", catchAsync(userController.getSession)); // Check session state
 
-router.delete("/:userId", catchAsync(userController.deleteUser));
-
-router.put("/:userId", catchAsync(userController.updateUser));
+// Protected routes (authentication required)
+router.post("/logout", requireAuth, catchAsync(userController.logoutUser));
+router.post("/select-profile", requireAuth, catchAsync(userController.selectProfile));
+router.get("/:userId", requireAuth, catchAsync(userController.getUserById));
+router.delete("/:userId", requireAuth, catchAsync(userController.deleteUser));
+router.put("/:userId", requireAuth, catchAsync(userController.updateUser));
 
 export default router;

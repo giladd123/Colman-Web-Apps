@@ -1,3 +1,4 @@
+
 // Admin page initialization script
 document.addEventListener("DOMContentLoaded", async function () {
   // Change navbar brand to NETFLIX ADMIN
@@ -7,44 +8,58 @@ document.addEventListener("DOMContentLoaded", async function () {
     navbarBrand.style.color = "#e50914";
   }
 
-  // Check if user is admin (admin dropdown is handled by admin_menu.js)
   try {
-    const userId = localStorage.getItem("userId");
-    if (userId) {
-      const response = await fetch(`/api/user/${userId}`);
-      if (response.ok) {
-        const user = await response.json();
-        const isAdmin = user.username === "admin" || user.isAdmin;
+    const session = await getSession();
+    
+    if (!session || !session.isAuthenticated || !session.userId) {
+      console.warn("No active session - redirecting to login");
+      window.location.href = '/login';
+      return;
+    }
+    
+    const userId = session.userId;
+    const response = await fetch(`/api/user/${userId}`, {
+      credentials: 'same-origin' // Include session cookie
+    });
+    
+    if (response.ok) {
+      const user = await response.json();
+      const isAdmin = user.username === "admin" || user.isAdmin;
 
-        // If user is not admin, redirect to feed
-        if (!isAdmin) {
-          console.warn("Admin access required");
-          // Optionally redirect non-admin users
-          // window.location.href = '/feed';
-        }
+      // If user is not admin, redirect to feed
+      if (!isAdmin) {
+        console.warn("Admin access required - redirecting to feed");
+        window.location.href = '/feed';
+        return;
       }
+    } else {
+      console.warn("Failed to fetch user data");
+      window.location.href = '/login';
+      return;
     }
   } catch (error) {
     console.error("Error checking admin status:", error);
+    window.location.href = '/login';
+    return;
   }
 
-  // Set up user greeting and profile image
+
   try {
-    const profileData = getProfileIfLoggedIn();
-    if (profileData) {
-      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-        profileData;
+    const session = await getSession();
+    
+    if (session && session.isAuthenticated) {
+      const profileName = session.selectedProfileName || "Admin";
 
       // Update hello messages using the utility function
       if (typeof updateHelloMessages === "function") {
-        updateHelloMessages(selectedProfileName);
+        updateHelloMessages(profileName);
       } else {
         // Fallback if utils.js is not loaded
         const helloMessage = document.getElementById("helloMessage");
         const helloMessageMobile =
           document.getElementById("helloMessageMobile");
-        const greeting = selectedProfileName
-          ? `Hello, ${selectedProfileName}`
+        const greeting = profileName
+          ? `Hello, ${profileName}`
           : "Hello";
 
         if (helloMessage) {
@@ -57,15 +72,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Update profile images
       const profileImg = document.getElementById("currentProfileImg");
-      if (profileImg && selectedProfileImage) {
-        profileImg.src = selectedProfileImage;
+      if (profileImg && session.selectedProfileImage) {
+        profileImg.src = session.selectedProfileImage;
       }
 
       const profileImgMobile = document.getElementById(
         "currentProfileImgMobile"
       );
-      if (profileImgMobile && selectedProfileImage) {
-        profileImgMobile.src = selectedProfileImage;
+      if (profileImgMobile && session.selectedProfileImage) {
+        profileImgMobile.src = session.selectedProfileImage;
       }
     }
   } catch (error) {

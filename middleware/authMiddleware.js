@@ -1,40 +1,57 @@
-import asyncHandler from 'express-async-handler';
-import { errorResponse as ApiError } from '../utils/apiResponse.js';
+import { errorResponse } from "../utils/apiResponse.js";
+import { warn } from "../utils/logger.js";
 
-const isAuthenticated = asyncHandler(async (req, res, next) => {
-  if (req.session.user) {
-    next(); 
-  } else {
-    if (req.originalUrl.startsWith('/api')) {
-      throw new ApiError(401, "Not authenticated");
-    } else {
-      res.redirect('/login');
-    }
+export function requireAuth(req, res, next) {
+  if (!req.session.userId) {
+    warn("Unauthorized API access attempt", {
+      path: req.path,
+      method: req.method,
+      ip: req.ip
+    });
+    return errorResponse(res, 401, "Authentication required");
   }
-});
+  next();
+}
 
-const isProfileSelected = asyncHandler(async (req, res, next) => {
-  if (req.session.profile) {
-    next(); 
-  } else {
-    if (req.originalUrl.startsWith('/api')) {
-      throw new ApiError(401, "Please select a profile");
-    } else {
-      res.redirect('/profiles');
-    }
+
+export function requireProfile(req, res, next) {
+  if (!req.session.userId) {
+    warn("Unauthorized API access attempt - no user session", {
+      path: req.path,
+      method: req.method
+    });
+    return errorResponse(res, 401, "Authentication required");
   }
-});
-
-const isAdmin = asyncHandler(async (req, res, next) => {
-  if (req.session.user && req.session.user.role === 'admin') {
-    next();
-  } else {
-    if (req.originalUrl.startsWith('/add')) {
-      throw new ApiError(403, "Forbidden: Admin access required");
-    } else {
-      res.redirect('/main');
-    }
+  
+  if (!req.session.selectedProfileId) {
+    warn("API access without profile selection", {
+      path: req.path,
+      method: req.method,
+      userId: req.session.userId
+    });
+    return errorResponse(res, 403, "Profile selection required");
   }
-});
+  
+  // Attach to req for easy access in controllers
+  req.userId = req.session.userId;
+  req.profileId = req.session.selectedProfileId;
+  
+  next();
+}
 
-export { isAuthenticated, isProfileSelected, isAdmin };
+
+export function getSessionInfo(req) {
+  return {
+    isAuthenticated: !!req.session.userId,
+    userId: req.session.userId || null,
+    selectedProfileId: req.session.selectedProfileId || null,
+    selectedProfileName: req.session.selectedProfileName || null,
+    selectedProfileImage: req.session.selectedProfileImage || null
+  };
+}
+
+export default {
+  requireAuth,
+  requireProfile,
+  getSessionInfo
+};

@@ -1,20 +1,36 @@
-function getProfileIfLoggedIn() {
-  if (localStorage.getItem("isLoggedIn") != "true") {
-    window.location.href = "login";
-    return;
+async function getProfileIfLoggedIn() {
+  const session = await getSession();
+  
+  if (!session || !session.isAuthenticated) {
+    window.location.href = "/login";
+    return null;
   }
 
-  const selectedProfileId = localStorage.getItem("selectedProfileId");
-  const selectedProfileName = localStorage.getItem("selectedProfileName");
-  const selectedProfileImage = localStorage.getItem("selectedProfileImage");
-
-  if (!(selectedProfileId && selectedProfileName && selectedProfileImage)) {
-    window.location.href = "profiles";
+  if (!session.selectedProfileId || !session.selectedProfileName || !session.selectedProfileImage) {
+    window.location.href = "/profiles";
+    return null;
   }
-  return [selectedProfileId, selectedProfileName, selectedProfileImage];
+  
+  return [session.selectedProfileId, session.selectedProfileName, session.selectedProfileImage];
 }
 
-function logout() {
-  localStorage.clear();
-  window.location.href = "login";
+async function logout() {
+  try {
+    const response = await fetch('/api/user/logout', {
+      method: 'POST',
+      credentials: 'same-origin' // Include session cookie
+    });
+    
+    if (response.ok) {
+      window.location.href = "/login";
+    } else {
+      console.error('Logout failed');
+      // Redirect anyway for UX
+      window.location.href = "/login";
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+    // Redirect anyway for UX
+    window.location.href = "/login";
+  }
 }

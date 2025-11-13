@@ -264,7 +264,8 @@
   }
 
   async function fetchSummary() {
-    const userId = localStorage.getItem("userId");
+    const session = await getSession()
+    const userId = session?.userId;
     if (!userId) {
       showErrorState("Sign in to view statistics.");
       return;

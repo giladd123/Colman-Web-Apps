@@ -131,7 +131,10 @@ function openDeleteConfirm(profileDiv, imgEl, inputEl) {
 
 async function deleteProfile(profileId) {
   try {
-    const res = await fetch(`/api/profiles/${profileId}`, { method: "DELETE" });
+    const res = await fetch(`/api/profiles/${profileId}`, { 
+      method: "DELETE",
+      credentials: 'same-origin' // Include session cookie
+    });
     if (!res.ok) throw new Error("Failed to delete profile");
   } catch (e) {
     console.error(e);
@@ -216,7 +219,13 @@ function showNewProfileEditor(tile, selectedUrl, file) {
 
 async function createNewProfile(name, file, selectedUrl) {
   try {
-    const userId = localStorage.getItem("userId");
+    const session = await getSession();
+    if (!session || !session.userId) {
+      console.error("No active session");
+      return;
+    }
+    
+    const userId = session.userId;
     const fd = new FormData();
     fd.append("name", name);
     fd.append("userId", userId);
@@ -228,6 +237,7 @@ async function createNewProfile(name, file, selectedUrl) {
     if (file) fd.append("avatar", file);
     const res = await fetch("/api/profiles/create", {
       method: "POST",
+      credentials: 'same-origin', // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to create profile");
@@ -243,6 +253,7 @@ async function updateProfileName(profileId, newName, imgEl, inputEl) {
     fd.append("name", newName);
     const res = await fetch(`/api/profiles/${profileId}`, {
       method: "PUT",
+      credentials: 'same-origin', // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to update name");
@@ -402,6 +413,7 @@ async function applyAvatarSelection() {
     }
     const res = await fetch(`/api/profiles/${targetProfileId}`, {
       method: "PUT",
+      credentials: 'same-origin', // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to update avatar");
@@ -413,33 +425,55 @@ async function applyAvatarSelection() {
   }
 }
 
-function saveProfile(input, img, profileDiv) {
+async function saveProfile(input, img, profileDiv) {
   const profileId = profileDiv.getAttribute("profileid");
-  localStorage.setItem("selectedProfileId", profileId);
-  localStorage.setItem("selectedProfileName", input.value);
-  localStorage.setItem("selectedProfileImage", img.src);
-  if (profileDiv) {
-    const profileId = profileDiv.getAttribute("profileid");
-    if (profileId) {
-      localStorage.setItem("selectedProfileId", profileId);
+  const profileName = input.value;
+  const profileImage = img.src;
+  
+  try {
+    const response = await fetch('/api/user/select-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'same-origin', // Include session cookie
+      body: JSON.stringify({
+        profileId: profileId,
+        profileName: profileName,
+        profileImage: profileImage
+      })
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to select profile');
+      return;
     }
+    
+    // Profile selection stored in server session
+    // Redirect to feed
+    window.location.href = "feed";
+  } catch (error) {
+    console.error('Error selecting profile:', error);
   }
-  window.location.href = "feed";
 }
 
-// fetch profiles from server for current user and render them
 async function loadProfiles() {
   const profilesContainer = document.querySelector(".profiles");
   showLoading(profilesContainer, "Loading profiles...");
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
+  
+  const session = await getSession();
+  if (!session || !session.userId) {
     profilesContainer.innerHTML =
       '<div class="text-secondary py-4">No user selected.</div>';
     return;
   }
+  
+  const userId = session.userId;
 
   try {
-    const res = await fetch(`/api/profiles/user/${userId}`);
+    const res = await fetch(`/api/profiles/user/${userId}`, {
+      credentials: 'same-origin' // Include session cookie
+    });
     if (!res.ok) {
       showError(profilesContainer, "Failed to load profiles.");
       return;

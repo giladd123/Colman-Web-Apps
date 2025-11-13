@@ -1,4 +1,61 @@
-const ROW_SIZE = 30;
+async function getSession() {
+  try {
+    const response = await fetch('/api/user/session', {
+      method: 'GET',
+      credentials: 'same-origin' // Critical: includes session cookie
+    });
+    
+    if (!response.ok) {
+      console.error('Failed to fetch session');
+      return {
+        isAuthenticated: false,
+        userId: null,
+        selectedProfileId: null,
+        selectedProfileName: null,
+        selectedProfileImage: null
+      };
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching session:', error);
+    return {
+      isAuthenticated: false,
+      userId: null,
+      selectedProfileId: null,
+      selectedProfileName: null,
+      selectedProfileImage: null
+    };
+  }
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/user/logout', {
+      method: 'POST',
+      credentials: 'same-origin'
+    });
+    
+    if (response.ok) {
+      window.location.href = '/login';
+    } else {
+      console.error('Logout failed');
+      // Force redirect anyway
+      window.location.href = '/login';
+    }
+  } catch (error) {
+    console.error('Error during logout:', error);
+    // Force redirect anyway
+    window.location.href = '/login';
+  }
+}
+
+function getProfileIfLoggedIn() {
+  console.warn('DEPRECATED: getProfileIfLoggedIn() is deprecated. Use getSession() instead.');
+  // Return empty array to prevent breakage, but log warning
+  return [null, null, null];
+}
 
 function updateTooltip(el, text) {
   try {

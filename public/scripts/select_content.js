@@ -7,11 +7,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const contentId = window.location.pathname.split('/').pop();
             if (!contentId) throw new Error("No content ID in URL");
 
-            const profileName = localStorage.getItem('selectedProfileName');
-            if (!profileName) throw new Error("No profile selected. Please return to the profile page.");
+            // Get session from server instead of localStorage
+            const session = await getSession();
+            
+            if (!session || !session.isAuthenticated) {
+                window.location.href = "/login";
+                return;
+            }
+            
+            if (!session.selectedProfileId || !session.selectedProfileName) {
+                window.location.href = "/profiles";
+                return;
+            }
 
-            const profileId = localStorage.getItem('selectedProfileId'); 
-            if (!profileId) throw new Error("No profile selected. Please return to the profile page.");
+            const profileName = session.selectedProfileName;
+            const profileId = session.selectedProfileId;
 
 
         const response = await fetch(`/select-content/api/data/${contentId}?profileId=${encodeURIComponent(profileId)}`);
