@@ -182,9 +182,9 @@ async function likedByProfile(profileId) {
 async function recommendationsForProfile(profileId) {
   const liked = await likedByProfile(profileId);
   if (!liked.length) {
-    // Fallback: top popular content
+    // Fallback: top rated content
     return await Content.find({ type: { $ne: "Episode" } })
-      .sort({ popularity: -1 })
+      .sort({ imdbRating: -1 })
       .limit(10)
       .lean();
   }
@@ -199,7 +199,7 @@ async function recommendationsForProfile(profileId) {
     _id: { $nin: liked.map((c) => c._id) },
     type: { $ne: "Episode" },
   })
-    .sort({ popularity: -1 })
+    .sort({ imdbRating: -1 })
     .limit(10)
     .lean();
 }
