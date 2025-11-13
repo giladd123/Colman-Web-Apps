@@ -90,4 +90,4 @@ app.use("/genres", genreRoutes);
 app.use("/select-content", selectContentRoutes);
 app.use("/player", playerRoutes);
 
-app.listen(1212, () => console.log(`Server is running on port ${process.env.PORT}`));
+app.listen(process.env.PORT, () => console.log(`Server is running on port ${process.env.PORT}`));
