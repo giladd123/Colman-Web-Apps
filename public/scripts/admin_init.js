@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     
     if (response.ok) {
       const user = await response.json();
-      const isAdmin = user.username === "bashari" || user.isAdmin;
+      const isAdmin = user.username === "admin" || user.isAdmin;
 
       // If user is not admin, redirect to feed
       if (!isAdmin) {
