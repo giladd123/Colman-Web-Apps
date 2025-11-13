@@ -1,10 +1,11 @@
 let currentGenre = "";
 let currentPage = 1;
-let currentSort = "popularity";
+let currentSort = "default";
 let currentSortOrder = "desc";
 let currentFilter = "all";
 let isLoading = false;
 let hasMore = true;
+let storedLoopContent = [];
 let allContent = [];
 
 // Initialize genre page
@@ -38,7 +39,8 @@ async function initializeNavbarForGenrePage() {
   if (profileImg && selectedProfileImage) profileImg.src = selectedProfileImage;
 
   const profileImgMobile = document.getElementById("currentProfileImgMobile");
-  if (profileImgMobile && selectedProfileImage) profileImgMobile.src = selectedProfileImage;
+  if (profileImgMobile && selectedProfileImage)
+    profileImgMobile.src = selectedProfileImage;
 
   // Set up global variables for likes and watchlist functionality
   window.currentProfile = {
@@ -163,7 +165,10 @@ function toggleSearchInputVisibility(pairs, activeInput) {
 
 // Load content for the current genre
 async function loadGenreContent(reset = false) {
-  if (isLoading || (!hasMore && !reset)) return;
+  const loopMode = shouldUseLoopMode();
+
+  if (isLoading) return;
+  if (!reset && !loopMode && !hasMore) return;
 
   isLoading = true;
   const loadingIndicator = document.getElementById("loading");
@@ -177,12 +182,28 @@ async function loadGenreContent(reset = false) {
   }
 
   try {
+    if (loopMode && !reset) {
+      if (storedLoopContent.length > 0) {
+        renderGenreContent(storedLoopContent, true);
+        refreshInteractiveStates();
+        hasMore = true;
+        isLoading = false;
+        if (loadingIndicator) loadingIndicator.style.display = "none";
+        return;
+      }
+    }
+
     const params = new URLSearchParams({
       page: currentPage,
-      sortBy: currentSort,
-      sortOrder: currentSortOrder,
       filterWatched: currentFilter,
     });
+
+    if (currentSort && currentSort !== "default") {
+      params.append("sortBy", currentSort);
+      params.append("sortOrder", currentSortOrder);
+    } else {
+      params.append("sortBy", "default");
+    }
 
     // Add profile ID if available and filtering is needed
     if (currentFilter !== "all") {
@@ -210,13 +231,26 @@ async function loadGenreContent(reset = false) {
     const data = await response.json();
 
     if (data.content && data.content.length > 0) {
-      allContent.push(...data.content);
+      if (reset) {
+        allContent = [...data.content];
+      } else {
+        allContent.push(...data.content);
+      }
+
       renderGenreContent(data.content, !reset);
       refreshInteractiveStates();
       hasMore = data.pagination.hasMore;
       currentPage++;
+
+      if (loopMode) {
+        storedLoopContent = [...allContent];
+        hasMore = true;
+      } else {
+        storedLoopContent = [];
+      }
     } else {
       hasMore = false;
+      storedLoopContent = [];
       if (reset) {
         document
           .getElementById("content")
@@ -225,7 +259,9 @@ async function loadGenreContent(reset = false) {
     }
 
     const noMoreContent = document.getElementById("noMoreContent");
-    if (noMoreContent) noMoreContent.style.display = hasMore ? "none" : "block";
+    if (noMoreContent) {
+      noMoreContent.style.display = hasMore ? "none" : "block";
+    }
   } catch (error) {
     console.error("Error loading genre content:", error);
     if (reset) {
@@ -258,21 +294,28 @@ function renderGenreContent(content, append = true) {
 // Change sorting
 function changeSorting(sortBy, sortOrder) {
   currentSort = sortBy;
-  currentSortOrder = sortOrder;
 
-  // Update UI
-  const sortLabels = {
-    popularity: "Popularity",
-    imdbRating: "Rating",
-    releaseYear: "Release Year",
-  };
-  const orderText = sortOrder === "desc" ? " (High to Low)" : " (Low to High)";
-  if (sortBy === "releaseYear") {
-    document.getElementById("currentSort").textContent =
-      sortOrder === "desc" ? "Newest First" : "Oldest First";
-  } else {
-    document.getElementById("currentSort").textContent =
-      sortLabels[sortBy] + orderText;
+  if (sortBy !== "default" && sortOrder) {
+    currentSortOrder = sortOrder;
+  }
+
+  const sortLabelElement = document.getElementById("currentSort");
+  if (sortLabelElement) {
+    if (sortBy === "default") {
+      sortLabelElement.textContent = "All Content";
+    } else if (sortBy === "releaseYear") {
+      sortLabelElement.textContent =
+        currentSortOrder === "desc" ? "Newest First" : "Oldest First";
+    } else {
+      const sortLabels = {
+        popularity: "Popularity",
+        imdbRating: "Rating",
+        releaseYear: "Release Year",
+      };
+      const orderText =
+        currentSortOrder === "desc" ? " (High to Low)" : " (Low to High)";
+      sortLabelElement.textContent = sortLabels[sortBy] + orderText;
+    }
   }
 
   loadGenreContent(true);
@@ -291,6 +334,10 @@ function changeFilter(filter) {
   document.getElementById("currentFilter").textContent = filterLabels[filter];
 
   loadGenreContent(true);
+}
+
+function shouldUseLoopMode() {
+  return currentSort === "default" && currentFilter === "all";
 }
 
 // Setup infinite scroll

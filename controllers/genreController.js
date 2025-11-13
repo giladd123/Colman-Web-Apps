@@ -34,8 +34,10 @@ export const getContentByGenre = async (req, res) => {
     const skip = (parseInt(page) - 1) * limit;
 
     // Build sort object
-    const sortObj = {};
-    sortObj[sortBy] = sortOrder === "asc" ? 1 : -1;
+    const shouldSort = sortBy && sortBy !== "default";
+    const sortObj = shouldSort
+      ? { [sortBy]: sortOrder === "asc" ? 1 : -1 }
+      : null;
 
     // Base query
     let query = {
@@ -97,19 +99,19 @@ export const getContentByGenre = async (req, res) => {
         query._id = { $nin: watchedIds };
       }
 
-      content = await Content.find(query)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limit)
-        .lean();
+      let queryBuilder = Content.find(query);
+      if (sortObj) {
+        queryBuilder = queryBuilder.sort(sortObj);
+      }
+      content = await queryBuilder.skip(skip).limit(limit).lean();
 
       totalCount = await Content.countDocuments(query);
     } else {
-      content = await Content.find(query)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limit)
-        .lean();
+      let queryBuilder = Content.find(query);
+      if (sortObj) {
+        queryBuilder = queryBuilder.sort(sortObj);
+      }
+      content = await queryBuilder.skip(skip).limit(limit).lean();
 
       totalCount = await Content.countDocuments(query);
     }
