@@ -4,7 +4,7 @@ import { error as logError } from "../utils/logger.js";
 
 // Middleware: load profile by :profileId and attach to req.profile
 export default async function loadProfile(req, res, next) {
-  const profileId = req.params.profileId;
+  const profileId = req.session.selectedProfileId;
   try {
     const profile = await Profile.findById(profileId);
     if (!profile) {

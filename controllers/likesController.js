@@ -8,7 +8,9 @@ import { error as logError } from "../utils/logger.js";
 export async function addLikeByProfileName(req, res) {
   try {
     const { profileName, contentId } = req.params;
-    const profile = await Profile.findOne({ name: profileName });
+    
+    const profile = await Profile.findById(req.session.selectedProfileId);
+    
     if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists and get initial content
@@ -58,7 +60,7 @@ export async function addLikeByProfileName(req, res) {
 export async function removeLikeByProfileName(req, res) {
   try {
     const { profileName, contentId } = req.params;
-    const profile = await Profile.findOne({ name: profileName });
+    const profile = await Profile.findById(req.session.selectedProfileId);
     if (!profile) return notFound(res, "Profile not found");
 
     // Ensure content exists and get initial content

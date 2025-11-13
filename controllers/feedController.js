@@ -231,7 +231,7 @@ async function recommendationsForProfile(profileId, typeFilter = null) {
 
 export async function getFeedForProfile(req, res) {
   try {
-    const profileId = req.params.profileId;
+    const profileId = req.session.selectedProfileId;
     const typeFilter = normalizeContentType(req.query.type);
     // populate likedContents and watchlist
     const profile = await Profile.findById(profileId)

@@ -25,12 +25,12 @@ async function logout() {
       window.location.href = "/login";
     } else {
       console.error('Logout failed');
-      // Redirect anyway for UX
       window.location.href = "/login";
     }
   } catch (error) {
     console.error('Error during logout:', error);
-    // Redirect anyway for UX
     window.location.href = "/login";
   }
 }
+
+

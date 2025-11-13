@@ -74,7 +74,7 @@ async function deleteHabit(req, res) {
 }
 
 async function getHabitsByProfile(req, res) {
-  const profileId = req.params.profileId;
+  const profileId = req.session.selectedProfileId;
   try {
     const habits = await Habit.find({ profileId })
       .sort({ lastWatchedAt: -1 })
