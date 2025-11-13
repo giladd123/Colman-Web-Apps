@@ -4,10 +4,11 @@ import {
   getContentDataById,
 } from "../controllers/selectcontentController.js";
 import catchAsync from "../controllers/utils.js";
+import { requireProfile } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/:id", catchAsync(getContentById));
-router.get("/api/data/:id", catchAsync(getContentDataById));
+router.get("/:id", requireProfile, catchAsync(getContentById));
+router.get("/api/data/:id", requireProfile, catchAsync(getContentDataById));
 
 export default router;

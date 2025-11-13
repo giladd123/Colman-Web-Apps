@@ -7,6 +7,7 @@ import {
   validateUpdateProfile,
 } from "../middleware/validateProfile.js";
 import loadProfile from "../middleware/loadProfile.js";
+import { requireAuth, requireProfile } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -19,19 +20,21 @@ router.get(
   catchAsync(ProfilesController.getDefaultAvatars)
 );
 
-router.get("/user/:userId", catchAsync(ProfilesController.getProfilesByUserId));
+router.get("/user/:userId", requireAuth, catchAsync(ProfilesController.getProfilesByUserId));
 
 // Accept multipart form with field name 'avatar' for file uploads
 router.post(
   "/create",
   upload.single("avatar"),
+  requireAuth,
   validateCreateProfile,
   catchAsync(ProfilesController.createProfileRequest)
 );
 
 router.delete(
   "/:profileId",
-  loadProfile,
+  requireProfile,
+  loadProfile, 
   catchAsync(ProfilesController.deleteProfile)
 );
 
@@ -39,6 +42,7 @@ router.put(
   "/:profileId",
   upload.single("avatar"),
   loadProfile,
+  requireProfile,
   validateUpdateProfile,
   catchAsync(ProfilesController.updateProfile)
 );
