@@ -1,27 +1,3 @@
-/**
- * EXPLANATION: Updated init.js for session-based authentication
- * 
- * KEY CHANGES:
- * 1. All authentication checks now use getSession()
- * 2. Removed localStorage.getItem() calls
- * 3. Added proper async/await for session checks
- * 4. Added credentials: 'same-origin' to all fetch requests
- * 
- * Security improvements:
- * - Authentication state verified with server
- * - Cannot be tampered with by client
- * - Consistent across application
- */
-
-/**
- * EXPLANATION: initializeApp function - Main app initialization
- * 
- * Changes:
- * - Now uses getSession() instead of getProfileIfLoggedIn()
- * - Added explicit session checks with redirects
- * - Extracts profile data from session object
- * - All fetch requests include credentials
- */
 async function initializeApp() {
   const loadingIndicator = document.getElementById("loading");
   if (loadingIndicator) loadingIndicator.style.display = "block";
@@ -83,13 +59,6 @@ async function initializeApp() {
   }
 }
 
-/**
- * EXPLANATION: initializeGenresDropdown function - Load genre dropdown
- * 
- * Changes:
- * - Added credentials: 'same-origin' to fetch request
- * - This ensures authentication is checked server-side
- */
 async function initializeGenresDropdown() {
   try {
     const response = await fetch("/genres/api/genres", {

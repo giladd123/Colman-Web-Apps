@@ -2,11 +2,7 @@ import User from "../models/user.js";
 import { errorResponse, serverError } from "../utils/apiResponse.js";
 import { warn, error as logError } from "../utils/logger.js";
 
-/**
- * Middleware to ensure only admin users can access certain routes
- * For GET requests (page loads), we'll allow access and let client-side JS handle admin checks
- * For POST/PUT/DELETE requests (data modifications), we require userId validation
- */
+
 export async function validateAdminUser(req, res, next) {
   try {
     // For GET requests (loading admin pages), allow access and let client-side handle validation
@@ -32,7 +28,7 @@ export async function validateAdminUser(req, res, next) {
       return errorResponse(res, 401, "User not found");
     }
 
-    if ((user.username !== "bashari" || user.username !== "admin") && !user.isAdmin) {
+    if ((user.username !== "admin") && !user.isAdmin) {
       warn("validateAdminUser - access denied", {
         userId: user._id,
         username: user.username,
@@ -53,10 +49,7 @@ export async function validateAdminUser(req, res, next) {
   }
 }
 
-/**
- * Middleware to check if current user has admin privileges
- * Returns admin status without blocking the request
- */
+
 export async function checkAdminStatus(req, res, next) {
   try {
     const { userId } = req.body || req.query || req.params;

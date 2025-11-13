@@ -1,19 +1,3 @@
-/**
- * EXPLANATION: Updated settings_page.js for session-based authentication
- * 
- * KEY CHANGES:
- * 1. Removed localStorage.getItem("userId") - now uses getSession()
- * 2. Removed localStorage.setItem("profilesCache") - caching removed (server is source of truth)
- * 3. Added credentials: 'same-origin' to all fetch requests
- * 4. Updated initialization to use async getSession()
- * 
- * Benefits:
- * - UserId fetched from server session
- * - Profile data always fresh from server
- * - No client-side caching issues
- * - More secure
- */
-
 (function () {
   const FALLBACK_AVATARS = [
     "/images/profiles/white.png",
@@ -131,16 +115,6 @@
     });
   }
 
-  /**
-   * EXPLANATION: ensureUserSession function
-   * 
-   * CRITICAL CHANGE: Now uses getSession() instead of localStorage
-   * 
-   * Old: state.userId = localStorage.getItem("userId")
-   * New: Fetches session from server and validates authentication
-   * 
-   * This ensures the page only works with valid server sessions
-   */
   async function ensureUserSession() {
     try {
       const session = await getSession();
@@ -718,17 +692,6 @@
     );
   }
 
-  /**
-   * EXPLANATION: Async initialization
-   * 
-   * CRITICAL CHANGE: Now async to await getSession()
-   * 
-   * Flow:
-   * 1. Initialize DOM elements
-   * 2. Fetch and validate session from server
-   * 3. If valid, proceed with normal initialization
-   * 4. If invalid, show login prompt
-   */
   async function init() {
     initElements();
     const hasSession = await ensureUserSession();

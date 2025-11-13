@@ -1,20 +1,6 @@
 import { errorResponse } from "../utils/apiResponse.js";
 import { warn } from "../utils/logger.js";
 
-/**
- * EXPLANATION: requireAuth middleware
- * 
- * This middleware replaces client-side localStorage checks with server-side session validation.
- * It protects API routes by ensuring the user is authenticated before allowing access.
- * 
- * Purpose:
- * - Verifies req.session.userId exists (user is logged in)
- * - Returns 401 Unauthorized if not authenticated
- * - Prevents unauthorized API access
- * 
- * Usage: Add to routes that require authentication
- * Example: router.get('/protected', requireAuth, controller)
- */
 export function requireAuth(req, res, next) {
   if (!req.session.userId) {
     warn("Unauthorized API access attempt", {
@@ -27,20 +13,7 @@ export function requireAuth(req, res, next) {
   next();
 }
 
-/**
- * EXPLANATION: requireProfile middleware
- * 
- * This middleware ensures both user authentication AND profile selection.
- * Many features require a specific profile context (watchlist, habits, etc.)
- * 
- * Purpose:
- * - Verifies both userId and selectedProfileId exist in session
- * - Returns 401 if not authenticated or 403 if profile not selected
- * - Attaches userId and profileId to req for easy controller access
- * 
- * Usage: Add to routes that need profile context
- * Example: router.get('/watchlist', requireProfile, controller)
- */
+
 export function requireProfile(req, res, next) {
   if (!req.session.userId) {
     warn("Unauthorized API access attempt - no user session", {
@@ -66,17 +39,7 @@ export function requireProfile(req, res, next) {
   next();
 }
 
-/**
- * EXPLANATION: getSessionInfo helper
- * 
- * This function safely extracts session information for API responses.
- * It's used by endpoints that need to return current session state to the client.
- * 
- * Purpose:
- * - Returns current session data in a consistent format
- * - Used by /api/user/session endpoint
- * - Helps frontend sync with server-side session state
- */
+
 export function getSessionInfo(req) {
   return {
     isAuthenticated: !!req.session.userId,

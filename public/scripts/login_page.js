@@ -1,28 +1,3 @@
-/**
- * EXPLANATION: Updated login_page.js for session-based authentication
- * 
- * KEY CHANGES:
- * 1. Removed localStorage.setItem() calls after successful login
- * 2. Server now manages session creation
- * 3. Client just receives success response and redirects
- * 4. Added getSession() call to check existing authentication
- * 
- * Security improvements:
- * - userId never stored in localStorage
- * - Authentication state managed by server
- * - Cannot be tampered with by client
- */
-
-/**
- * EXPLANATION: redirectAfterLogin function
- * 
- * Replaces: localStorage.getItem("isLoggedIn") check
- * 
- * Changes:
- * - Now calls getSession() to check server authentication
- * - Redirects based on server session state
- * - No reliance on client-side storage
- */
 async function redirectAfterLogin() {
   const session = await getSession();
   
@@ -143,27 +118,6 @@ function validatePassword(passwordInput, passwordError) {
   }
 }
 
-/**
- * EXPLANATION: Form submission handler
- * 
- * KEY CHANGES:
- * 1. Removed localStorage.setItem("isLoggedIn", "true")
- * 2. Removed localStorage.setItem("userId", userData._id)
- * 3. Server creates session automatically on successful login
- * 4. Client just receives response and redirects
- * 
- * Flow:
- * 1. Validate form inputs
- * 2. Send login/signup request to server
- * 3. Server creates session on success
- * 4. Client receives user data (for display only)
- * 5. Client redirects (server session now active)
- * 
- * Security:
- * - No sensitive data stored client-side
- * - Session cookie automatically sent with future requests
- * - Server maintains authentication state
- */
 document
   .getElementById("loginForm")
   .addEventListener("submit", async function (event) {
@@ -235,12 +189,6 @@ document
         }
         return;
       }
-
-      /**
-       * CRITICAL CHANGE: Session is now created by server
-       * We don't need to store anything in localStorage
-       * The session cookie is automatically handled by the browser
-       */
       const userData = await response.json();
       
       // Verify we got user data back

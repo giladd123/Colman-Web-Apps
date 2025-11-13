@@ -1,19 +1,3 @@
-/**
- * EXPLANATION: Updated profiles_list.js for session-based profile management
- * 
- * KEY CHANGES:
- * 1. Removed localStorage.setItem() for profile selection
- * 2. Added selectProfile API call to store selection on server
- * 3. Removed localStorage.getItem("userId") check
- * 4. Added getSession() to fetch userId from server
- * 5. Removed profilesCache localStorage (optional, can be kept for performance)
- * 
- * Benefits:
- * - Profile selection is tamper-proof
- * - Server validates profile ownership
- * - Consistent across tabs/devices
- */
-
 (function () {
   const PROFILES_ENDPOINT_BASE = "/api/profiles/user/";
   const SELECT_PROFILE_ENDPOINT = "/api/user/select-profile";
@@ -55,20 +39,6 @@
     `;
   }
 
-  /**
-   * EXPLANATION: selectProfile function - Updated for session-based storage
-   * 
-   * Changes:
-   * - Removed localStorage.setItem() calls
-   * - Added API call to /api/user/select-profile
-   * - Server stores profile in session
-   * - credentials: 'same-origin' ensures session cookie is sent
-   * 
-   * Security improvements:
-   * - Server validates profile belongs to user
-   * - Client cannot forge profile selection
-   * - Selection stored securely on server
-   */
   async function selectProfile(profile) {
     if (!profile) return;
     
@@ -132,13 +102,6 @@
     return button;
   }
 
-  /**
-   * EXPLANATION: cacheProfiles function - Optional caching for performance
-   * 
-   * Note: This is optional. Profile data is not sensitive (just names and avatars),
-   * so caching in localStorage for performance is acceptable.
-   * The actual SELECTION is stored on server, this is just for faster rendering.
-   */
   function cacheProfiles(profiles) {
     try {
       const simplified = profiles.map((profile) => ({
@@ -152,21 +115,7 @@
     }
   }
 
-  /**
-   * EXPLANATION: loadProfiles function - Updated to use session
-   * 
-   * Changes:
-   * - Removed localStorage.getItem("userId")
-   * - Added getSession() call to get userId from server
-   * - Added credentials: 'same-origin' to fetch request
-   * - Shows appropriate error if not authenticated
-   * 
-   * Flow:
-   * 1. Check session for authentication
-   * 2. Fetch profiles using session userId
-   * 3. Render profile tiles
-   * 4. Cache for performance (optional)
-   */
+  
   async function loadProfiles() {
     const grid = document.querySelector(selectors.grid);
     if (!grid) return;

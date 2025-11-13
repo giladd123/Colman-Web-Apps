@@ -1,19 +1,3 @@
-/**
- * EXPLANATION: Updated profiles_page.js for session-based profile management
- * 
- * KEY CHANGES:
- * 1. Removed localStorage.setItem() for profile selection
- * 2. Added selectProfile() API call to store selection on server
- * 3. Removed localStorage.getItem("userId")
- * 4. Added getSession() to fetch userId from server
- * 
- * Benefits:
- * - Profile selection stored server-side
- * - Cannot be tampered with
- * - Validated by server
- * - Consistent across tabs
- */
-
 function showLoading(container, msg = "Loading...") {
   container.innerHTML = `
     <div class="w-100 d-flex flex-column align-items-center py-4 text-secondary">
@@ -233,16 +217,6 @@ function showNewProfileEditor(tile, selectedUrl, file) {
   });
 }
 
-/**
- * EXPLANATION: createNewProfile function
- * 
- * CHANGE: Removed localStorage.getItem("userId")
- * 
- * Now:
- * - Gets userId from server session via getSession()
- * - Server validates user owns the session
- * - More secure - cannot create profiles for other users
- */
 async function createNewProfile(name, file, selectedUrl) {
   try {
     const session = await getSession();
@@ -451,28 +425,6 @@ async function applyAvatarSelection() {
   }
 }
 
-/**
- * EXPLANATION: saveProfile function
- * 
- * CRITICAL CHANGE: Replaced localStorage with server API call
- * 
- * Old approach:
- * - localStorage.setItem("selectedProfileId", profileId)
- * - localStorage.setItem("selectedProfileName", input.value)
- * - localStorage.setItem("selectedProfileImage", img.src)
- * 
- * New approach:
- * - Call /api/user/select-profile to store on server
- * - Server validates profile ownership
- * - Session updated server-side
- * - Cannot be tampered with by client
- * 
- * Benefits:
- * - Profile selection validated by server
- * - User cannot select profiles that don't belong to them
- * - Persistent across browser sessions
- * - More secure
- */
 async function saveProfile(input, img, profileDiv) {
   const profileId = profileDiv.getAttribute("profileid");
   const profileName = input.value;
@@ -505,16 +457,6 @@ async function saveProfile(input, img, profileDiv) {
   }
 }
 
-/**
- * EXPLANATION: loadProfiles function
- * 
- * CHANGE: Removed localStorage.getItem("userId")
- * 
- * Now:
- * - Gets userId from server session via getSession()
- * - Server ensures user can only see their own profiles
- * - More secure - cannot load other users' profiles
- */
 async function loadProfiles() {
   const profilesContainer = document.querySelector(".profiles");
   showLoading(profilesContainer, "Loading profiles...");

@@ -1,15 +1,3 @@
-/**
- * EXPLANATION: Updated admin_init.js for session-based authentication
- * * KEY CHANGES:
- * 1. Removed localStorage.getItem("userId") - now uses getSession()
- * 2. Removed getProfileIfLoggedIn() - now uses getSession()
- * 3. Added credentials: 'same-origin' to fetch requests
- * 4. Made initialization async to await session data
- * * Benefits:
- * - Admin check based on server session
- * - Cannot be bypassed by manipulating localStorage
- * - More secure
- */
 
 // Admin page initialization script
 document.addEventListener("DOMContentLoaded", async function () {
@@ -20,21 +8,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     navbarBrand.style.color = "#e50914";
   }
 
-  /**
-   * EXPLANATION: Admin authentication check
-   * * CRITICAL CHANGE: Now uses getSession() instead of localStorage
-   * * Old approach:
-   * - const userId = localStorage.getItem("userId")
-   * - Could be manipulated by client
-   * * New approach:
-   * - Fetch session from server
-   * - Server validates authentication
-   * - Cannot be bypassed
-   * * Security:
-   * - Admin status verified server-side
-   * - UserId comes from server session
-   * - Protection against unauthorized access
-   */
   try {
     const session = await getSession();
     
@@ -70,14 +43,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  /**
-   * EXPLANATION: Profile information display
-   * * CHANGE: Now uses getSession() instead of getProfileIfLoggedIn()
-   * * Benefits:
-   * - Profile data from server session
-   * - Consistent with rest of application
-   * - Cannot be tampered with
-   */
+
   try {
     const session = await getSession();
     

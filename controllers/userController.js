@@ -31,21 +31,6 @@ async function getUserById(req, res) {
   }
 }
 
-/**
- * EXPLANATION: loginUser - Updated with session management
- * 
- * Changes from localStorage approach:
- * 1. After successful login, creates server-side session
- * 2. Stores userId in req.session.userId
- * 3. Client no longer stores sensitive data in localStorage
- * 4. Returns user data for display purposes only
- * 
- * Security improvements:
- * - userId cannot be tampered with by client
- * - Session data encrypted and signed
- * - Automatic session expiration
- * - Protection against session fixation attacks
- */
 async function loginUser(req, res) {
   const { email, password } = req.validatedBody || req.body;
   try {
@@ -70,10 +55,6 @@ async function loginUser(req, res) {
       return errorResponse(res, 401, "Invalid email or password");
     }
 
-    /**
-     * CRITICAL CHANGE: Store userId in session instead of returning it to client
-     * The client will rely on session cookies, not localStorage
-     */
     req.session.userId = user._id.toString();
     
     // Clear any previous profile selection on new login
@@ -103,19 +84,6 @@ async function loginUser(req, res) {
   }
 }
 
-/**
- * EXPLANATION: logoutUser - New endpoint for session destruction
- * 
- * Purpose:
- * - Destroys server-side session data
- * - Clears session cookie
- * - Replaces client-side localStorage.clear()
- * 
- * This ensures complete logout:
- * - Session data removed from server
- * - Cookie invalidated in browser
- * - No residual authentication state
- */
 async function logoutUser(req, res) {
   const userId = req.session.userId;
   
@@ -146,36 +114,12 @@ async function logoutUser(req, res) {
   });
 }
 
-/**
- * EXPLANATION: getSessionInfo - New endpoint for session state
- * 
- * Purpose:
- * - Allows client to check authentication status
- * - Returns current session data (userId, profileId, etc.)
- * - Replaces localStorage.getItem() calls
- * 
- * Frontend uses this to:
- * - Check if user is logged in
- * - Get current profile selection
- * - Sync UI with server session state
- */
+
 async function getSession(req, res) {
   return ok(res, getSessionInfo(req));
 }
 
-/**
- * EXPLANATION: selectProfile - New endpoint for profile selection
- * 
- * Purpose:
- * - Stores selected profile in server-side session
- * - Replaces localStorage.setItem() for profile data
- * - Validates profile belongs to authenticated user
- * 
- * Security improvements:
- * - Server validates profile ownership
- * - Client cannot forge profile selection
- * - Profile data stored securely on server
- */
+
 async function selectProfile(req, res) {
   try {
     const { profileId, profileName, profileImage } = req.body;
@@ -223,10 +167,6 @@ async function createUser(req, res) {
     const user = new User({ username: username, email: email, password: password });
     await user.save();
     
-    /**
-     * CHANGE: After creating user, automatically log them in by creating session
-     * This provides smoother UX - user doesn't need to login after signup
-     */
     req.session.userId = user._id.toString();
     
     info(

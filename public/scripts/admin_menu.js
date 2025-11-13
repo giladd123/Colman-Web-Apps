@@ -38,7 +38,7 @@
           });
           if (response.ok) {
             const user = await response.json();
-            const serverIsAdmin = user.username === "admin" || user.username === "bashari" || user.isAdmin;
+            const serverIsAdmin = user.username === "admin" || user.isAdmin;
 
             // Update cache
             localStorage.setItem("isAdmin", serverIsAdmin.toString());
