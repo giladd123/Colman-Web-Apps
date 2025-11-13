@@ -5,12 +5,12 @@ async function initializeApp() {
   try {
     // Get session from server instead of localStorage
     const session = await getSession();
-    
+
     if (!session || !session.isAuthenticated) {
       window.location.href = "/login";
       return;
     }
-    
+
     if (!session.selectedProfileId || !session.selectedProfileName) {
       window.location.href = "/profiles";
       return;
@@ -62,9 +62,9 @@ async function initializeApp() {
 async function initializeGenresDropdown() {
   try {
     const response = await fetch("/genres/api/genres", {
-      credentials: 'same-origin' // Include session cookie
+      credentials: "same-origin", // Include session cookie
     });
-    
+
     if (!response.ok) throw new Error("Failed to fetch genres");
 
     const genres = await response.json();
@@ -205,9 +205,9 @@ async function initializeAdminUI() {
     }
 
     const response = await fetch(`/api/user/${session.userId}`, {
-      credentials: 'same-origin' // Include session cookie
+      credentials: "same-origin", // Include session cookie
     });
-    
+
     if (!response.ok) return false;
 
     const user = await response.json();

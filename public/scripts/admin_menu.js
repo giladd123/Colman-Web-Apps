@@ -34,7 +34,7 @@
       if (shouldCheckServer || localStorage.getItem("isAdmin") === null) {
         try {
           const response = await fetch(`/api/user/${session.userId}`, {
-             credentials: 'same-origin' // Include session cookie
+            credentials: "same-origin", // Include session cookie
           });
           if (response.ok) {
             const user = await response.json();
@@ -43,7 +43,6 @@
             // Update cache
             localStorage.setItem("isAdmin", serverIsAdmin.toString());
             localStorage.setItem("lastAdminCheck", now.toString());
-
 
             // Update UI if status changed
             if (serverIsAdmin !== isAdmin) {

@@ -13,7 +13,7 @@ const episodeSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    seasonNumber : {
+    seasonNumber: {
       type: Number,
       required: true,
     },

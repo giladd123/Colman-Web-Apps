@@ -114,9 +114,9 @@ async function handleLikeClick(likeBtn, movie, entry) {
   // Get profile name from window.currentProfile (set during page init)
   const profileName = window.currentProfile?.name;
   if (!profileName) {
-    console.error('No profile name available');
-    alert('Session expired. Please log in again.');
-    window.location.href = '/login';
+    console.error("No profile name available");
+    alert("Session expired. Please log in again.");
+    window.location.href = "/login";
     return;
   }
 
@@ -402,7 +402,7 @@ function createLikeButton(movie) {
   updateTooltip(likeBtn, tooltipText);
 
   likeBtn.addEventListener("click", () =>
-        handleLikeClick(likeBtn, movie, entry)
+    handleLikeClick(likeBtn, movie, entry)
   );
 
   return likeBtn;

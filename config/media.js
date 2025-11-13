@@ -3,7 +3,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   ListObjectsV2Command,
-  ListBucketsCommand
+  ListBucketsCommand,
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { error as logError } from "../utils/logger.js";
@@ -17,24 +17,26 @@ const necessaryEnvVars = [
   "S3_BUCKET_NAME",
 ];
 
-let non_defined_vars = necessaryEnvVars.filter((v => !process.env[v]));
+let non_defined_vars = necessaryEnvVars.filter((v) => !process.env[v]);
 
 if (non_defined_vars.length > 0) {
   console.warn(
-    `The following environment variables are not set: ${non_defined_vars.join(", ")}. Exiting...`
+    `The following environment variables are not set: ${non_defined_vars.join(
+      ", "
+    )}. Exiting...`
   );
   process.exit(1);
 }
 
-
-const [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION, BUCKET] = necessaryEnvVars.map(v => process.env[v])
+const [AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, REGION, BUCKET] =
+  necessaryEnvVars.map((v) => process.env[v]);
 
 const s3Client = new S3Client({
   region: REGION,
   credentials: {
     accessKeyId: AWS_ACCESS_KEY_ID,
     secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  }
+  },
 });
 
 async function checkS3Connection() {
@@ -51,8 +53,7 @@ async function checkS3Connection() {
   }
 }
 
-await checkS3Connection()
-
+await checkS3Connection();
 
 function _makeKey(originalName) {
   if (!originalName) originalName = "file";
@@ -99,17 +100,21 @@ async function uploadFromMultipart(file, key = null) {
       // contentType remains original (jpeg/png/webp)
     }
   } catch (err) {
-    console.warn("Image processing failed, uploading original buffer:", err.message);
+    console.warn(
+      "Image processing failed, uploading original buffer:",
+      err.message
+    );
   }
   const finalKey = await uploadBuffer(buffer, chosenKey, contentType);
   const url = getObjectUrl(finalKey);
   return { key: finalKey, url: url };
 }
 
-
 function getObjectUrl(key) {
   if (!key) return null;
-  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${encodeURIComponent(key)}`;
+  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${encodeURIComponent(
+    key
+  )}`;
 }
 
 async function deleteObject(key) {
@@ -158,5 +163,5 @@ export default {
   uploadFromMultipart,
   deleteObject,
   listObjects,
-  getObjectUrl
+  getObjectUrl,
 };

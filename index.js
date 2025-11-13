@@ -33,16 +33,18 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 
 // Session middleware setup
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'secret-key-default-change-me-please',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { 
-    secure: false,
-    httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 // 24 hours
-  }
-}));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "secret-key-default-change-me-please",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    },
+  })
+);
 
 // routes
 app.get("/", (req, res) => {

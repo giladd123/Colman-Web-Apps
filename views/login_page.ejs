@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<%- include('partials/head', { extraCss: ["/style/login_page.css"] }) %>
+  <%- include('partials/head', { extraCss: ["/style/login_page.css"] }) %>
 
   <body>
-    <div class="container-fluid">
-    </div>
+    <div class="container-fluid"></div>
     <div class="container-fluid">
       <div class="row bg-dark">
         <div class="col-12">
-          <nav class="navbar navbar-expand-lg navbar-dark d-flex align-items-center">
+          <nav
+            class="navbar navbar-expand-lg navbar-dark d-flex align-items-center"
+          >
             <div class="container">
               <p class="netflix-logo mb-0">NETFLIX</p>
             </div>
@@ -16,36 +17,68 @@
         </div>
       </div>
 
-      <div class="row justify-content-center align-items-center" style="min-height: 80vh">
+      <div
+        class="row justify-content-center align-items-center"
+        style="min-height: 80vh"
+      >
         <div class="col-4">
           <div class="login-container">
             <h1 id="authTitle" class="text-white mb-4">Sign In</h1>
 
             <form id="loginForm" novalidate>
-              <div class="mb-3 signup-only" style="display:none;">
-                <input type="text" class="form-control" id="username" placeholder="Username" />
+              <div class="mb-3 signup-only" style="display: none">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="username"
+                  placeholder="Username"
+                />
                 <div id="usernameError" class="error-message"></div>
               </div>
 
               <div class="mb-3">
-                <input type="text" class="form-control" id="email" placeholder="Email" required />
+                <input
+                  type="text"
+                  class="form-control"
+                  id="email"
+                  placeholder="Email"
+                  required
+                />
                 <div id="emailError" class="error-message"></div>
               </div>
 
               <div class="mb-3">
-                <input type="password" class="form-control" id="password" placeholder="Password" required />
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  placeholder="Password"
+                  required
+                />
                 <div id="passwordError" class="error-message"></div>
               </div>
 
               <div id="generalError" class="error-message text-center"></div>
 
               <div class="d-grid mb-3">
-                <button type="submit" id="primaryAction" class="btn btn-netflix">Sign In</button>
+                <button
+                  type="submit"
+                  id="primaryAction"
+                  class="btn btn-netflix"
+                >
+                  Sign In
+                </button>
               </div>
 
-              <div class="d-flex justify-content-between align-items-center mb-3">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
                 <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="rememberMe" />
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="rememberMe"
+                  />
                   <label class="form-check-label remember-me" for="rememberMe">
                     Remember Me
                   </label>
@@ -57,7 +90,8 @@
 
               <div class="text-center">
                 <p class="signup-link" id="secondaryText">
-                  New to Netflix? <a href="#" id="secondaryAction">Sign up now.</a>
+                  New to Netflix?
+                  <a href="#" id="secondaryAction">Sign up now.</a>
                 </p>
               </div>
 
@@ -76,5 +110,4 @@
     <script src="/scripts/login_page.js"></script>
     <script src="/scripts/utils.js"></script>
   </body>
-
 </html>

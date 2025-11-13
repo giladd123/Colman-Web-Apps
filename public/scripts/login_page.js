@@ -1,16 +1,16 @@
 async function redirectAfterLogin() {
   const session = await getSession();
-  
+
   if (!session || !session.isAuthenticated) {
-      return;
-    }
-    
-    if (!session.selectedProfileName) {
-      window.location.href = "/profiles";
-    } else {
-      window.location.href = "/feed";
-    }
+    return;
   }
+
+  if (!session.selectedProfileName) {
+    window.location.href = "/profiles";
+  } else {
+    window.location.href = "/feed";
+  }
+}
 
 // Toggle UI between sign-in and sign-up
 function setMode(isSignup) {
@@ -27,11 +27,13 @@ function setMode(isSignup) {
   if (isSignup) {
     authTitle.textContent = "Sign Up";
     primaryAction.textContent = "Create Account";
-    secondaryText.innerHTML = "Already have an account? <a href='#' id='secondaryAction'>Sign in now.</a>";
+    secondaryText.innerHTML =
+      "Already have an account? <a href='#' id='secondaryAction'>Sign in now.</a>";
   } else {
     authTitle.textContent = "Sign In";
     primaryAction.textContent = "Sign In";
-    secondaryText.innerHTML = "New to Netflix? <a href='#' id='secondaryAction'>Sign up now.</a>";
+    secondaryText.innerHTML =
+      "New to Netflix? <a href='#' id='secondaryAction'>Sign up now.</a>";
   }
 
   // Re-attach secondary action handler
@@ -58,7 +60,10 @@ function isAdminBypass(emailInput, passwordInput) {
 function validateEmail(emailInput, emailError) {
   const value = emailInput.value.trim();
   const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-  const adminBypass = isAdminBypass(emailInput, document.getElementById("password"));
+  const adminBypass = isAdminBypass(
+    emailInput,
+    document.getElementById("password")
+  );
 
   if (adminBypass) {
     emailError.textContent = "";
@@ -68,8 +73,7 @@ function validateEmail(emailInput, emailError) {
   }
 
   if (!emailPattern.test(value)) {
-    emailError.textContent =
-      "Please enter a valid email address.";
+    emailError.textContent = "Please enter a valid email address.";
     emailError.classList.add("active");
     emailInput.classList.add("is-invalid");
     return false;
@@ -86,7 +90,8 @@ function validateUsername(usernameInput, usernameError) {
   // basic rules: non-empty, 3-30 chars, letters/numbers/underscore/dot
   const usernamePattern = /^[A-Za-z0-9_.]{3,30}$/;
   if (!usernamePattern.test(value)) {
-    usernameError.textContent = "Username must be 3-30 chars and contain only letters, numbers, underscores or dots.";
+    usernameError.textContent =
+      "Username must be 3-30 chars and contain only letters, numbers, underscores or dots.";
     usernameError.classList.add("active");
     usernameInput.classList.add("is-invalid");
     return false;
@@ -98,7 +103,10 @@ function validateUsername(usernameInput, usernameError) {
 }
 
 function validatePassword(passwordInput, passwordError) {
-  const adminBypass = isAdminBypass(document.getElementById("email"), passwordInput);
+  const adminBypass = isAdminBypass(
+    document.getElementById("email"),
+    passwordInput
+  );
   if (adminBypass) {
     passwordError.textContent = "";
     passwordError.classList.remove("active");
@@ -166,18 +174,18 @@ document
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: 'same-origin', // IMPORTANT: Include session cookie
+        credentials: "same-origin", // IMPORTANT: Include session cookie
         body: JSON.stringify(
           isSignup
             ? {
-              username: usernameInput.value.trim(),
-              email: emailInput.value.trim(),
-              password: passwordInput.value.trim(),
-            }
+                username: usernameInput.value.trim(),
+                email: emailInput.value.trim(),
+                password: passwordInput.value.trim(),
+              }
             : {
-              email: emailInput.value.trim(),
-              password: passwordInput.value.trim(),
-            }
+                email: emailInput.value.trim(),
+                password: passwordInput.value.trim(),
+              }
         ),
       });
 
@@ -190,7 +198,7 @@ document
         return;
       }
       const userData = await response.json();
-      
+
       // Verify we got user data back
       if (userData && userData._id) {
         // Session is now active on server
@@ -215,7 +223,7 @@ document
 document.addEventListener("DOMContentLoaded", async function () {
   // Check if already logged in and redirect
   await redirectAfterLogin();
-  
+
   // secondary link (sign up / sign in) handler
   const secondaryAction = document.getElementById("secondaryAction");
   if (secondaryAction) {
@@ -223,7 +231,9 @@ document.addEventListener("DOMContentLoaded", async function () {
       e.preventDefault();
       // toggle mode based on current primary button text
       const primaryAction = document.getElementById("primaryAction");
-      const isCurrentlySignup = primaryAction.textContent.toLowerCase().includes("create");
+      const isCurrentlySignup = primaryAction.textContent
+        .toLowerCase()
+        .includes("create");
       setMode(!isCurrentlySignup);
     });
   }

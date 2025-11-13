@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { addToWatchlist, removeFromWatchlist } from "../controllers/watchlistController.js";
+import {
+  addToWatchlist,
+  removeFromWatchlist,
+} from "../controllers/watchlistController.js";
 import { requireProfile } from "../middleware/authMiddleware.js";
 
 const router = Router();

@@ -56,7 +56,7 @@ async function loginUser(req, res) {
     }
 
     req.session.userId = user._id.toString();
-    
+
     // Clear any previous profile selection on new login
     delete req.session.selectedProfileId;
     delete req.session.selectedProfileName;
@@ -67,7 +67,7 @@ async function loginUser(req, res) {
       { email: email, userId: user._id },
       true
     );
-    
+
     // Return user data (for display) but authentication is handled by session
     return ok(res, user);
   } catch (error) {
@@ -86,7 +86,7 @@ async function loginUser(req, res) {
 
 async function logoutUser(req, res) {
   const userId = req.session.userId;
-  
+
   req.session.destroy((err) => {
     if (err) {
       logError(
@@ -100,52 +100,47 @@ async function logoutUser(req, res) {
       );
       return serverError(res);
     }
-    
+
     // Clear the session cookie
-    res.clearCookie('connect.sid');
-    
-    info(
-      `user logout successful: ${userId}`,
-      { userId: userId },
-      true
-    );
-    
+    res.clearCookie("connect.sid");
+
+    info(`user logout successful: ${userId}`, { userId: userId }, true);
+
     return ok(res, { message: "Logout successful" });
   });
 }
-
 
 async function getSession(req, res) {
   return ok(res, getSessionInfo(req));
 }
 
-
 async function selectProfile(req, res) {
   try {
     const { profileId, profileName, profileImage } = req.body;
-    
+
     if (!req.session.userId) {
       return errorResponse(res, 401, "Authentication required");
     }
-    
+
     if (!profileId || !profileName) {
       return errorResponse(res, 400, "Profile ID and name are required");
     }
-    
+
     // Store profile selection in session
     req.session.selectedProfileId = profileId;
     req.session.selectedProfileName = profileName;
-    req.session.selectedProfileImage = profileImage || '/images/profiles/white.png';
-    
+    req.session.selectedProfileImage =
+      profileImage || "/images/profiles/white.png";
+
     info(
       `profile selected: ${profileId}`,
       { userId: req.session.userId, profileId, profileName },
       true
     );
-    
-    return ok(res, { 
+
+    return ok(res, {
       message: "Profile selected successfully",
-      session: getSessionInfo(req)
+      session: getSessionInfo(req),
     });
   } catch (error) {
     logError(
@@ -164,11 +159,15 @@ async function selectProfile(req, res) {
 async function createUser(req, res) {
   const { username, email, password } = req.validatedBody || req.body;
   try {
-    const user = new User({ username: username, email: email, password: password });
+    const user = new User({
+      username: username,
+      email: email,
+      password: password,
+    });
     await user.save();
-    
+
     req.session.userId = user._id.toString();
-    
+
     info(
       `user created: ${user._id}`,
       { username: username, email: email, userId: user._id },

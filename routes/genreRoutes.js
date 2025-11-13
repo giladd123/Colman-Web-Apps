@@ -2,7 +2,7 @@ import express from "express";
 import {
   getAllGenres,
   getContentByGenre,
-  renderGenrePage
+  renderGenrePage,
 } from "../controllers/genreController.js";
 
 const router = express.Router();
