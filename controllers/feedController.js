@@ -44,7 +44,23 @@ export async function getContentByGenre(req, res) {
   }
 }
 
-async function continueWatchingForProfile(profileId) {
+function normalizeContentType(type) {
+  if (!type || typeof type !== "string") return null;
+  const normalized = type.trim().toLowerCase();
+  if (normalized === "movie" || normalized === "show") {
+    return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  }
+  return null;
+}
+
+function filterByType(items, typeFilter) {
+  if (!typeFilter) {
+    return items.filter((item) => item && item.type !== "Episode");
+  }
+  return items.filter((item) => item && item.type === typeFilter);
+}
+
+async function continueWatchingForProfile(profileId, typeFilter = null) {
   try {
     // Find all habits for this profile where watching is in progress
     const habits = await watchingHabit
@@ -104,14 +120,14 @@ async function continueWatchingForProfile(profileId) {
       }
     }
 
-    return result;
+    return filterByType(result, typeFilter);
   } catch (err) {
     console.error("Error in continueWatchingForProfile:", err);
     return [];
   }
 }
 
-async function completedWatchingByProfile(profileId) {
+async function completedWatchingByProfile(profileId, typeFilter = null) {
   try {
     // Find all habits for this profile that are completed
     const habits = await watchingHabit
@@ -162,28 +178,34 @@ async function completedWatchingByProfile(profileId) {
       }
     }
 
-    return result;
+    return filterByType(result, typeFilter);
   } catch (err) {
     console.error("Error in completedWatchingByProfile:", err);
     return [];
   }
 }
 
-async function likedByProfile(profileId) {
+async function likedByProfile(profileId, typeFilter = null) {
   const habits = await watchingHabit
     .find({ profileId, liked: true })
     .populate("contentId")
     .lean();
-  return habits
+  const likedContent = habits
     .map((h) => h.contentId)
     .filter((c) => c && c.type !== "Episode");
+  return filterByType(likedContent, typeFilter);
 }
 
-async function recommendationsForProfile(profileId) {
-  const liked = await likedByProfile(profileId);
+async function recommendationsForProfile(profileId, typeFilter = null) {
+  const liked = await likedByProfile(profileId, typeFilter);
   if (!liked.length) {
     // Fallback: top rated content
-    return await Content.find({ type: { $ne: "Episode" } })
+    const fallbackQuery = {
+      type: { $ne: "Episode" },
+    };
+    if (typeFilter) fallbackQuery.type = typeFilter;
+
+    return await Content.find(fallbackQuery)
       .sort({ imdbRating: -1 })
       .limit(10)
       .lean();
@@ -194,19 +216,23 @@ async function recommendationsForProfile(profileId) {
   const topGenres = [...new Set(likedGenres)];
 
   // Find more content in similar genres (excluding already liked)
-  return await Content.find({
+  const query = {
     genres: { $in: topGenres },
     _id: { $nin: liked.map((c) => c._id) },
     type: { $ne: "Episode" },
-  })
-    .sort({ imdbRating: -1 })
-    .limit(10)
-    .lean();
+  };
+
+  if (typeFilter) {
+    query.type = typeFilter;
+  }
+
+  return await Content.find(query).sort({ imdbRating: -1 }).limit(10).lean();
 }
 
 export async function getFeedForProfile(req, res) {
   try {
     const profileId = req.params.profileId;
+    const typeFilter = normalizeContentType(req.query.type);
     // populate likedContents and watchlist
     const profile = await Profile.findById(profileId)
       .populate("likedContents")
@@ -225,25 +251,41 @@ export async function getFeedForProfile(req, res) {
         c.toObject ? c.toObject() : c
       );
     } else {
-      likedBy = await likedByProfile(profileId);
+      likedBy = await likedByProfile(profileId, typeFilter);
     }
     // Continue Watching
-    const continueWatching = await continueWatchingForProfile(profileId);
+    const continueWatching = await continueWatchingForProfile(
+      profileId,
+      typeFilter
+    );
 
     // Watch Again (completed content)
-    const watchAgain = await completedWatchingByProfile(profileId);
+    const watchAgain = await completedWatchingByProfile(profileId, typeFilter);
 
     // Recommendations
-    const recommendations = await recommendationsForProfile(profileId);
+    const recommendations = await recommendationsForProfile(
+      profileId,
+      typeFilter
+    );
 
     // Most Popular
-    const mostPopular = await Content.find({ type: { $ne: "Episode" } })
+    const mostPopularQuery = { type: { $ne: "Episode" } };
+    if (typeFilter) {
+      mostPopularQuery.type = typeFilter;
+    }
+
+    const mostPopular = await Content.find(mostPopularQuery)
       .sort({ popularity: -1 })
       .limit(10)
       .lean();
 
     // Newest by Genre
-    const contents = await Content.find({ type: { $ne: "Episode" } })
+    const newestQuery = { type: { $ne: "Episode" } };
+    if (typeFilter) {
+      newestQuery.type = typeFilter;
+    }
+
+    const contents = await Content.find(newestQuery)
       .sort({ releaseYear: -1 })
       .lean();
     const newestByGenre = {};
@@ -257,12 +299,16 @@ export async function getFeedForProfile(req, res) {
     }
 
     // My List (watchlist)
-    const myList = (
+    let myList = (
       profile.watchlist?.map((c) => (c.toObject ? c.toObject() : c)) || []
     ).filter((c) => c && c.type !== "Episode");
 
+    if (typeFilter) {
+      myList = myList.filter((item) => item.type === typeFilter);
+    }
+
     // Ensure likedBy from profile.likedContents also excludes episodes
-    likedBy = (likedBy || []).filter((c) => c && c.type !== "Episode");
+    likedBy = filterByType(likedBy || [], typeFilter);
 
     return ok(res, {
       profile: {

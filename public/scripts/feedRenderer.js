@@ -127,10 +127,18 @@ async function fetchMoviesFromDB() {
 }
 
 // Fetch feed data for a specific profile
-async function fetchFeedForProfile(profileId) {
+async function fetchFeedForProfile(profileId, options = {}) {
   try {
+    const params = new URLSearchParams();
+    if (options.filterType && typeof options.filterType === "string") {
+      params.append("type", options.filterType);
+    }
+
+    const queryString = params.toString();
     const response = await fetch(
-      `/feed/profile/${encodeURIComponent(profileId)}`
+      `/feed/profile/${encodeURIComponent(profileId)}${
+        queryString ? `?${queryString}` : ""
+      }`
     );
     if (!response.ok) throw new Error("Failed to fetch feed");
     const data = await response.json();
