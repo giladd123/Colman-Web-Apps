@@ -9,8 +9,8 @@
 
   async function initAdminUI() {
     try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return;
+      const session = await getSession();
+      if (!session || !session.userId) return;
 
       // Check if we already have admin status cached
       let isAdmin = localStorage.getItem("isAdmin") === "true";
@@ -33,10 +33,16 @@
       // If we need to check server or don't have cached status, make API call
       if (shouldCheckServer || localStorage.getItem("isAdmin") === null) {
         try {
-          const response = await fetch(`/api/user/${userId}`);
+          const response = await fetch(`/api/user/${session.userId}`, {
+             credentials: 'same-origin' // Include session cookie
+          });
           if (response.ok) {
             const user = await response.json();
+<<<<<<< HEAD
             const serverIsAdmin = user.username === "admin" || user.isAdmin;
+=======
+            const serverIsAdmin = user.username === "bashari" || user.username === "admin" || user.isAdmin;
+>>>>>>> 4d3cdc7 (manage all sessions)
 
             // Update cache
             localStorage.setItem("isAdmin", serverIsAdmin.toString());
@@ -53,6 +59,8 @@
             }
           }
         } catch (error) {
+          localStorage.removeItem("isAdmin");
+          localStorage.removeItem("lastAdminCheck");
           console.error("Error checking admin status from server:", error);
           // Fall back to cached value if available
         }

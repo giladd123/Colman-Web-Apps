@@ -22,8 +22,22 @@ document.addEventListener('DOMContentLoaded', () => {
   async function initializePlayer() {
     try {
       contentId = window.location.pathname.split('/').pop();
-      profileName = localStorage.getItem('selectedProfileName');
-      profileId = localStorage.getItem('selectedProfileId');
+      
+      // Get session from server instead of localStorage
+      const session = await getSession();
+      
+      if (!session || !session.isAuthenticated) {
+        window.location.href = "/login";
+        return;
+      }
+      
+      if (!session.selectedProfileId || !session.selectedProfileName) {
+        window.location.href = "/profiles";
+        return;
+      }
+
+      profileName = session.selectedProfileName;
+      profileId = session.selectedProfileId;
       
       const urlParams = new URLSearchParams(window.location.search);
       currentShowId = urlParams.get('showId'); 

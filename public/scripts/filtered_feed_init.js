@@ -1,3 +1,18 @@
+/**
+ * EXPLANATION: Updated filtered_feed_init.js for session-based authentication
+ * 
+ * KEY CHANGES:
+ * 1. Removed getProfileIfLoggedIn() - now uses getSession()
+ * 2. Added proper async/await for session fetching
+ * 3. Added credentials: 'same-origin' where needed
+ * 4. Improved error handling and redirects
+ * 
+ * Benefits:
+ * - Authentication state from server
+ * - Consistent with main feed
+ * - More secure
+ */
+
 (function () {
   const FILTER_TYPE =
     typeof window.FEED_FILTER_TYPE === "string" &&
@@ -60,13 +75,48 @@
     });
   }
 
+  /**
+   * EXPLANATION: initializeFilteredFeed function
+   * 
+   * CRITICAL CHANGES:
+   * 1. Removed getProfileIfLoggedIn() array destructuring
+   * 2. Now uses getSession() to fetch authentication state
+   * 3. Added proper validation and redirects
+   * 4. Extracts profile data from session object
+   * 
+   * Flow:
+   * 1. Fetch session from server
+   * 2. Validate authentication and profile selection
+   * 3. Redirect if needed (login or profiles page)
+   * 4. Proceed with feed initialization if valid
+   * 
+   * Security:
+   * - Cannot bypass authentication
+   * - Profile selection validated by server
+   * - Consistent with other pages
+   */
   async function initializeFilteredFeed() {
     const loadingIndicator = document.getElementById("loading");
     if (loadingIndicator) loadingIndicator.style.display = "block";
 
     try {
-      const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-        getProfileIfLoggedIn();
+      // Get session from server instead of localStorage
+      const session = await getSession();
+      
+      if (!session || !session.isAuthenticated) {
+        window.location.href = "/login";
+        return;
+      }
+      
+      if (!session.selectedProfileId || !session.selectedProfileName) {
+        window.location.href = "/profiles";
+        return;
+      }
+
+      // Extract profile data from session
+      const selectedProfileId = session.selectedProfileId;
+      const selectedProfileName = session.selectedProfileName;
+      const selectedProfileImage = session.selectedProfileImage;
 
       updateNavbarHelloMessages(selectedProfileName);
 

@@ -1,10 +1,49 @@
+/**
+ * EXPLANATION: Updated init.js for session-based authentication
+ * 
+ * KEY CHANGES:
+ * 1. All authentication checks now use getSession()
+ * 2. Removed localStorage.getItem() calls
+ * 3. Added proper async/await for session checks
+ * 4. Added credentials: 'same-origin' to all fetch requests
+ * 
+ * Security improvements:
+ * - Authentication state verified with server
+ * - Cannot be tampered with by client
+ * - Consistent across application
+ */
+
+/**
+ * EXPLANATION: initializeApp function - Main app initialization
+ * 
+ * Changes:
+ * - Now uses getSession() instead of getProfileIfLoggedIn()
+ * - Added explicit session checks with redirects
+ * - Extracts profile data from session object
+ * - All fetch requests include credentials
+ */
 async function initializeApp() {
   const loadingIndicator = document.getElementById("loading");
   if (loadingIndicator) loadingIndicator.style.display = "block";
 
   try {
-    const [selectedProfileId, selectedProfileName, selectedProfileImage] =
-      getProfileIfLoggedIn();
+    // Get session from server instead of localStorage
+    const session = await getSession();
+    
+    if (!session || !session.isAuthenticated) {
+      window.location.href = "/login";
+      return;
+    }
+    
+    if (!session.selectedProfileId || !session.selectedProfileName) {
+      window.location.href = "/profiles";
+      return;
+    }
+
+    // Extract profile data from session
+    const selectedProfileId = session.selectedProfileId;
+    const selectedProfileName = session.selectedProfileName;
+    const selectedProfileImage = session.selectedProfileImage;
 
     updateHelloMessages(selectedProfileName);
 
@@ -44,10 +83,19 @@ async function initializeApp() {
   }
 }
 
-// Initialize the genres dropdown
+/**
+ * EXPLANATION: initializeGenresDropdown function - Load genre dropdown
+ * 
+ * Changes:
+ * - Added credentials: 'same-origin' to fetch request
+ * - This ensures authentication is checked server-side
+ */
 async function initializeGenresDropdown() {
   try {
-    const response = await fetch("/genres/api/genres");
+    const response = await fetch("/genres/api/genres", {
+      credentials: 'same-origin' // Include session cookie
+    });
+    
     if (!response.ok) throw new Error("Failed to fetch genres");
 
     const genres = await response.json();
@@ -154,7 +202,8 @@ function renderMobileGenresMessage(message) {
 // Check if current user is admin and show admin menu
 async function checkAndShowAdminMenu() {
   try {
-    const userId = localStorage.getItem("userId");
+    const session = await getSession();
+    const userId = session?.userId;
     if (!userId) return;
 
     const response = await fetch(`/api/user/${userId}`);
@@ -181,10 +230,15 @@ async function checkAndShowAdminMenu() {
 // Standalone function to check admin status and show admin dropdown - can be called from any page
 async function initializeAdminUI() {
   try {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return false;
+    const session = await getSession();
+    if (!session || !session.userId) {
+      return false;
+    }
 
-    const response = await fetch(`/api/user/${userId}`);
+    const response = await fetch(`/api/user/${session.userId}`, {
+      credentials: 'same-origin' // Include session cookie
+    });
+    
     if (!response.ok) return false;
 
     const user = await response.json();

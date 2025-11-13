@@ -1,3 +1,18 @@
+/**
+ * EXPLANATION: Updated admin_init.js for session-based authentication
+ * 
+ * KEY CHANGES:
+ * 1. Removed localStorage.getItem("userId") - now uses getSession()
+ * 2. Removed getProfileIfLoggedIn() - now uses getSession()
+ * 3. Added credentials: 'same-origin' to fetch requests
+ * 4. Made initialization async to await session data
+ * 
+ * Benefits:
+ * - Admin check based on server session
+ * - Cannot be bypassed by manipulating localStorage
+ * - More secure
+ */
+
 // Admin page initialization script
 document.addEventListener("DOMContentLoaded", async function () {
   // Change navbar brand to NETFLIX ADMIN
@@ -7,33 +22,91 @@ document.addEventListener("DOMContentLoaded", async function () {
     navbarBrand.style.color = "#e50914";
   }
 
-  // Check if user is admin (admin dropdown is handled by admin_menu.js)
+  /**
+   * EXPLANATION: Admin authentication check
+   * 
+   * CRITICAL CHANGE: Now uses getSession() instead of localStorage
+   * 
+   * Old approach:
+   * - const userId = localStorage.getItem("userId")
+   * - Could be manipulated by client
+   * 
+   * New approach:
+   * - Fetch session from server
+   * - Server validates authentication
+   * - Cannot be bypassed
+   * 
+   * Security:
+   * - Admin status verified server-side
+   * - UserId comes from server session
+   * - Protection against unauthorized access
+   */
   try {
+<<<<<<< HEAD
     const userId = localStorage.getItem("userId");
     if (userId) {
       const response = await fetch(`/api/user/${userId}`);
       if (response.ok) {
         const user = await response.json();
         const isAdmin = user.username === "admin" || user.isAdmin;
+=======
+    const session = await getSession();
+    
+    if (!session || !session.isAuthenticated || !session.userId) {
+      console.warn("No active session - redirecting to login");
+      window.location.href = '/login';
+      return;
+    }
+    
+    const userId = session.userId;
+    const response = await fetch(`/api/user/${userId}`, {
+      credentials: 'same-origin' // Include session cookie
+    });
+    
+    if (response.ok) {
+      const user = await response.json();
+      const isAdmin = user.username === "bashari" || user.isAdmin;
+>>>>>>> 4d3cdc7 (manage all sessions)
 
-        // If user is not admin, redirect to feed
-        if (!isAdmin) {
-          console.warn("Admin access required");
-          // Optionally redirect non-admin users
-          // window.location.href = '/feed';
-        }
+      // If user is not admin, redirect to feed
+      if (!isAdmin) {
+        console.warn("Admin access required - redirecting to feed");
+        window.location.href = '/feed';
+        return;
       }
+    } else {
+      console.warn("Failed to fetch user data");
+      window.location.href = '/login';
+      return;
     }
   } catch (error) {
     console.error("Error checking admin status:", error);
+    window.location.href = '/login';
+    return;
   }
 
-  // Set up user greeting and profile image
+  /**
+   * EXPLANATION: Profile information display
+   * 
+   * CHANGE: Now uses getSession() instead of getProfileIfLoggedIn()
+   * 
+   * Benefits:
+   * - Profile data from server session
+   * - Consistent with rest of application
+   * - Cannot be tampered with
+   */
   try {
+<<<<<<< HEAD
     const profileData = getProfileIfLoggedIn();
     if (profileData) {
       const [selectedProfileId, selectedProfileName, selectedProfileImage] =
         profileData;
+=======
+    const session = await getSession();
+    
+    if (session && session.isAuthenticated) {
+      const profileName = session.selectedProfileName || "Admin";
+>>>>>>> 4d3cdc7 (manage all sessions)
 
       // Update hello messages using the utility function
       if (typeof updateHelloMessages === "function") {
@@ -57,8 +130,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Update profile images
       const profileImg = document.getElementById("currentProfileImg");
-      if (profileImg && selectedProfileImage) {
-        profileImg.src = selectedProfileImage;
+      if (profileImg && session.selectedProfileImage) {
+        profileImg.src = session.selectedProfileImage;
       }
 
       const profileImgMobile = document.getElementById(

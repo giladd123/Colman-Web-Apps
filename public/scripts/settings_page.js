@@ -1,5 +1,18 @@
-// Settings page logic: profile management + statistics tab bootstrap
-// Charts rendering logic is implemented separately in step 4 via dedicated functions.
+/**
+ * EXPLANATION: Updated settings_page.js for session-based authentication
+ * 
+ * KEY CHANGES:
+ * 1. Removed localStorage.getItem("userId") - now uses getSession()
+ * 2. Removed localStorage.setItem("profilesCache") - caching removed (server is source of truth)
+ * 3. Added credentials: 'same-origin' to all fetch requests
+ * 4. Updated initialization to use async getSession()
+ * 
+ * Benefits:
+ * - UserId fetched from server session
+ * - Profile data always fresh from server
+ * - No client-side caching issues
+ * - More secure
+ */
 
 (function () {
   const FALLBACK_AVATARS = [
@@ -14,7 +27,7 @@
   const NAME_REGEX = /^[A-Za-z0-9 _-]{1,32}$/;
 
   const state = {
-    userId: localStorage.getItem("userId"),
+    userId: null, // Changed: Will be set from session
     profiles: [],
     selectedProfileId: null,
     mode: "idle", // idle | edit | create
@@ -90,6 +103,7 @@
   async function loadDefaultAvatars() {
     try {
       const response = await fetch(DEFAULT_AVATAR_API, {
+        credentials: 'same-origin', // Include session cookie
         headers: {
           Accept: "application/json",
         },
@@ -111,39 +125,47 @@
     }
   }
 
-  function cacheProfiles(profiles) {
-    try {
-      const simplified = profiles.map((profile) => ({
-        id: profile._id || profile.id,
-        name: profile.name,
-        avatar: profile.avatar || null,
-      }));
-      localStorage.setItem("profilesCache", JSON.stringify(simplified));
-    } catch (error) {
-      console.warn("Failed to cache profiles", error);
-    }
-  }
-
   function initElements() {
     Object.entries(selectors).forEach(([key, selector]) => {
       elements[key] = document.querySelector(selector);
     });
   }
 
-  function ensureUserSession() {
-    if (state.userId) return true;
-    const card = elements.card;
-    if (card) {
-      card.innerHTML = `
-        <section class="stats-placeholder py-5">
-          <i class="bi bi-lock mb-3"></i>
-          <h3>You're not logged in</h3>
-          <p class="text-secondary">Sign in to manage profiles and view statistics.</p>
-          <a href="/login" class="btn btn-danger">Go to login</a>
-        </section>
-      `;
+  /**
+   * EXPLANATION: ensureUserSession function
+   * 
+   * CRITICAL CHANGE: Now uses getSession() instead of localStorage
+   * 
+   * Old: state.userId = localStorage.getItem("userId")
+   * New: Fetches session from server and validates authentication
+   * 
+   * This ensures the page only works with valid server sessions
+   */
+  async function ensureUserSession() {
+    try {
+      const session = await getSession();
+      
+      if (!session || !session.isAuthenticated || !session.userId) {
+        const card = elements.card;
+        if (card) {
+          card.innerHTML = `
+            <section class="stats-placeholder py-5">
+              <i class="bi bi-lock mb-3"></i>
+              <h3>You're not logged in</h3>
+              <p class="text-secondary">Sign in to manage profiles and view statistics.</p>
+              <a href="/login" class="btn btn-danger">Go to login</a>
+            </section>
+          `;
+        }
+        return false;
+      }
+      
+      state.userId = session.userId;
+      return true;
+    } catch (error) {
+      console.error('Error checking session:', error);
+      return false;
     }
-    return false;
   }
 
   function bindEvents() {
@@ -522,14 +544,13 @@
     ) {
       fd.append("avatar", state.avatarSelection.file);
     } else {
-      // Do not fetch the S3 image from the browser (CORS). Send the URL to the server
-      // and let the server use it directly (no re-upload) or pull it if needed.
       const avatarUrl = state.avatarSelection.url || getDefaultAvatar(0);
       fd.append("avatarUrl", avatarUrl);
     }
 
     const response = await fetch("/api/profiles/create", {
       method: "POST",
+      credentials: 'same-origin', // Include session cookie
       body: fd,
     });
 
@@ -558,7 +579,6 @@
       if (!avatarUrl || avatarUrl === currentProfile.avatar) {
         // no change
       } else {
-        // send the URL to the server instead of fetching the image in the browser
         fd.append("avatarUrl", avatarUrl);
         hasChanges = true;
       }
@@ -576,6 +596,7 @@
 
     const response = await fetch(`/api/profiles/${profileId}`, {
       method: "PUT",
+      credentials: 'same-origin', // Include session cookie
       body: fd,
     });
 
@@ -603,6 +624,7 @@
 
       const response = await fetch(`/api/profiles/${state.selectedProfileId}`, {
         method: "DELETE",
+        credentials: 'same-origin', // Include session cookie
       });
       if (!response.ok) {
         const text = await response.text();
@@ -636,7 +658,9 @@
     renderProfilesLoading();
 
     try {
-      const response = await fetch(`/api/profiles/user/${state.userId}`);
+      const response = await fetch(`/api/profiles/user/${state.userId}`, {
+        credentials: 'same-origin' // Include session cookie
+      });
       if (!response.ok) {
         throw new Error("Failed to load profiles");
       }
@@ -646,7 +670,6 @@
       }
 
       state.profiles = profiles;
-      cacheProfiles(profiles);
 
       renderProfilesList();
 
@@ -695,9 +718,21 @@
     );
   }
 
-  function init() {
+  /**
+   * EXPLANATION: Async initialization
+   * 
+   * CRITICAL CHANGE: Now async to await getSession()
+   * 
+   * Flow:
+   * 1. Initialize DOM elements
+   * 2. Fetch and validate session from server
+   * 3. If valid, proceed with normal initialization
+   * 4. If invalid, show login prompt
+   */
+  async function init() {
     initElements();
-    if (!ensureUserSession()) return;
+    const hasSession = await ensureUserSession();
+    if (!hasSession) return;
     bindEvents();
     renderDefaultAvatarGrid();
     updateAvatarPreview();
