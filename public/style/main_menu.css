@@ -1,16 +1,16 @@
 body {
-    margin: 0;
-    background-color: #000;
+  margin: 0;
+  background-color: #000;
 }
 
 .profile-img {
-    width: 35px;
-    height: 32px;
-    border-radius: 4px;
+  width: 35px;
+  height: 32px;
+  border-radius: 4px;
 }
 .icon-btn {
-    color: white;
-    margin-left: 15px;
-    font-size: 1.2rem;
-    cursor: pointer;
+  color: white;
+  margin-left: 15px;
+  font-size: 1.2rem;
+  cursor: pointer;
 }

@@ -131,9 +131,9 @@ function openDeleteConfirm(profileDiv, imgEl, inputEl) {
 
 async function deleteProfile(profileId) {
   try {
-    const res = await fetch(`/api/profiles/${profileId}`, { 
+    const res = await fetch(`/api/profiles/${profileId}`, {
       method: "DELETE",
-      credentials: 'same-origin' // Include session cookie
+      credentials: "same-origin", // Include session cookie
     });
     if (!res.ok) throw new Error("Failed to delete profile");
   } catch (e) {
@@ -224,7 +224,7 @@ async function createNewProfile(name, file, selectedUrl) {
       console.error("No active session");
       return;
     }
-    
+
     const userId = session.userId;
     const fd = new FormData();
     fd.append("name", name);
@@ -237,7 +237,7 @@ async function createNewProfile(name, file, selectedUrl) {
     if (file) fd.append("avatar", file);
     const res = await fetch("/api/profiles/create", {
       method: "POST",
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to create profile");
@@ -253,7 +253,7 @@ async function updateProfileName(profileId, newName, imgEl, inputEl) {
     fd.append("name", newName);
     const res = await fetch(`/api/profiles/${profileId}`, {
       method: "PUT",
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to update name");
@@ -413,7 +413,7 @@ async function applyAvatarSelection() {
     }
     const res = await fetch(`/api/profiles/${targetProfileId}`, {
       method: "PUT",
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: fd,
     });
     if (!res.ok) throw new Error("Failed to update avatar");
@@ -429,50 +429,50 @@ async function saveProfile(input, img, profileDiv) {
   const profileId = profileDiv.getAttribute("profileid");
   const profileName = input.value;
   const profileImage = img.src;
-  
+
   try {
-    const response = await fetch('/api/user/select-profile', {
-      method: 'POST',
+    const response = await fetch("/api/user/select-profile", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: JSON.stringify({
         profileId: profileId,
         profileName: profileName,
-        profileImage: profileImage
-      })
+        profileImage: profileImage,
+      }),
     });
-    
+
     if (!response.ok) {
-      console.error('Failed to select profile');
+      console.error("Failed to select profile");
       return;
     }
-    
+
     // Profile selection stored in server session
     // Redirect to feed
     window.location.href = "feed";
   } catch (error) {
-    console.error('Error selecting profile:', error);
+    console.error("Error selecting profile:", error);
   }
 }
 
 async function loadProfiles() {
   const profilesContainer = document.querySelector(".profiles");
   showLoading(profilesContainer, "Loading profiles...");
-  
+
   const session = await getSession();
   if (!session || !session.userId) {
     profilesContainer.innerHTML =
       '<div class="text-secondary py-4">No user selected.</div>';
     return;
   }
-  
+
   const userId = session.userId;
 
   try {
     const res = await fetch(`/api/profiles/user/${userId}`, {
-      credentials: 'same-origin' // Include session cookie
+      credentials: "same-origin", // Include session cookie
     });
     if (!res.ok) {
       showError(profilesContainer, "Failed to load profiles.");

@@ -7,7 +7,7 @@ export function redirectIfAuth(req, res, next) {
       return res.redirect("/feed");
     }
     warn("Profile reqired to access for user", {
-          userId: req.session.userId
+      userId: req.session.userId,
     });
     return res.redirect("/profiles");
   }
@@ -18,7 +18,7 @@ export function redirectIfAuth(req, res, next) {
 export function requireAuthRedirect(req, res, next) {
   if (!req.session.userId) {
     warn("Authentication reqires to access", {
-          userId: req.session.userId
+      userId: req.session.userId,
     });
     return res.redirect("/login");
   }
@@ -29,13 +29,13 @@ export function requireAuthRedirect(req, res, next) {
 export function requireProfileRedirect(req, res, next) {
   if (!req.session.userId) {
     warn("Access reqires user", {
-          userId: req.session.userId
+      userId: req.session.userId,
     });
     return res.redirect("/login");
   }
   if (!req.session.selectedProfileId) {
     warn("Access reqires profile", {
-          userId: req.session.userId
+      userId: req.session.userId,
     });
     return res.redirect("/profiles");
   }

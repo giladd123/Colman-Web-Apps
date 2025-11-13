@@ -264,7 +264,7 @@
   }
 
   async function fetchSummary() {
-    const session = await getSession()
+    const session = await getSession();
     const userId = session?.userId;
     if (!userId) {
       showErrorState("Sign in to view statistics.");

@@ -45,13 +45,13 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  padding: 0 20px 5px; 
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 20%, transparent);
+  padding: 0 20px 5px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 20%, transparent);
   z-index: 15;
   opacity: 0;
   transition: opacity 0.25s ease-in-out;
   display: flex;
-  flex-direction: column-reverse; 
+  flex-direction: column-reverse;
 }
 
 .player-container:hover .custom-controls-container,
@@ -63,33 +63,33 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0; 
+  padding: 10px 0;
 }
 
-.controls-left, .controls-right {
+.controls-left,
+.controls-right {
   display: flex;
   align-items: center;
-  gap: 15px; 
+  gap: 15px;
 }
 
 .control-btn {
   background: none;
   border: none;
   color: white;
-  font-size: 1.25rem; 
+  font-size: 1.25rem;
   padding: 5px;
   cursor: pointer;
   line-height: 1;
   transition: transform 0.1s ease, color 0.1s ease;
 }
 .control-btn:hover {
-  color: #fff; 
-  transform: scale(1.15); 
+  color: #fff;
+  transform: scale(1.15);
 }
 #play-pause-btn {
-  font-size: 2rem; 
+  font-size: 2rem;
 }
-
 
 .time-display {
   color: #a0a0a0;
@@ -104,23 +104,27 @@ body {
 #progress-bar {
   width: 100%;
   cursor: pointer;
-  --progress-percent: 0%; 
+  --progress-percent: 0%;
 }
 
-input[type=range] {
+input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   background: transparent;
   cursor: pointer;
-  height: 14px; 
+  height: 14px;
 }
 
-input[type=range]::-webkit-slider-runnable-track {
-  background: linear-gradient(to right, #e50914 var(--progress-percent), rgba(255, 255, 255, 0.3) var(--progress-percent));
-  height: 3px; 
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #e50914 var(--progress-percent),
+    rgba(255, 255, 255, 0.3) var(--progress-percent)
+  );
+  height: 3px;
   border-radius: 2px;
 }
-input[type=range]::-webkit-slider-thumb {
+input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -4.5px;
@@ -128,31 +132,34 @@ input[type=range]::-webkit-slider-thumb {
   height: 12px;
   width: 12px;
   border-radius: 50%;
-  transform: scale(0); 
+  transform: scale(0);
   transition: transform 0.1s ease;
 }
-.progress-bar-container:hover input[type=range]::-webkit-slider-thumb {
+.progress-bar-container:hover input[type="range"]::-webkit-slider-thumb {
   transform: scale(1.25);
 }
-input[type=range]::-moz-range-track {
-  background: linear-gradient(to right, #e50914 var(--progress-percent), rgba(255, 255, 255, 0.3) var(--progress-percent));
+input[type="range"]::-moz-range-track {
+  background: linear-gradient(
+    to right,
+    #e50914 var(--progress-percent),
+    rgba(255, 255, 255, 0.3) var(--progress-percent)
+  );
   height: 3px;
   border-radius: 2px;
   border: none;
 }
-input[type=range]::-moz-range-thumb {
+input[type="range"]::-moz-range-thumb {
   border: none;
   border-radius: 50%;
   background-color: #e50914;
   height: 12px;
   width: 12px;
-  transform: scale(0); 
+  transform: scale(0);
   transition: transform 0.1s ease;
 }
-.progress-bar-container:hover input[type=range]::-moz-range-thumb {
+.progress-bar-container:hover input[type="range"]::-moz-range-thumb {
   transform: scale(1.25);
 }
-
 
 #episode-drawer-content .season-header {
   font-size: 1.2rem;
@@ -184,7 +191,7 @@ input[type=range]::-moz-range-thumb {
   border-radius: 4px;
 }
 #episode-drawer-content .episode-item-info {
-  flex: 1; 
+  flex: 1;
 }
 #episode-drawer-content .episode-item-title {
   font-weight: bold;

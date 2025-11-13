@@ -1,4 +1,3 @@
-
 // Admin page initialization script
 document.addEventListener("DOMContentLoaded", async function () {
   // Change navbar brand to NETFLIX ADMIN
@@ -10,18 +9,18 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   try {
     const session = await getSession();
-    
+
     if (!session || !session.isAuthenticated || !session.userId) {
       console.warn("No active session - redirecting to login");
-      window.location.href = '/login';
+      window.location.href = "/login";
       return;
     }
-    
+
     const userId = session.userId;
     const response = await fetch(`/api/user/${userId}`, {
-      credentials: 'same-origin' // Include session cookie
+      credentials: "same-origin", // Include session cookie
     });
-    
+
     if (response.ok) {
       const user = await response.json();
       const isAdmin = user.username === "admin" || user.isAdmin;
@@ -29,24 +28,23 @@ document.addEventListener("DOMContentLoaded", async function () {
       // If user is not admin, redirect to feed
       if (!isAdmin) {
         console.warn("Admin access required - redirecting to feed");
-        window.location.href = '/feed';
+        window.location.href = "/feed";
         return;
       }
     } else {
       console.warn("Failed to fetch user data");
-      window.location.href = '/login';
+      window.location.href = "/login";
       return;
     }
   } catch (error) {
     console.error("Error checking admin status:", error);
-    window.location.href = '/login';
+    window.location.href = "/login";
     return;
   }
 
-
   try {
     const session = await getSession();
-    
+
     if (session && session.isAuthenticated) {
       const profileName = session.selectedProfileName || "Admin";
 
@@ -58,9 +56,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const helloMessage = document.getElementById("helloMessage");
         const helloMessageMobile =
           document.getElementById("helloMessageMobile");
-        const greeting = profileName
-          ? `Hello, ${profileName}`
-          : "Hello";
+        const greeting = profileName ? `Hello, ${profileName}` : "Hello";
 
         if (helloMessage) {
           helloMessage.textContent = greeting;

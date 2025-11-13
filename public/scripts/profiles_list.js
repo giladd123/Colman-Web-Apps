@@ -41,32 +41,32 @@
 
   async function selectProfile(profile) {
     if (!profile) return;
-    
+
     const avatar = profile.avatar || profile.image || DEFAULT_AVATAR;
-    
+
     try {
       const response = await fetch(SELECT_PROFILE_ENDPOINT, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'same-origin', // Include session cookie
+        credentials: "same-origin", // Include session cookie
         body: JSON.stringify({
           profileId: profile._id || profile.id || "",
           profileName: profile.name || "Profile",
-          profileImage: avatar
-        })
+          profileImage: avatar,
+        }),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to select profile');
+        throw new Error("Failed to select profile");
       }
-      
+
       // Profile selection successful, redirect to feed
       window.location.href = "/feed";
     } catch (error) {
-      console.error('Error selecting profile:', error);
-      alert('Failed to select profile. Please try again.');
+      console.error("Error selecting profile:", error);
+      alert("Failed to select profile. Please try again.");
     }
   }
 
@@ -115,7 +115,6 @@
     }
   }
 
-  
   async function loadProfiles() {
     const grid = document.querySelector(selectors.grid);
     if (!grid) return;
@@ -136,10 +135,13 @@
     showLoading(grid);
 
     try {
-      const response = await fetch(`${PROFILES_ENDPOINT_BASE}${session.userId}`, {
-        credentials: 'same-origin' // Include session cookie
-      });
-      
+      const response = await fetch(
+        `${PROFILES_ENDPOINT_BASE}${session.userId}`,
+        {
+          credentials: "same-origin", // Include session cookie
+        }
+      );
+
       if (!response.ok) {
         throw new Error(`Failed to load profiles: ${response.status}`);
       }

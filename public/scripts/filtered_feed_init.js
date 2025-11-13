@@ -67,12 +67,12 @@
     try {
       // Get session from server instead of localStorage
       const session = await getSession();
-      
+
       if (!session || !session.isAuthenticated) {
         window.location.href = "/login";
         return;
       }
-      
+
       if (!session.selectedProfileId || !session.selectedProfileName) {
         window.location.href = "/profiles";
         return;

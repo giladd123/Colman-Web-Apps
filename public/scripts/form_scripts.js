@@ -2,13 +2,13 @@
 async function checkAdminAccess() {
   // Get session from server instead of localStorage
   const session = await getSession();
-  
+
   if (!session || !session.isAuthenticated || !session.userId) {
     alert("Please log in to access admin functions.");
     window.location.href = "/login";
     return false;
   }
-  
+
   const userId = session.userId;
 
   try {
@@ -214,7 +214,7 @@ async function checkShowExists(showTitle) {
   if (!showTitle.trim()) return false;
   try {
     const session = await getSession();
-    const userId = session?.userId || '';
+    const userId = session?.userId || "";
     const res = await fetch(
       `/admin/fetch-imdb?title=${encodeURIComponent(
         showTitle
@@ -440,7 +440,7 @@ imdbCheckbox.addEventListener("change", async () => {
 
   // Add userId to query from session
   const sessionData = await getSession();
-  const userId = sessionData?.userId || '';
+  const userId = sessionData?.userId || "";
   query += `&userId=${userId}`;
 
   try {
@@ -730,7 +730,6 @@ form.addEventListener("submit", async (e) => {
   // Copy genres to hidden fields
   copyGenresToHidden();
 
-
   // Save form data before submission
   saveFormData();
 
@@ -878,15 +877,15 @@ if (deleteBtn) {
         cancelBtn.disabled = true;
         confirmBtn.textContent = "Deleting...";
 
-      const sessionData = await getSession();
-      const userId = sessionData?.userId;
-      const response = await fetch(`/admin/delete/${contentId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId: userId }),
-      });
+        const sessionData = await getSession();
+        const userId = sessionData?.userId;
+        const response = await fetch(`/admin/delete/${contentId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: userId }),
+        });
 
         const result = await response.json();
 

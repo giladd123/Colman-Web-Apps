@@ -89,9 +89,9 @@ async function handleWatchlistClick(btn, movie) {
   // Get profile name from window.currentProfile (set during page init)
   const profileName = window.currentProfile?.name;
   if (!profileName) {
-    console.error('No profile name available');
-    alert('Session expired. Please log in again.');
-    window.location.href = '/login';
+    console.error("No profile name available");
+    alert("Session expired. Please log in again.");
+    window.location.href = "/login";
     return;
   }
 

@@ -87,7 +87,7 @@
   async function loadDefaultAvatars() {
     try {
       const response = await fetch(DEFAULT_AVATAR_API, {
-        credentials: 'same-origin', // Include session cookie
+        credentials: "same-origin", // Include session cookie
         headers: {
           Accept: "application/json",
         },
@@ -118,7 +118,7 @@
   async function ensureUserSession() {
     try {
       const session = await getSession();
-      
+
       if (!session || !session.isAuthenticated || !session.userId) {
         const card = elements.card;
         if (card) {
@@ -133,11 +133,11 @@
         }
         return false;
       }
-      
+
       state.userId = session.userId;
       return true;
     } catch (error) {
-      console.error('Error checking session:', error);
+      console.error("Error checking session:", error);
       return false;
     }
   }
@@ -524,7 +524,7 @@
 
     const response = await fetch("/api/profiles/create", {
       method: "POST",
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: fd,
     });
 
@@ -570,7 +570,7 @@
 
     const response = await fetch(`/api/profiles/${profileId}`, {
       method: "PUT",
-      credentials: 'same-origin', // Include session cookie
+      credentials: "same-origin", // Include session cookie
       body: fd,
     });
 
@@ -598,7 +598,7 @@
 
       const response = await fetch(`/api/profiles/${state.selectedProfileId}`, {
         method: "DELETE",
-        credentials: 'same-origin', // Include session cookie
+        credentials: "same-origin", // Include session cookie
       });
       if (!response.ok) {
         const text = await response.text();
@@ -633,7 +633,7 @@
 
     try {
       const response = await fetch(`/api/profiles/user/${state.userId}`, {
-        credentials: 'same-origin' // Include session cookie
+        credentials: "same-origin", // Include session cookie
       });
       if (!response.ok) {
         throw new Error("Failed to load profiles");

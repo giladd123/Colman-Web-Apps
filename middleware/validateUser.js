@@ -2,7 +2,6 @@ import User from "../models/user.js";
 import { badRequest, serverError } from "../utils/apiResponse.js";
 import { warn, info } from "../utils/logger.js";
 
-
 const usernamePattern = /^[A-Za-z0-9_.]{3,30}$/;
 const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 

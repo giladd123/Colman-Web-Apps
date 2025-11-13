@@ -29,7 +29,9 @@ export async function checkForDuplicates(
     const existingContent = await Content.findOne(baseQuery);
     return existingContent;
   } catch (error) {
-    logError(`Error checking for duplicates: ${error.message}`, { stack: error.stack });
+    logError(`Error checking for duplicates: ${error.message}`, {
+      stack: error.stack,
+    });
     return null;
   }
 }
