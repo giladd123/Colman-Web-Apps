@@ -1,6 +1,8 @@
 import Content from "../models/content.js";
 import Profile from "../models/profile.js";
 import watchingHabit from "../models/habit.js";
+import Episode from "../models/episode.js";
+import Show from "../models/show.js";
 import { ok, serverError } from "../utils/apiResponse.js";
 import { info, error as logError } from "../utils/logger.js";
 import mongoose from "mongoose";
@@ -26,8 +28,8 @@ export const getContentByGenre = async (req, res) => {
       page = 1,
       sortBy = "popularity",
       sortOrder = "desc",
-      filterWatched = "all", // 'all', 'watched', 'unwatched'
-      profileId = null, // Profile ID for filtering
+      filterWatched = "all",
+      profileId = null,
     } = req.query;
 
     const limit = parseInt(process.env.GENRE_CONTENT_LIMIT || 10);
@@ -78,9 +80,149 @@ export const getContentByGenre = async (req, res) => {
           profileId: validProfileId,
           completed: true,
         })
-        .select("contentId");
+        .select("contentId")
+        .lean();
 
-      const watchedIds = watchedHabits.map((h) => h.contentId);
+      const habitContentIds = watchedHabits
+        .map((h) => h.contentId)
+        .filter(Boolean);
+
+      const normalizedWatchedIdSet = new Set();
+
+      if (habitContentIds.length > 0) {
+        const habitContents = await Content.find({
+          _id: { $in: habitContentIds },
+        })
+          .select("type showId")
+          .lean();
+
+        const completedEpisodeIds = [];
+
+        habitContents.forEach((doc) => {
+          if (!doc) return;
+          if (doc.type === "Movie" || doc.type === "Show") {
+            normalizedWatchedIdSet.add(doc._id.toString());
+          } else if (doc.type === "Episode") {
+            completedEpisodeIds.push(doc._id);
+          }
+        });
+
+        if (completedEpisodeIds.length > 0) {
+          const episodeDocs = await Episode.find({
+            _id: { $in: completedEpisodeIds },
+          })
+            .select("_id showId")
+            .lean();
+
+          const completedEpisodeIdSet = new Set(
+            episodeDocs.map((ep) => ep._id.toString())
+          );
+
+          const showIdsToCheck = new Set();
+          const episodesMissingShow = [];
+
+          episodeDocs.forEach((ep) => {
+            if (!ep) return;
+            if (ep.showId && mongoose.Types.ObjectId.isValid(ep.showId)) {
+              showIdsToCheck.add(ep.showId.toString());
+            } else {
+              episodesMissingShow.push(ep._id.toString());
+            }
+          });
+
+          if (showIdsToCheck.size > 0) {
+            const showObjectIds = Array.from(showIdsToCheck).map(
+              (id) => new mongoose.Types.ObjectId(id)
+            );
+
+            // Identify the final episode for each show by ordering seasons and episodes
+            const lastEpisodes = await Episode.aggregate([
+              { $match: { showId: { $in: showObjectIds } } },
+              { $sort: { seasonNumber: -1, episodeNumber: -1, _id: -1 } },
+              {
+                $group: {
+                  _id: "$showId",
+                  lastEpisodeId: { $first: "$_id" },
+                },
+              },
+            ]);
+
+            lastEpisodes.forEach((doc) => {
+              if (!doc || !doc.lastEpisodeId) return;
+              const lastEpisodeIdStr = doc.lastEpisodeId.toString();
+              if (completedEpisodeIdSet.has(lastEpisodeIdStr)) {
+                normalizedWatchedIdSet.add(doc._id.toString());
+              }
+            });
+          }
+
+          if (episodesMissingShow.length > 0) {
+            const episodesMissingShowSet = new Set(episodesMissingShow);
+            const fallbackShows = await Show.find({})
+              .select("_id seasons")
+              .lean();
+
+            // Fallback for legacy data where episodes were stored without a showId reference
+            const getSeasonKeys = (seasons) => {
+              if (!seasons) return [];
+              if (typeof seasons.keys === "function") {
+                return Array.from(seasons.keys());
+              }
+              return Object.keys(seasons);
+            };
+
+            const getSeasonEpisodes = (seasons, key) => {
+              if (!seasons) return [];
+              if (typeof seasons.get === "function") {
+                return seasons.get(key) || [];
+              }
+              return seasons[key] || [];
+            };
+
+            fallbackShows.forEach((show) => {
+              if (!show) return;
+              const seasonKeys = getSeasonKeys(show.seasons);
+              if (!seasonKeys.length) return;
+
+              let containsMissingEpisode = false;
+              seasonKeys.forEach((key) => {
+                const episodes = getSeasonEpisodes(show.seasons, key);
+                episodes.forEach((epEntry) => {
+                  const episodeId = (epEntry && epEntry._id) || epEntry || null;
+                  if (!episodeId) return;
+                  if (episodesMissingShowSet.has(episodeId.toString())) {
+                    containsMissingEpisode = true;
+                  }
+                });
+              });
+
+              if (!containsMissingEpisode) return;
+
+              seasonKeys.sort((a, b) => Number(a) - Number(b));
+              const lastSeasonKey = seasonKeys[seasonKeys.length - 1];
+              const lastSeasonEpisodes = getSeasonEpisodes(
+                show.seasons,
+                lastSeasonKey
+              );
+              if (!lastSeasonEpisodes || !lastSeasonEpisodes.length) return;
+
+              const rawLastEpisode =
+                lastSeasonEpisodes[lastSeasonEpisodes.length - 1];
+              const lastEpisodeId =
+                (rawLastEpisode && rawLastEpisode._id) || rawLastEpisode;
+              if (!lastEpisodeId) return;
+
+              if (completedEpisodeIdSet.has(lastEpisodeId.toString())) {
+                normalizedWatchedIdSet.add(show._id.toString());
+              }
+            });
+          }
+        }
+      }
+
+      const watchedIds = Array.from(normalizedWatchedIdSet)
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id));
 
       // Log for debugging
       info(
